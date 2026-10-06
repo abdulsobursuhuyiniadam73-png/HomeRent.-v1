@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="HomeRent setup wizard"
+    >
+
+    <title>HomeRent — Setup</title>
+
+    <link
+        rel="stylesheet"
+        href="../../css/setup.css"
+    >
+</head>
+
+<body>
+
+<div class="setup-page">
+
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
+    <header class="setup-header">
+
+        <div class="setup-header-inner">
+
+            <!-- HomeRent Brand -->
+            <div class="setup-brand">
+
+                <div class="setup-logo">
+                    <span class="setup-logo-icon">⌂</span>
+                </div>
+
+                <div class="setup-brand-text">
+                    <strong>HomeRent</strong>
+                    <span>Property &amp; Storeroom Management</span>
+                </div>
+
+            </div>
+
+
+            <!-- Current Step -->
+            <div class="setup-step-indicator">
+
+                <span>Setup</span>
+
+                <span class="setup-step-divider">/</span>
+
+                <strong id="currentStepNumber">1</strong>
+
+                <span>of 4</span>
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         MAIN
+         ===================================================== -->
+    <main class="setup-main">
+
+        <div class="setup-layout">
+
+
+            <!-- =================================================
+                 LEFT INFORMATION PANEL
+                 ================================================= -->
+            <aside class="setup-sidebar">
+
+                <div class="sidebar-image">
+
+                    <!-- Building visual -->
+                    <div class="building-visual">
+
+                        <div class="building-sky"></div>
+
+                        <div class="building">
+                            <div class="building-roof"></div>
+
+                            <div class="building-floor">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+
+                            <div class="building-floor">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+
+                            <div class="building-floor">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+
+                        </div>
+
+                        <div class="building-ground"></div>
+
+                    </div>
+
+                    <div class="sidebar-image-overlay"></div>
+
+                    <div class="sidebar-image-content">
+
+                        <span class="sidebar-badge">
+                            HOMERENT
+                        </span>
+
+                        <h1>
+                            Manage your property
+                            with confidence.
+                        </h1>
+
+                        <p>
+                            Set up your business once and keep
+                            your rental and storeroom records
+                            organised in one secure place.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Sidebar information -->
+                <div class="sidebar-bottom">
+
+                    <div class="sidebar-feature">
+
+                        <div class="feature-icon">
+                            ✓
+                        </div>
+
+                        <div>
+                            <strong>Simple management</strong>
+
+                            <span>
+                                Keep rooms, payments and records organised.
+                            </span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="sidebar-feature">
+
+                        <div class="feature-icon">
+                            ✓
+                        </div>
+
+                        <div>
+                            <strong>Secure records</strong>
+
+                            <span>
+                                Your business information stays protected.
+                            </span>
+                        </div>
+
+                    </div>
+
+
+                    <div class="sidebar-security">
+
+                        <span class="security-dot"></span>
+
+                        <span>
+                            Secure setup environment
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </aside>
+
+
+            <!-- =================================================
+                 RIGHT WORKSPACE
+                 ================================================= -->
+            <section class="setup-workspace">
+
+
+                <!-- =================================================
+                     PROGRESS
+                     ================================================= -->
+                <nav
+                    class="setup-progress"
+                    aria-label="Setup progress"
+                >
+
+                    <!-- Step 1 -->
+                    <button
+                        type="button"
+                        class="progress-step active"
+                        data-step-button="1"
+                        aria-current="step"
+                    >
+
+                        <span class="progress-number">
+                            1
+                        </span>
+
+                        <span class="progress-label">
+                            Business
+                        </span>
+
+                    </button>
+
+
+                    <span class="progress-line"></span>
+
+
+                    <!-- Step 2 -->
+                    <button
+                        type="button"
+                        class="progress-step"
+                        data-step-button="2"
+                        disabled
+                    >
+
+                        <span class="progress-number">
+                            2
+                        </span>
+
+                        <span class="progress-label">
+                            Branding
+                        </span>
+
+                    </button>
+
+
+                    <span class="progress-line"></span>
+
+
+                    <!-- Step 3 -->
+                    <button
+                        type="button"
+                        class="progress-step"
+                        data-step-button="3"
+                        disabled
+                    >
+
+                        <span class="progress-number">
+                            3
+                        </span>
+
+                        <span class="progress-label">
+                            Rental Rules
+                        </span>
+
+                    </button>
+
+
+                    <span class="progress-line"></span>
+
+
+                    <!-- Step 4 -->
+                    <button
+                        type="button"
+                        class="progress-step"
+                        data-step-button="4"
+                        disabled
+                    >
+
+                        <span class="progress-number">
+                            4
+                        </span>
+
+                        <span class="progress-label">
+                            Receipts
+                        </span>
+
+                    </button>
+
+                </nav>
+
+
+                <!-- =================================================
+                     SETUP CARD
+                     ================================================= -->
+                <section class="setup-card">
+
+
+                    <!-- =================================================
+                         STEP 1 — BUSINESS INFORMATION
+                         ================================================= -->
+                    <div
+                        class="wizard-step"
+                        data-step="1"
+                    >
+
+                        <div class="step-heading">
+
+                            <span class="step-eyebrow">
+                                Step 01
+                            </span>
+
+                            <h2>
+                                Business Information
+                            </h2>
+
+                            <p>
+                                Tell HomeRent about the business
+                                you want to manage.
+                            </p>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+
+                            <!-- Business Name -->
+                            <div class="form-group">
+
+                                <label for="businessName">
+                                    Business Name
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="businessName"
+                                    name="businessName"
+                                    placeholder="e.g. Rental Management"
+                                    autocomplete="organization"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <!-- Business Email -->
+                            <div class="form-group">
+
+                                <label for="businessEmail">
+                                    Business Email
+                                </label>
+
+                                <input
+                                    type="email"
+                                    id="businessEmail"
+                                    name="businessEmail"
+                                    placeholder="name@example.com"
+                                    autocomplete="email"
+                                >
+
+                            </div>
+
+
+                            <!-- Phone -->
+                            <div class="form-group">
+
+                                <label for="businessPhone">
+                                    Phone Number
+                                </label>
+
+                                <input
+                                    type="tel"
+                                    id="businessPhone"
+                                    name="businessPhone"
+                                    placeholder="e.g. 024 000 0000"
+                                    autocomplete="tel"
+                                >
+
+                            </div>
+
+
+                            <!-- Business Type -->
+                            <div class="form-group">
+
+                                <label for="businessType">
+                                    Business Type
+                                </label>
+
+                                <select
+                                    id="businessType"
+                                    name="businessType"
+                                >
+
+                                    <option value="">
+                                        Select business type
+                                    </option>
+
+                                    <option value="Property Management">
+                                        Property Management
+                                    </option>
+
+                                    <option value="Rental Management">
+                                        Rental Management
+                                    </option>
+
+                                    <option value="Storeroom Management">
+                                        Storeroom Management
+                                    </option>
+
+                                    <option value="Property & Storeroom Management">
+                                        Property &amp; Storeroom Management
+                                    </option>
+
+                                    <option value="Other">
+                                        Other
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- Address -->
+                            <div class="form-group full-width">
+
+                                <label for="businessAddress">
+                                    Business Address
+                                </label>
+
+                                <textarea
+                                    id="businessAddress"
+                                    name="businessAddress"
+                                    placeholder="Enter your business or property address"
+                                    rows="3"
+                                ></textarea>
+
+                            </div>
+
+
+                            <!-- Currency -->
+                            <div class="form-group">
+
+                                <label for="currency">
+                                    Currency
+                                </label>
+
+                                <select
+                                    id="currency"
+                                    name="currency"
+                                >
+
+                                    <option value="GHS">
+                                        Ghana Cedi (GHS)
+                                    </option>
+
+                                    <option value="USD">
+                                        US Dollar (USD)
+                                    </option>
+
+                                    <option value="GBP">
+                                        British Pound (GBP)
+                                    </option>
+
+                                    <option value="EUR">
+                                        Euro (EUR)
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- Date Format -->
+                            <div class="form-group">
+
+                                <label for="dateFormat">
+                                    Date Format
+                                </label>
+
+                                <select
+                                    id="dateFormat"
+                                    name="dateFormat"
+                                >
+
+                                    <option value="DD/MM/YYYY">
+                                        DD/MM/YYYY
+                                    </option>
+
+                                    <option value="MM/DD/YYYY">
+                                        MM/DD/YYYY
+                                    </option>
+
+                                    <option value="YYYY-MM-DD">
+                                        YYYY-MM-DD
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         STEP 2 — BRANDING
+                         ================================================= -->
+                    <div
+                        class="wizard-step"
+                        data-step="2"
+                        hidden
+                    >
+
+                        <div class="step-heading">
+
+                            <span class="step-eyebrow">
+                                Step 02
+                            </span>
+
+                            <h2>
+                                Branding &amp; Appearance
+                            </h2>
+
+                            <p>
+                                Personalise HomeRent with your
+                                business identity and preferred appearance.
+                            </p>
+
+                        </div>
+
+
+                        <div class="branding-layout">
+
+
+                            <!-- Branding preview -->
+                            <div class="branding-preview">
+
+                                <div class="preview-header">
+
+                                    <span>
+                                        LIVE PREVIEW
+                                    </span>
+
+                                </div>
+
+                                <div class="preview-business">
+
+                                    <div class="preview-logo">
+                                        <span>⌂</span>
+                                    </div>
+
+                                    <div>
+                                        <strong>
+                                            HomeRent
+                                        </strong>
+
+                                        <span>
+                                            Property Management
+                                        </span>
+                                    </div>
+
+                                </div>
+
+                                <div class="preview-panel">
+
+                                    <span class="preview-small">
+                                        Dashboard
+                                    </span>
+
+                                    <strong>
+                                        Welcome back
+                                    </strong>
+
+                                    <div class="preview-bars">
+
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Branding controls -->
+                            <div class="form-grid branding-form">
+
+
+                                <!-- Logo -->
+                                <div class="form-group full-width">
+
+                                    <label for="logoUrl">
+                                        Logo URL
+                                    </label>
+
+                                    <input
+                                        type="url"
+                                        id="logoUrl"
+                                        name="logoUrl"
+                                        placeholder="https://example.com/logo.png"
+                                    >
+
+                                    <p class="help-text">
+                                        Add a logo URL if your business already has a hosted logo.
+                                    </p>
+
+                                </div>
+
+
+                                <!-- Primary -->
+                                <div class="form-group">
+
+                                    <label for="primaryColor">
+                                        Primary Color
+                                    </label>
+
+                                    <input
+                                        type="color"
+                                        id="primaryColor"
+                                        name="primaryColor"
+                                        value="#087fdf"
+                                    >
+
+                                </div>
+
+
+                                <!-- Accent -->
+                                <div class="form-group">
+
+                                    <label for="accentColor">
+                                        Accent Color
+                                    </label>
+
+                                    <input
+                                        type="color"
+                                        id="accentColor"
+                                        name="accentColor"
+                                        value="#d9a441"
+                                    >
+
+                                </div>
+
+
+                                <!-- Theme -->
+                                <div class="form-group full-width">
+
+                                    <label for="theme">
+                                        Appearance
+                                    </label>
+
+                                    <select
+                                        id="theme"
+                                        name="theme"
+                                    >
+
+                                        <option value="light">
+                                            Light
+                                        </option>
+
+                                        <option value="dark">
+                                            Dark
+                                        </option>
+
+                                        <option value="system">
+                                            System Default
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         STEP 3 — RENTAL RULES
+                         ================================================= -->
+                    <div
+                        class="wizard-step"
+                        data-step="3"
+                        hidden
+                    >
+
+                        <div class="step-heading">
+
+                            <span class="step-eyebrow">
+                                Step 03
+                            </span>
+
+                            <h2>
+                                Rental Rules
+                            </h2>
+
+                            <p>
+                                Set the default rules HomeRent will
+                                use when managing rental records.
+                            </p>
+
+                        </div>
+
+
+                        <div class="rules-layout">
+
+
+                            <div class="rules-intro">
+
+                                <div class="rules-icon">
+                                    ⚙
+                                </div>
+
+                                <h3>
+                                    Default rental settings
+                                </h3>
+
+                                <p>
+                                    These settings can be adjusted later
+                                    from your HomeRent settings.
+                                </p>
+
+                            </div>
+
+
+                            <div class="form-grid">
+
+
+                                <!-- Duration -->
+                                <div class="form-group">
+
+                                    <label for="defaultRentalDuration">
+                                        Default Rental Duration
+                                    </label>
+
+                                    <select
+                                        id="defaultRentalDuration"
+                                        name="defaultRentalDuration"
+                                    >
+
+                                        <option value="monthly">
+                                            Monthly
+                                        </option>
+
+                                        <option value="weekly">
+                                            Weekly
+                                        </option>
+
+                                        <option value="daily">
+                                            Daily
+                                        </option>
+
+                                        <option value="yearly">
+                                            Yearly
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+                                <!-- Grace -->
+                                <div class="form-group">
+
+                                    <label for="gracePeriodDays">
+                                        Grace Period
+                                    </label>
+
+                                    <div class="input-with-suffix">
+
+                                        <input
+                                            type="number"
+                                            id="gracePeriodDays"
+                                            name="gracePeriodDays"
+                                            min="0"
+                                            max="365"
+                                            value="3"
+                                        >
+
+                                        <span class="suffix">
+                                            days
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- Reminder -->
+                                <div class="form-group">
+
+                                    <label for="reminderDaysBeforeDue">
+                                        Reminder Before Due
+                                    </label>
+
+                                    <div class="input-with-suffix">
+
+                                        <input
+                                            type="number"
+                                            id="reminderDaysBeforeDue"
+                                            name="reminderDaysBeforeDue"
+                                            min="0"
+                                            max="365"
+                                            value="7"
+                                        >
+
+                                        <span class="suffix">
+                                            days
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         STEP 4 — RECEIPTS
+                         ================================================= -->
+                    <div
+                        class="wizard-step"
+                        data-step="4"
+                        hidden
+                    >
+
+                        <div class="step-heading">
+
+                            <span class="step-eyebrow">
+                                Step 04
+                            </span>
+
+                            <h2>
+                                Receipts &amp; Documents
+                            </h2>
+
+                            <p>
+                                Configure how payment receipts and
+                                documents should appear in HomeRent.
+                            </p>
+
+                        </div>
+
+
+                        <div class="receipt-layout">
+
+
+                            <!-- Receipt preview -->
+                            <div class="receipt-preview">
+
+                                <div class="receipt-preview-top">
+
+                                    <span class="receipt-preview-title">
+                                        RECEIPT PREVIEW
+                                    </span>
+
+                                    <span class="receipt-status">
+                                        Sample
+                                    </span>
+
+                                </div>
+
+
+                                <div class="receipt-paper">
+
+                                    <div class="receipt-brand">
+
+                                        <div class="receipt-mini-logo">
+                                            ⌂
+                                        </div>
+
+                                        <div>
+                                            <strong>
+                                                HomeRent
+                                            </strong>
+
+                                            <span>
+                                                Payment Receipt
+                                            </span>
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="receipt-divider"></div>
+
+
+                                    <div class="receipt-line">
+
+                                        <span>
+                                            Receipt No.
+                                        </span>
+
+                                        <strong>
+                                            HR-0001
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="receipt-line">
+
+                                        <span>
+                                            Date
+                                        </span>
+
+                                        <strong>
+                                            01/01/2026
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div class="receipt-divider"></div>
+
+
+                                    <div class="receipt-total">
+
+                                        <span>
+                                            Amount Paid
+                                        </span>
+
+                                        <strong>
+                                            GHS 0.00
+                                        </strong>
+
+                                    </div>
+
+
+                                    <!-- IMPORTANT:
+                                         Footer has its own visual area
+                                         and spacing -->
+                                    <div class="receipt-footer-preview">
+
+                                        <span class="receipt-footer-label">
+                                            Receipt Footer
+                                        </span>
+
+                                        <p>
+                                            Thank you for your business
+                                        </p>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- Receipt controls -->
+                            <div class="form-grid receipt-form">
+
+
+                                <!-- Prefix -->
+                                <div class="form-group">
+
+                                    <label for="receiptPrefix">
+                                        Receipt Prefix
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="receiptPrefix"
+                                        name="receiptPrefix"
+                                        placeholder="HR-"
+                                        value="HR-"
+                                    >
+
+                                    <p class="help-text">
+                                        Example: HR-0001
+                                    </p>
+
+                                </div>
+
+
+                                <!-- Footer -->
+                                <div class="form-group full-width">
+
+                                    <label for="receiptFooter">
+                                        Receipt Footer
+                                    </label>
+
+                                    <textarea
+                                        id="receiptFooter"
+                                        name="receiptFooter"
+                                        placeholder="Thank you for your business"
+                                        rows="4"
+                                    >Thank you for your business</textarea>
+
+                                    <p class="help-text">
+                                        This message will appear at the bottom of your payment receipts.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         REVIEW
+                         ================================================= -->
+                    <section
+                        id="setupReview"
+                        class="setup-review"
+                        hidden
+                    >
+
+      
+
+
+                        <div
+                            id="reviewContent"
+                            class="review-content"
+                        >
+
+                            <!--
+                                setup.js will populate this section.
+                                The CSS will display each field as:
+
+                                Field Name        Entered Value
+
+                                with clear spacing.
+                            -->
+
+                        </div>
+
+                    </section>
+
+
+                    <!-- =================================================
+                         MESSAGE
+                         ================================================= -->
+                    <div
+                        id="setupMessage"
+                        class="setup-message"
+                        hidden
+                        role="status"
+                        aria-live="polite"
+                    ></div>
+
+
+                    <!-- =================================================
+                         ACTIONS
+                         ================================================= -->
+                    <div class="setup-actions">
+
+                        <button
+                            type="button"
+                            id="previousButton"
+                            class="button secondary"
+                            hidden
+                        >
+                            ← Previous
+                        </button>
+
+
+                        <div class="actions-spacer"></div>
+
+
+                        <button
+                            type="button"
+                            id="continueButton"
+                            class="button primary"
+                        >
+                            Continue →
+                        </button>
+
+
+                        <button
+                            type="button"
+                            id="saveSetupButton"
+                            class="button primary"
+                            hidden
+                        >
+
+                            <span id="saveSetupButtonText">
+                                Finish Setup
+                            </span>
+
+                            <span
+                                id="saveSetupSpinner"
+                                class="spinner"
+                                hidden
+                                aria-hidden="true"
+                            ></span>
+
+                        </button>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
+    <footer class="setup-footer">
+
+        <div class="footer-left">
+
+            <span>
+                © <span data-setting="year">2026</span>
+                HomeRent
+            </span>
+
+            <span class="footer-dot">•</span>
+
+            <span>
+                Property &amp; Storeroom Management
+            </span>
+
+        </div>
+
+
+        <div class="footer-right">
+
+            <span>
+                Need help?
+            </span>
+
+            <span data-setting="businessPhone">
+                Contact your administrator
+            </span>
+
+        </div>
+
+    </footer>
+
+</div>
+
+
+<!-- =========================================================
+     SCRIPTS
+     ========================================================= -->
+
+<script
+    type="module"
+    src="../../js/setup/setup.js"
+></script>
+
+<script
+    type="module"
+    src="../../js/core/branding.js"
+></script>
+
+</body>
+</html>

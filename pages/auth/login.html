@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="HomeRent property and storeroom management system"
+    >
+
+    <!--
+        ========================================================
+        PAGE TITLE
+        ========================================================
+
+        branding.js will update this automatically using the
+        administrator's saved business/system name.
+
+        Default:
+        HomeRent — Sign In
+        ========================================================
+    -->
+    <title>HomeRent — Sign In</title>
+
+
+    <!-- ========================================================
+         HOME RENT AUTHENTICATION STYLES
+         ======================================================== -->
+
+    <link
+        rel="stylesheet"
+        href="../../css/auth.css"
+    >
+
+</head>
+
+
+<body>
+
+
+<!-- ============================================================
+     LOGIN PAGE
+     ============================================================ -->
+
+<main class="login-page">
+
+
+    <!-- ========================================================
+         LOGIN CARD
+         ======================================================== -->
+
+    <section
+        class="login-card"
+        aria-labelledby="loginTitle"
+    >
+
+
+        <!-- ====================================================
+             SYSTEM LOGO
+             ====================================================
+
+             DEFAULT:
+             RM placeholder
+
+             CURRENT CUSTOM LOGO:
+             Uses administrator's logo URL.
+
+             FUTURE:
+             Firebase Storage can replace the URL source inside
+             branding.js without redesigning this page.
+
+             DO NOT put a permanent logo URL directly here.
+             ==================================================== -->
+
+        <div
+            class="logo-wrapper"
+            data-logo-container
+        >
+
+            <!-- ----------------------------------------------
+                 DEFAULT LOGO
+
+                 Shown when administrator has not configured
+                 a custom logo.
+                 ---------------------------------------------- -->
+
+            <div
+                class="logo-placeholder"
+                data-default-logo
+                aria-hidden="true"
+            >
+                RM
+            </div>
+
+
+            <!-- ----------------------------------------------
+                 ADMINISTRATOR LOGO
+
+                 branding.js will insert the saved logoUrl here.
+                 ---------------------------------------------- -->
+
+            <img
+                class="system-logo"
+                data-system-logo
+                alt="HomeRent logo"
+                hidden
+            >
+
+        </div>
+
+
+        <!-- ====================================================
+             LOGIN INTRODUCTION
+             ==================================================== -->
+
+        <div class="login-heading">
+
+
+            <!--
+                =================================================
+                LOGIN TITLE
+
+                This remains a fixed action/message.
+
+                The business name is handled separately below.
+                =================================================
+            -->
+
+            <h1 id="loginTitle">
+                Welcome back
+            </h1>
+
+
+            <!--
+                =================================================
+                BUSINESS / SYSTEM NAME
+
+                branding.js automatically replaces this with:
+
+                settings.businessName
+
+                Example:
+
+                HomeRent
+                ABC Properties
+                Desmond Rental Services
+
+                If the administrator hasn't changed it,
+                the default is HomeRent.
+                =================================================
+            -->
+
+            <p
+                id="loginSubtitle"
+                data-setting="businessName"
+            >
+                HomeRent
+            </p>
+
+        </div>
+
+
+        <!-- ====================================================
+             LOGIN FORM
+             ==================================================== -->
+
+        <form
+            id="loginForm"
+            class="login-form"
+            novalidate
+        >
+
+
+            <!-- ==================================================
+                 EMAIL
+                 ================================================== -->
+
+            <div class="form-group">
+
+                <label for="email">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="name@company.com"
+                    autocomplete="username"
+                    required
+                >
+
+            </div>
+
+
+            <!-- ==================================================
+                 PASSWORD
+                 ================================================== -->
+
+            <div class="form-group">
+
+                <label for="password">
+                    Password
+                </label>
+
+
+                <div class="password-wrapper">
+
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+
+                    <!--
+                        Show / hide password.
+
+                        Functionality:
+                        js/auth/login.js
+                    -->
+
+                    <button
+                        type="button"
+                        id="togglePassword"
+                        class="password-toggle"
+                        aria-label="Show password"
+                    >
+                        Show
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 LOGIN ERROR / STATUS MESSAGE
+                 ================================================== -->
+
+            <div
+                id="loginMessage"
+                class="login-message"
+                role="alert"
+                aria-live="polite"
+                hidden
+            ></div>
+
+
+            <!-- ==================================================
+                 SIGN IN BUTTON
+                 ================================================== -->
+
+            <button
+                type="submit"
+                id="loginButton"
+                class="login-button"
+            >
+
+                <span id="loginButtonText">
+                    Sign in
+                </span>
+
+
+                <!-- Loading indicator -->
+
+                <span
+                    id="loginSpinner"
+                    class="button-spinner"
+                    hidden
+                    aria-hidden="true"
+                ></span>
+
+            </button>
+
+
+            <!-- ==================================================
+                 FORGOT PASSWORD
+                 ================================================== -->
+
+            <button
+                type="button"
+                id="forgotPasswordButton"
+                class="forgot-password"
+            >
+                Forgot password?
+            </button>
+
+        </form>
+
+
+        <!-- ====================================================
+             ADMIN ACCESS STATUS
+             ====================================================
+
+             HomeRent has one administrator account.
+
+             There is intentionally NO:
+
+             • Sign Up
+             • Create Account
+             • Register button
+             ==================================================== -->
+
+        <div class="account-status">
+
+            <span
+                class="status-dot"
+                aria-hidden="true"
+            ></span>
+
+            <span>
+                Administrator access only
+            </span>
+
+        </div>
+
+
+    </section>
+
+
+    <!-- ========================================================
+         GLOBAL FOOTER
+         ========================================================
+
+         All values below are controlled by branding.js.
+
+         DEFAULTS come from:
+         js/core/settings.js
+
+         ADMIN SETTINGS come from:
+         Firestore → settings → business
+
+         ======================================================== -->
+
+    <footer class="login-footer">
+
+
+        <!-- ====================================================
+             COPYRIGHT
+             ==================================================== -->
+
+        <p id="footerCopyright">
+
+            ©
+            <span data-setting="copyrightYear">
+                2026
+            </span>
+
+            <span data-setting="businessName">
+                HomeRent
+            </span>.
+
+            All rights reserved.
+
+        </p>
+
+
+        <!-- ====================================================
+             SYSTEM FOOTER DESCRIPTION
+             ==================================================== -->
+
+        <p
+            id="footerSystemText"
+            data-setting="footerText"
+        >
+            Secure Property &amp; Storeroom Management
+        </p>
+
+
+        
+
+<!-- ====================================================
+     OPTIONAL BUSINESS CONTACT
+     ====================================================
+
+     Display rules:
+
+     Phone + Email → Phone • Email
+     Phone only    → Phone
+     Email only    → Email
+     Neither       → Entire line hidden
+
+     branding.js controls this automatically.
+     ==================================================== -->
+
+<p
+    id="footerBusinessContact"
+    class="footer-business-contact"
+    hidden
+>
+    <span
+        id="footerPhone"
+        data-setting="businessPhone"
+    ></span>
+
+    <span
+        id="footerContactSeparator"
+        class="footer-contact-separator"
+        aria-hidden="true"
+        hidden
+    >
+        •
+    </span>
+
+    <span
+        id="footerEmail"
+        data-setting="businessEmail"
+    ></span>
+</p>
+
+
+    </footer>
+
+
+</main>
+
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+
+
+<!--
+    Firebase authentication / login behaviour
+-->
+<script
+    type="module"
+    src="../../js/auth/login.js"
+></script>
+
+
+<!--
+    Global branding / settings
+
+    Handles:
+    • Logo
+    • Business name
+    • Colors
+    • Footer
+    • Copyright
+    • Page title
+-->
+<script
+    type="module"
+    src="../../js/core/branding.js"
+></script>
+
+
+</body>
+</html>

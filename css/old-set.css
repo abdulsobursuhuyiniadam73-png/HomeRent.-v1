@@ -1,0 +1,1635 @@
+/* ============================================================
+   HOMERENT - SETUP WIZARD STYLES
+   ============================================================
+
+   PURPOSE
+   -------
+   Visual styling for the initial HomeRent setup wizard.
+
+   IMPORTANT
+   ----------
+   • No Firebase logic belongs here.
+   • No settings logic belongs here.
+   • JavaScript controls wizard behaviour.
+   • CSS controls appearance and responsiveness.
+   • Keep visibility controlled with the HTML [hidden]
+     attribute and JavaScript.
+
+   RESPONSIVE TARGETS
+   ------------------
+   • Desktop
+   • Laptop
+   • Tablet
+   • Small mobile screens
+
+   MAINTENANCE
+   -----------
+   Major sections are clearly marked so future changes
+   can be located without redesigning the whole file.
+
+   ============================================================ */
+
+
+/* ============================================================
+   1. GLOBAL VARIABLES
+   ============================================================ */
+
+:root {
+
+    --primary-color: #087fdf;
+
+    --accent-color: #d9a441;
+
+    --text-primary: #172033;
+
+    --text-secondary: #667085;
+
+    --text-muted: #98a2b3;
+
+    --background-color: #f5f7fa;
+
+    --surface-color: #ffffff;
+
+    --border-color: #e4e7ec;
+
+    --success-color: #12b76a;
+
+    --error-color: #d92d20;
+
+    --warning-color: #f79009;
+
+    --radius-small: 8px;
+
+    --radius-medium: 12px;
+
+    --radius-large: 18px;
+
+    --shadow-card:
+        0 12px 35px rgba(16, 24, 40, 0.08);
+
+    --transition-fast:
+        0.18s ease;
+
+    --transition-normal:
+        0.25s ease;
+
+    --content-width: 1050px;
+}
+
+
+/* ============================================================
+   2. RESET
+   ============================================================ */
+
+* {
+    box-sizing: border-box;
+}
+
+
+html {
+    min-height: 100%;
+}
+
+
+body {
+
+    margin: 0;
+
+    min-height: 100vh;
+
+    font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    color: var(--text-primary);
+
+    background:
+        var(--background-color);
+
+    -webkit-font-smoothing: antialiased;
+}
+
+
+/* ============================================================
+   2A. GLOBAL HIDDEN ELEMENT PROTECTION
+   ============================================================
+
+   IMPORTANT
+   ----------
+   The HTML [hidden] attribute is used throughout the wizard.
+
+   Examples:
+   • Previous button
+   • Continue button
+   • Finish Setup button
+   • Wizard steps
+   • Review section
+   • Spinner
+   • Optional messages
+
+   Some components use display:flex or display:inline-flex.
+   Without this rule, those display declarations can override
+   the browser's normal [hidden] behaviour.
+
+   JavaScript controls WHEN an element is visible.
+   CSS controls HOW a visible element looks.
+
+   DO NOT REMOVE unless the visibility architecture is changed.
+   ============================================================ */
+
+[hidden] {
+    display: none !important;
+}
+
+
+/* ============================================================
+   3. BUTTON / FORM INHERIT
+   ============================================================ */
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+
+button {
+    cursor: pointer;
+}
+
+
+/* ============================================================
+   4. SETUP PAGE
+   ============================================================ */
+
+.setup-page {
+
+    min-height: 100vh;
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+
+/* ============================================================
+   5. HEADER
+   ============================================================ */
+
+.setup-header {
+
+    min-height: 76px;
+
+    width: 100%;
+
+    padding:
+        14px
+        32px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 24px;
+
+    background:
+        var(--surface-color);
+
+    border-bottom:
+        1px solid var(--border-color);
+}
+
+
+/* ============================================================
+   6. BRAND
+   ============================================================ */
+
+.setup-brand {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    min-width: 0;
+}
+
+
+.setup-logo {
+
+    width: 44px;
+
+    height: 44px;
+
+    flex: 0 0 44px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 11px;
+
+    background:
+        var(--primary-color);
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    font-weight: 800;
+}
+
+
+.setup-logo .logo-placeholder {
+
+    width: 100%;
+
+    height: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+
+.setup-logo .system-logo {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: contain;
+
+    background: #ffffff;
+}
+
+
+.setup-brand-text {
+
+    display: flex;
+
+    flex-direction: column;
+
+    min-width: 0;
+}
+
+
+.setup-brand-text strong {
+
+    font-size: 16px;
+
+    line-height: 1.25;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+
+.setup-brand-text span {
+
+    margin-top: 2px;
+
+    color: var(--text-secondary);
+
+    font-size: 12px;
+}
+
+
+/* ============================================================
+   7. STEP INDICATOR
+   ============================================================ */
+
+.setup-step-indicator {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    color: var(--text-secondary);
+
+    font-size: 13px;
+
+    white-space: nowrap;
+}
+
+
+.setup-step-indicator strong {
+
+    color: var(--text-primary);
+
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   8. MAIN CONTENT
+   ============================================================ */
+
+.setup-container {
+
+    width: 100%;
+
+    max-width: var(--content-width);
+
+    margin: 0 auto;
+
+    padding:
+        36px
+        24px
+        50px;
+
+    flex: 1;
+}
+
+
+/* ============================================================
+   9. PROGRESS NAVIGATION
+   ============================================================ */
+
+.setup-progress {
+
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    margin-bottom: 24px;
+}
+
+
+.progress-step {
+
+    border: 0;
+
+    padding: 0;
+
+    background: transparent;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    color: var(--text-muted);
+
+    cursor: default;
+}
+
+
+.progress-number {
+
+    width: 30px;
+
+    height: 30px;
+
+    flex: 0 0 30px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border:
+        1px solid var(--border-color);
+
+    border-radius: 50%;
+
+    background: var(--surface-color);
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+
+/* Progress label */
+
+.progress-label {
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+
+/* Active step */
+
+.progress-step.active {
+
+    color: var(--primary-color);
+}
+
+
+.progress-step.active .progress-number {
+
+    color: #ffffff;
+
+    background: var(--primary-color);
+
+    border-color: var(--primary-color);
+}
+
+
+/* Completed step */
+
+.progress-step.completed {
+
+    color: var(--text-primary);
+
+    cursor: pointer;
+}
+
+
+.progress-step.completed .progress-number {
+
+    color: #ffffff;
+
+    background: var(--success-color);
+
+    border-color: var(--success-color);
+}
+
+
+/* Progress line */
+
+.progress-line {
+
+    height: 1px;
+
+    flex: 1;
+
+    min-width: 20px;
+
+    margin:
+        0
+        12px;
+
+    background: var(--border-color);
+}
+
+
+/* ============================================================
+   10. MAIN CARD
+   ============================================================ */
+
+.setup-card {
+
+    width: 100%;
+
+    background:
+        var(--surface-color);
+
+    border:
+        1px solid var(--border-color);
+
+    border-radius:
+        var(--radius-large);
+
+    box-shadow:
+        var(--shadow-card);
+
+    overflow: hidden;
+}
+
+
+/* ============================================================
+   11. WIZARD STEP
+   ============================================================ */
+
+.wizard-step {
+
+    padding:
+        38px
+        42px
+        34px;
+}
+
+
+/*
+   Explicit visibility protection.
+
+   The global [hidden] rule above handles this already,
+   but these selectors document the intended behaviour of
+   the wizard and provide an extra layer of readability.
+*/
+
+.wizard-step[hidden],
+.setup-review[hidden] {
+
+    display: none !important;
+}
+
+
+/* ============================================================
+   12. STEP HEADING
+   ============================================================ */
+
+.step-heading {
+
+    max-width: 720px;
+
+    margin-bottom: 30px;
+}
+
+
+.step-eyebrow {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: var(--primary-color);
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.08em;
+}
+
+
+.step-heading h1 {
+
+    margin:
+        0
+        0
+        8px;
+
+    color: var(--text-primary);
+
+    font-size: 28px;
+
+    line-height: 1.25;
+
+    letter-spacing: -0.02em;
+}
+
+
+.step-heading p {
+
+    margin: 0;
+
+    color: var(--text-secondary);
+
+    font-size: 14px;
+
+    line-height: 1.65;
+}
+
+
+/* ============================================================
+   13. FORM GRID
+   ============================================================ */
+
+.form-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap:
+        22px
+        20px;
+}
+
+
+.form-group {
+
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+
+.form-group.full-width {
+
+    grid-column:
+        1 / -1;
+}
+
+
+/* ============================================================
+   14. FORM LABEL
+   ============================================================ */
+
+.form-group label {
+
+    margin-bottom: 8px;
+
+    color: var(--text-primary);
+
+    font-size: 13px;
+
+    font-weight: 650;
+}
+
+
+.required {
+
+    color: var(--error-color);
+
+    margin-left: 2px;
+}
+
+
+/* ============================================================
+   15. INPUTS
+   ============================================================ */
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+
+    width: 100%;
+
+    border:
+        1px solid var(--border-color);
+
+    border-radius:
+        var(--radius-small);
+
+    outline: none;
+
+    background:
+        var(--surface-color);
+
+    color:
+        var(--text-primary);
+
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+
+.form-group input,
+.form-group select {
+
+    min-height: 46px;
+
+    padding:
+        0
+        13px;
+}
+
+
+.form-group textarea {
+
+    min-height: 96px;
+
+    padding:
+        12px
+        13px;
+
+    resize: vertical;
+
+    line-height: 1.5;
+}
+
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+
+    color: var(--text-muted);
+}
+
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+
+    border-color:
+        var(--primary-color);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(8, 127, 223, 0.10);
+}
+
+
+/* ============================================================
+   16. COLOR INPUTS
+   ============================================================ */
+
+input[type="color"] {
+
+    width: 100%;
+
+    height: 46px;
+
+    padding: 4px;
+
+    cursor: pointer;
+}
+
+
+/* ============================================================
+   17. FORM HELP TEXT
+   ============================================================ */
+
+.form-group small {
+
+    margin-top: 6px;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+
+    line-height: 1.5;
+}
+
+
+/* ============================================================
+   18. INPUT WITH SUFFIX
+   ============================================================ */
+
+.input-with-suffix {
+
+    display: flex;
+
+    align-items: stretch;
+
+    overflow: hidden;
+
+    border:
+        1px solid var(--border-color);
+
+    border-radius:
+        var(--radius-small);
+
+    background:
+        var(--surface-color);
+
+    transition:
+        border-color var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+
+.input-with-suffix:focus-within {
+
+    border-color:
+        var(--primary-color);
+
+    box-shadow:
+        0 0 0 3px
+        rgba(8, 127, 223, 0.10);
+}
+
+
+.input-with-suffix input {
+
+    min-width: 0;
+
+    flex: 1;
+
+    border: 0;
+
+    border-radius: 0;
+
+    box-shadow: none !important;
+}
+
+
+.input-with-suffix span {
+
+    display: flex;
+
+    align-items: center;
+
+    padding:
+        0
+        13px;
+
+    border-left:
+        1px solid var(--border-color);
+
+    color: var(--text-secondary);
+
+    background:
+        #f8fafc;
+
+    font-size: 12px;
+
+    white-space: nowrap;
+}
+
+
+/* ============================================================
+   19. REVIEW
+   ============================================================ */
+
+.setup-review {
+
+    padding:
+        38px
+        42px
+        34px;
+}
+
+
+.review-content {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 14px;
+}
+
+
+.review-section {
+
+    padding: 18px;
+
+    border:
+        1px solid var(--border-color);
+
+    border-radius:
+        var(--radius-medium);
+
+    background:
+        #fbfcfe;
+}
+
+
+.review-section.full-width {
+
+    grid-column:
+        1 / -1;
+}
+
+
+.review-section h3 {
+
+    margin:
+        0
+        0
+        12px;
+
+    font-size: 14px;
+}
+
+
+.review-row {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding:
+        8px
+        0;
+
+    border-bottom:
+        1px solid #eef1f5;
+}
+
+
+.review-row:last-child {
+
+    border-bottom: 0;
+}
+
+
+.review-label {
+
+    color: var(--text-secondary);
+
+    font-size: 12px;
+}
+
+
+.review-value {
+
+    color: var(--text-primary);
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    text-align: right;
+
+    word-break: break-word;
+}
+
+
+/* ============================================================
+   20. MESSAGE
+   ============================================================ */
+
+.setup-message {
+
+    margin:
+        0
+        38px;
+
+    padding:
+        12px
+        14px;
+
+    border-radius:
+        var(--radius-small);
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+.setup-message[data-type="error"] {
+
+    color:
+        #b42318;
+
+    background:
+        #fef3f2;
+
+    border:
+        1px solid #fecdca;
+}
+
+
+.setup-message[data-type="success"] {
+
+    color:
+        #027a48;
+
+    background:
+        #ecfdf3;
+
+    border:
+        1px solid #abefc6;
+}
+
+
+.setup-message[data-type="warning"] {
+
+    color:
+        #b54708;
+
+    background:
+        #fffaeb;
+
+    border:
+        1px solid #fedf89;
+}
+
+
+/* ============================================================
+   21. ACTION BAR
+   ============================================================ */
+
+.setup-actions {
+
+    min-height: 76px;
+
+    padding:
+        16px
+        38px;
+
+    display: flex;
+
+    align-items: center;
+
+    border-top:
+        1px solid var(--border-color);
+
+    background:
+        #fcfcfd;
+}
+
+
+.actions-spacer {
+
+    flex: 1;
+}
+
+
+/* ============================================================
+   22. BUTTONS
+   ============================================================ */
+
+.button {
+
+    min-height: 44px;
+
+    padding:
+        0
+        18px;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    border:
+        1px solid transparent;
+
+    border-radius:
+        var(--radius-small);
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+}
+
+
+.button:active {
+
+    transform:
+        translateY(1px);
+}
+
+
+.button:disabled {
+
+    cursor: not-allowed;
+
+    opacity: 0.6;
+}
+
+
+.button.primary {
+
+    color: #ffffff;
+
+    background:
+        var(--primary-color);
+
+    border-color:
+        var(--primary-color);
+}
+
+
+.button.primary:hover:not(:disabled) {
+
+    filter: brightness(0.94);
+
+    box-shadow:
+        0 5px 14px
+        rgba(8, 127, 223, 0.18);
+}
+
+
+.button.secondary {
+
+    color: var(--text-primary);
+
+    background:
+        var(--surface-color);
+
+    border-color:
+        var(--border-color);
+}
+
+
+.button.secondary:hover:not(:disabled) {
+
+    background:
+        #f8fafc;
+}
+
+
+/* ============================================================
+   23. BUTTON SPINNER
+   ============================================================ */
+
+.button-spinner {
+
+    width: 15px;
+
+    height: 15px;
+
+    border:
+        2px solid rgba(255, 255, 255, 0.45);
+
+    border-top-color:
+        #ffffff;
+
+    border-radius: 50%;
+
+    animation:
+        setupSpinner 0.7s linear infinite;
+}
+
+
+@keyframes setupSpinner {
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ============================================================
+   24. FOOTER
+   ============================================================ */
+
+.setup-footer {
+
+    padding:
+        24px
+        20px;
+
+    text-align: center;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+
+    line-height: 1.6;
+}
+
+
+.setup-footer p {
+
+    margin:
+        3px
+        0;
+}
+
+
+.footer-contact {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    flex-wrap: wrap;
+}
+
+
+/* ============================================================
+   25. DARK THEME SUPPORT
+   ============================================================ */
+
+html[data-theme="dark"] {
+
+    --text-primary: #f2f4f7;
+
+    --text-secondary: #98a2b3;
+
+    --text-muted: #667085;
+
+    --background-color: #101828;
+
+    --surface-color: #1d2939;
+
+    --border-color: #344054;
+}
+
+
+html[data-theme="dark"] .setup-card,
+html[data-theme="dark"] .setup-header {
+
+    background:
+        var(--surface-color);
+}
+
+
+html[data-theme="dark"] .form-group input,
+html[data-theme="dark"] .form-group select,
+html[data-theme="dark"] .form-group textarea {
+
+    background:
+        #101828;
+
+    color:
+        var(--text-primary);
+}
+
+
+html[data-theme="dark"] .input-with-suffix {
+
+    background:
+        #101828;
+
+    border-color:
+        var(--border-color);
+}
+
+
+html[data-theme="dark"] .input-with-suffix span {
+
+    background:
+        #1d2939;
+
+    border-color:
+        var(--border-color);
+}
+
+
+html[data-theme="dark"] .setup-actions {
+
+    background:
+        #182230;
+}
+
+
+html[data-theme="dark"] .review-section {
+
+    background:
+        #182230;
+
+    border-color:
+        var(--border-color);
+}
+
+
+html[data-theme="dark"] .review-row {
+
+    border-color:
+        #344054;
+}
+
+
+html[data-theme="dark"] .button.secondary {
+
+    background:
+        #1d2939;
+
+    color:
+        var(--text-primary);
+
+    border-color:
+        var(--border-color);
+}
+
+
+/* ============================================================
+   26. TABLET
+   ============================================================ */
+
+@media (max-width: 800px) {
+
+    .setup-header {
+
+        padding:
+            14px
+            20px;
+    }
+
+
+    .setup-container {
+
+        padding:
+            28px
+            18px
+            40px;
+    }
+
+
+    .wizard-step,
+    .setup-review {
+
+        padding:
+            30px
+            28px;
+    }
+
+
+    .setup-actions {
+
+        padding:
+            14px
+            28px;
+    }
+
+
+    .setup-message {
+
+        margin-left: 28px;
+
+        margin-right: 28px;
+    }
+
+
+    .progress-label {
+
+        display: none;
+    }
+
+
+    .progress-step {
+
+        flex: 0 0 auto;
+    }
+
+
+    .review-content {
+
+        grid-template-columns: 1fr;
+    }
+
+
+    .review-section.full-width {
+
+        grid-column:
+            auto;
+    }
+}
+
+
+/* ============================================================
+   27. MOBILE
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+    .setup-header {
+
+        min-height: 68px;
+
+        padding:
+            12px
+            14px;
+    }
+
+
+    .setup-logo {
+
+        width: 38px;
+
+        height: 38px;
+
+        flex-basis: 38px;
+    }
+
+
+    .setup-brand-text strong {
+
+        font-size: 14px;
+    }
+
+
+    .setup-brand-text span {
+
+        font-size: 10px;
+    }
+
+
+    .setup-step-indicator {
+
+        font-size: 11px;
+    }
+
+
+    .setup-container {
+
+        padding:
+            18px
+            10px
+            30px;
+    }
+
+
+    .setup-progress {
+
+        margin-bottom: 14px;
+    }
+
+
+    .progress-line {
+
+        margin:
+            0
+            5px;
+
+        min-width: 8px;
+    }
+
+
+    .progress-number {
+
+        width: 27px;
+
+        height: 27px;
+
+        flex-basis: 27px;
+    }
+
+
+    .wizard-step,
+    .setup-review {
+
+        padding:
+            24px
+            18px;
+    }
+
+
+    .step-heading {
+
+        margin-bottom: 24px;
+    }
+
+
+    .step-heading h1 {
+
+        font-size: 23px;
+    }
+
+
+    .step-heading p {
+
+        font-size: 13px;
+    }
+
+
+    .form-grid {
+
+        grid-template-columns: 1fr;
+
+        gap: 18px;
+    }
+
+
+    .form-group.full-width {
+
+        grid-column: auto;
+    }
+
+
+    .setup-actions {
+
+        min-height: 70px;
+
+        padding:
+            12px
+            18px;
+    }
+
+
+    .button {
+
+        min-height: 43px;
+
+        padding:
+            0
+            14px;
+    }
+
+
+    .setup-message {
+
+        margin:
+            0
+            18px
+            14px;
+    }
+
+
+    .review-row {
+
+        flex-direction: column;
+
+        gap: 4px;
+    }
+
+
+    .review-value {
+
+        text-align: left;
+    }
+
+
+    .setup-footer {
+
+        padding:
+            18px
+            12px;
+    }
+}
+
+
+/* ============================================================
+   28. VERY SMALL MOBILE
+   ============================================================ */
+
+@media (max-width: 380px) {
+
+    .setup-header {
+
+        padding:
+            10px
+            10px;
+    }
+
+
+    .setup-brand {
+
+        gap: 8px;
+    }
+
+
+    .setup-logo {
+
+        width: 34px;
+
+        height: 34px;
+
+        flex-basis: 34px;
+    }
+
+
+    .setup-brand-text span {
+
+        display: none;
+    }
+
+
+    .setup-step-indicator span:first-child {
+
+        display: none;
+    }
+
+
+    .setup-container {
+
+        padding:
+            12px
+            7px
+            24px;
+    }
+
+
+    .wizard-step,
+    .setup-review {
+
+        padding:
+            20px
+            14px;
+    }
+
+
+    .setup-actions {
+
+        padding:
+            10px
+            14px;
+    }
+
+
+    .button {
+
+        padding:
+            0
+            11px;
+
+        font-size: 12px;
+    }
+
+
+    .setup-footer {
+
+        font-size: 10px;
+    }
+}
+
+
+/* ============================================================
+   END OF HOMERENT SETUP CSS
+   ============================================================ */

@@ -1,0 +1,9 @@
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+
+.env
+.env.*
+firebase-debug.log
+firebaserc
