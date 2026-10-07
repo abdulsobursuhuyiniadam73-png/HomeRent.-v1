@@ -1,32 +1,5 @@
 /* =========================================================
    HOMERENT DASHBOARD
-   =========================================================
-
-   PURPOSE
-   -------
-   Connects the approved dashboard UI to real Firestore data.
-
-   FIRESTORE COLLECTIONS USED
-   --------------------------
-   settings/business
-   rooms
-   clients
-   tenancies
-   payments
-
-   IMPORTANT
-   ---------
-   This file does NOT create or modify the Firestore schema.
-
-   It reads the existing HomeRent data structure and renders
-   it into the approved dashboard.
-
-   Firebase initialization remains centralized in firebase.js.
-   ========================================================= */
-
-
-/* =========================================================
-   IMPORTS
    ========================================================= */
 
 import { collection, getDocs } from
@@ -39,17 +12,13 @@ import { db, auth } from "../../firebase.js";
 
 import { loadSettings } from "../core/settings-service.js";
 
-import {
-  getSettings
-} from "../core/settings.js";
+import { getSettings } from "../core/settings.js";
 
-import {
-  applyGlobalBranding
-} from "../core/branding.js";
+import { applyGlobalBranding } from "../core/branding.js";
 
 
 /* =========================================================
-   DOM
+   DOM ELEMENTS
    ========================================================= */
 
 const sidebar =
@@ -96,14 +65,13 @@ let dashboardData = {
   clients: [],
   tenancies: [],
   payments: [],
-
   settings: null
 
 };
 
 
 /* =========================================================
-   INITIALISE
+   INITIALISE DASHBOARD
    ========================================================= */
 
 document.addEventListener(
@@ -114,33 +82,36 @@ document.addEventListener(
 
 async function initDashboard() {
 
+  /*
+   * Set up interface controls first.
+   */
   setupSidebar();
 
   setupMobileNavigation();
 
-  setupQuickActions();
-
   setupDesktopNavigation();
+
+  setupQuickActions();
 
   setupLogout();
 
   setupProfile();
 
+
   /*
-   * Load saved business settings before rendering
-   * dashboard information.
+   * Load branding/settings.
    */
   await loadDashboardBranding();
 
 
   /*
-   * Load the actual Firestore data.
+   * Load Firestore data.
    */
   await loadDashboardData();
 
 
   /*
-   * Render everything from the real data.
+   * Render dashboard.
    */
   renderDashboard();
 
@@ -153,10 +124,6 @@ async function initDashboard() {
 
 async function loadDashboardBranding() {
 
-  /*
-   * First load the Firestore settings into the
-   * central settings state.
-   */
   try {
 
     await loadSettings();
@@ -171,9 +138,6 @@ async function loadDashboardBranding() {
   }
 
 
-  /*
-   * Reuse the existing global branding system.
-   */
   try {
 
     await applyGlobalBranding();
@@ -188,14 +152,13 @@ async function loadDashboardBranding() {
   }
 
 
-  /*
-   * Get the final settings after loading Firestore.
-   */
   try {
 
-    const settings = getSettings();
+    const settings =
+      getSettings();
 
-    dashboardData.settings = settings;
+    dashboardData.settings =
+      settings;
 
 
     const businessName =
@@ -226,7 +189,10 @@ async function loadDashboardBranding() {
     }
 
 
-    if (logoUrl && systemLogo) {
+    if (
+      logoUrl &&
+      systemLogo
+    ) {
 
       systemLogo.src =
         logoUrl;
@@ -236,7 +202,6 @@ async function loadDashboardBranding() {
 
     document.title =
       `${businessName} — Dashboard`;
-
 
   } catch (error) {
 
@@ -328,10 +293,6 @@ async function loadDashboardData() {
     );
 
 
-    /*
-     * Keep the dashboard usable even when
-     * Firestore cannot be reached.
-     */
     dashboardData.rooms = [];
     dashboardData.clients = [];
     dashboardData.tenancies = [];
@@ -501,10 +462,6 @@ function renderCollectionSummary() {
   }
 
 
-  /*
-   * Prevent the progress bar from becoming
-   * visually larger than 100%.
-   */
   const progress =
     Math.min(
       Math.max(percentage, 0),
@@ -593,18 +550,15 @@ function getActiveTenancies() {
   return dashboardData.tenancies.filter(
     (tenancy) => {
 
-      if (tenancy.isArchived === true) {
+      if (
+        tenancy.isArchived === true
+      ) {
 
         return false;
 
       }
 
 
-      /*
-       * Common active states are supported,
-       * but missing status does not automatically
-       * make an existing tenancy invisible.
-       */
       const status =
         String(
           tenancy.status || ""
@@ -639,9 +593,6 @@ function getActiveTenancies() {
 
 function isRoomOccupied(room) {
 
-  /*
-   * First use the room's own status if available.
-   */
   const status =
     String(
       room.status || ""
@@ -674,10 +625,6 @@ function isRoomOccupied(room) {
   }
 
 
-  /*
-   * Existing room records can also use
-   * currentTenancyId.
-   */
   if (room.currentTenancyId) {
 
     return true;
@@ -685,9 +632,6 @@ function isRoomOccupied(room) {
   }
 
 
-  /*
-   * Finally check active tenancies.
-   */
   return getActiveTenancies().some(
     (tenancy) =>
       tenancy.roomId === room.id
@@ -702,17 +646,15 @@ function isRoomOccupied(room) {
 
 function getRoomDisplayStatus(room) {
 
-  if (!isRoomOccupied(room)) {
+  if (
+    !isRoomOccupied(room)
+  ) {
 
     return "vacant";
 
   }
 
 
-  /*
-   * Check whether the room's active tenancy
-   * has a payment due/overdue situation.
-   */
   const tenancy =
     getActiveTenancies().find(
       (item) =>
@@ -814,22 +756,19 @@ function renderOccupancy() {
       );
 
 
-      /*
-       * Keep room interaction ready for
-       * the future Rooms module.
-       */
       roomButton.dataset.roomId =
         room.id;
 
 
+      /*
+       * Room module can later use this.
+       */
       roomButton.addEventListener(
         "click",
         () => {
 
-          console.log(
-            "Room selected:",
-            room.id
-          );
+          window.location.href =
+            `../rooms/index.html?room=${encodeURIComponent(room.id)}`;
 
         }
       );
@@ -961,9 +900,11 @@ function getMonthlyCollectedAmount() {
 
         return (
           total +
-          (Number.isFinite(amount)
-            ? amount
-            : 0)
+          (
+            Number.isFinite(amount)
+              ? amount
+              : 0
+          )
         );
 
       },
@@ -983,11 +924,6 @@ function getMonthlyExpectedAmount() {
     getActiveTenancies();
 
 
-  /*
-   * For monthly/default rental arrangements,
-   * the tenancy amount represents the expected
-   * rental amount for the period.
-   */
   return tenancies.reduce(
     (total, tenancy) => {
 
@@ -1015,25 +951,20 @@ function getMonthlyExpectedAmount() {
         ).toLowerCase();
 
 
-      /*
-       * Weekly rent converted approximately
-       * to a monthly figure.
-       */
       if (
         unit === "week" ||
         unit === "weeks" ||
         unit === "weekly"
       ) {
 
-        return total +
-          (amount * 52 / 12);
+        return (
+          total +
+          (amount * 52 / 12)
+        );
 
       }
 
 
-      /*
-       * Yearly rent converted to monthly.
-       */
       if (
         unit === "year" ||
         unit === "years" ||
@@ -1041,15 +972,14 @@ function getMonthlyExpectedAmount() {
         unit === "annual"
       ) {
 
-        return total +
-          (amount / 12);
+        return (
+          total +
+          (amount / 12)
+        );
 
       }
 
 
-      /*
-       * Monthly/default.
-       */
       return total + amount;
 
     },
@@ -1108,9 +1038,7 @@ function isTenancyDue(tenancy) {
 
 
   const reminderDate =
-    new Date(
-      endDate
-    );
+    new Date(endDate);
 
 
   reminderDate.setDate(
@@ -1664,17 +1592,14 @@ function getClientForPayment(payment) {
 
 function setupSidebar() {
 
-  if (!mobileMenuButton) {
+  if (mobileMenuButton) {
 
-    return;
+    mobileMenuButton.addEventListener(
+      "click",
+      openSidebar
+    );
 
   }
-
-
-  mobileMenuButton.addEventListener(
-    "click",
-    openSidebar
-  );
 
 
   sidebarOverlay?.addEventListener(
@@ -1748,6 +1673,7 @@ function closeSidebar() {
 /* =========================================================
    MOBILE NAVIGATION
    ========================================================= */
+
 function setupMobileNavigation() {
 
   const pageRoutes = {
@@ -1769,55 +1695,46 @@ function setupMobileNavigation() {
 
   document
     .querySelectorAll("[data-mobile-page]")
-    .forEach((item) => {
+    .forEach(
+      (item) => {
 
-      item.addEventListener(
-        "click",
-        (event) => {
+        item.addEventListener(
+          "click",
+          (event) => {
 
-          const page =
-            item.dataset.mobilePage;
+            event.preventDefault();
 
-          const route =
-            pageRoutes[page];
+            event.stopPropagation();
 
 
-          if (!route) {
+            const page =
+              item.dataset.mobilePage;
 
-            console.warn(
-              `HomeRent: No mobile route configured for "${page}".`
+
+            const route =
+              pageRoutes[page];
+
+
+            if (!route) {
+
+              console.warn(
+                `HomeRent: No mobile route configured for "${page}".`
+              );
+
+              return;
+
+            }
+
+
+            window.location.assign(
+              route
             );
 
-            return;
-
           }
+        );
 
-
-          event.preventDefault();
-
-
-          /*
-           * Update active state before navigation.
-           */
-          document
-            .querySelectorAll(".mobile-nav-item")
-            .forEach((nav) => {
-
-              nav.classList.remove("active");
-
-            });
-
-
-          item.classList.add("active");
-
-
-          window.location.href =
-            route;
-
-        }
-      );
-
-    });
+      }
+    );
 
 }
 
@@ -1862,62 +1779,64 @@ function setupDesktopNavigation() {
 
   document
     .querySelectorAll("[data-page]")
-    .forEach((link) => {
+    .forEach(
+      (link) => {
 
-      link.addEventListener(
-        "click",
-        (event) => {
+        link.addEventListener(
+          "click",
+          (event) => {
 
-          const page =
-            link.dataset.page;
+            event.preventDefault();
 
-          const route =
-            pageRoutes[page];
+            event.stopPropagation();
 
 
-          /*
-           * If a route has not been created yet,
-           * don't send the user to a broken page.
-           */
-          if (!route) {
+            const page =
+              link.dataset.page;
 
-            console.warn(
-              `HomeRent: No route configured for "${page}".`
+
+            const route =
+              pageRoutes[page];
+
+
+            if (!route) {
+
+              console.warn(
+                `HomeRent: No desktop route configured for "${page}".`
+              );
+
+              return;
+
+            }
+
+
+            document
+              .querySelectorAll(".nav-link")
+              .forEach(
+                (nav) => {
+
+                  nav.classList.remove(
+                    "active"
+                  );
+
+                }
+              );
+
+
+            link.classList.add(
+              "active"
             );
 
-            return;
+
+            window.location.assign(
+              route
+            );
 
           }
+        );
 
-
-          event.preventDefault();
-
-
-          /*
-           * Preserve the active navigation state.
-           */
-          document
-            .querySelectorAll(".nav-link")
-            .forEach((nav) => {
-
-              nav.classList.remove("active");
-
-            });
-
-
-          link.classList.add("active");
-
-
-          /*
-           * Navigate to the actual module.
-           */
-          window.location.href =
-            route;
-
-        }
-      );
-
-    });
+      }
+    );
 
 }
 
@@ -1925,38 +1844,227 @@ function setupDesktopNavigation() {
 /* =========================================================
    QUICK ACTIONS
    ========================================================= */
+
+function setupQuickActions() {
+
+  /*
+   * Desktop quick actions
+   * and quick-sheet buttons.
+   */
+  document
+    .querySelectorAll("[data-action]")
+    .forEach(
+      (button) => {
+
+        button.addEventListener(
+          "click",
+          (event) => {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+
+            const action =
+              button.dataset.action;
+
+
+            handleQuickAction(
+              action
+            );
+
+          }
+        );
+
+      }
+    );
+
+
+  /*
+   * Mobile + button.
+   */
+  if (mobileAddButton) {
+
+    mobileAddButton.addEventListener(
+      "click",
+      (event) => {
+
+        event.preventDefault();
+
+        event.stopPropagation();
+
+        openQuickSheet();
+
+      }
+    );
+
+  }
+
+
+  /*
+   * Quick-sheet close button.
+   */
+  if (quickSheetClose) {
+
+    quickSheetClose.addEventListener(
+      "click",
+      (event) => {
+
+        event.preventDefault();
+
+        event.stopPropagation();
+
+        closeQuickSheet();
+
+      }
+    );
+
+  }
+
+
+  /*
+   * Clicking outside the sheet closes it.
+   */
+  if (quickSheetOverlay) {
+
+    quickSheetOverlay.addEventListener(
+      "click",
+      (event) => {
+
+        if (
+          event.target ===
+          quickSheetOverlay
+        ) {
+
+          closeQuickSheet();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /*
+   * Escape key closes the sheet.
+   */
+  document.addEventListener(
+    "keydown",
+    (event) => {
+
+      if (
+        event.key === "Escape" &&
+        quickSheetOverlay &&
+        !quickSheetOverlay.hidden
+      ) {
+
+        closeQuickSheet();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   OPEN QUICK SHEET
+   ========================================================= */
+
+function openQuickSheet() {
+
+  if (!quickSheetOverlay) {
+
+    console.error(
+      "HomeRent: quickSheetOverlay was not found."
+    );
+
+    return;
+
+  }
+
+
+  quickSheetOverlay.hidden =
+    false;
+
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+/* =========================================================
+   CLOSE QUICK SHEET
+   ========================================================= */
+
+function closeQuickSheet() {
+
+  if (!quickSheetOverlay) {
+
+    return;
+
+  }
+
+
+  quickSheetOverlay.hidden =
+    true;
+
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+/* =========================================================
+   HANDLE QUICK ACTION
+   ========================================================= */
+
 function handleQuickAction(action) {
+
+  /*
+   * Always close the sheet before navigation.
+   */
+  closeQuickSheet();
+
 
   switch (action) {
 
     case "room":
 
-      window.location.href =
-        "../rooms/index.html?action=add";
+      window.location.assign(
+        "../rooms/index.html?action=add"
+      );
 
       break;
 
 
     case "tenancy":
 
-      window.location.href =
-        "../tenancies/index.html?action=add";
+      window.location.assign(
+        "../tenancies/index.html?action=add"
+      );
 
       break;
 
 
     case "payment":
 
-      window.location.href =
-        "../payments/index.html?action=add";
+      window.location.assign(
+        "../payments/index.html?action=add"
+      );
 
       break;
 
 
     case "document":
 
-      window.location.href =
-        "../documents/index.html?action=add";
+      window.location.assign(
+        "../documents/index.html?action=add"
+      );
 
       break;
 
@@ -1971,10 +2079,8 @@ function handleQuickAction(action) {
 
   }
 
-
-  closeQuickSheet();
-
 }
+
 
 /* =========================================================
    PROFILE
@@ -2046,11 +2152,9 @@ function setupLogout() {
         await signOut(auth);
 
 
-        /*
-         * Use the existing project login location.
-         */
-        window.location.href =
-          "../auth/login.html";
+        window.location.assign(
+          "../auth/login.html"
+        );
 
 
       } catch (error) {
@@ -2156,9 +2260,6 @@ function getDateValue(value) {
   }
 
 
-  /*
-   * String / numeric timestamp.
-   */
   const date =
     new Date(value);
 
