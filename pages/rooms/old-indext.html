@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta
+        name="description"
+        content="HomeRent room management"
+    >
+
+    <title>Rooms | HomeRent</title>
+
+    <link rel="stylesheet" href="../../css/rooms.css">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- =========================
+         DESKTOP SIDEBAR
+    ========================== -->
+    <aside class="desktop-sidebar">
+
+        <div class="brand">
+            <div class="brand-mark">HR</div>
+
+            <div>
+                <strong>HomeRent</strong>
+                <span>Property Management</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="../dashboard/index.html">
+                <span class="nav-icon">⌂</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="./index.html" class="active">
+                <span class="nav-icon">▣</span>
+                <span>Rooms</span>
+            </a>
+
+            <a href="../tenancies/index.html">
+                <span class="nav-icon">◫</span>
+                <span>Tenancies</span>
+            </a>
+
+            <a href="../payments/index.html">
+                <span class="nav-icon">₵</span>
+                <span>Payments</span>
+            </a>
+
+            <a href="../receipts/index.html">
+                <span class="nav-icon">▤</span>
+                <span>Receipts</span>
+            </a>
+
+            <a href="../finances/index.html">
+                <span class="nav-icon">◉</span>
+                <span>Finances</span>
+            </a>
+
+            <a href="../reports/index.html">
+                <span class="nav-icon">▥</span>
+                <span>Reports</span>
+            </a>
+
+            <a href="../documents/index.html">
+                <span class="nav-icon">□</span>
+                <span>Documents</span>
+            </a>
+
+            <a href="../settings/index.html">
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <span>HomeRent</span>
+            <small>Secure Property Management</small>
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+    <main class="main-content">
+
+        <!-- MOBILE HEADER -->
+        <header class="mobile-header">
+
+            <div>
+                <span class="mobile-brand">HomeRent</span>
+                <h1>Rooms</h1>
+            </div>
+
+            <div class="mobile-header-actions">
+                <button
+                    type="button"
+                    class="icon-button"
+                    aria-label="Notifications"
+                >
+                    ♧
+                </button>
+
+                <div class="profile-circle">
+                    RM
+                </div>
+            </div>
+
+        </header>
+
+
+        <!-- DESKTOP TOPBAR -->
+        <header class="desktop-topbar">
+
+            <div>
+                <span class="page-kicker">PROPERTY MANAGEMENT</span>
+                <h1>Rooms</h1>
+            </div>
+
+            <div class="topbar-actions">
+
+                <button
+                    type="button"
+                    class="icon-button"
+                    aria-label="Notifications"
+                >
+                    ♧
+                </button>
+
+                <div class="profile-circle">
+                    RM
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =========================
+             PAGE TOOLBAR
+        ========================== -->
+        <section class="rooms-toolbar">
+
+            <div class="search-wrapper">
+
+                <span class="search-icon">⌕</span>
+
+                <input
+                    type="search"
+                    id="roomSearch"
+                    placeholder="Search rooms..."
+                    autocomplete="off"
+                >
+
+                <button
+                    type="button"
+                    id="clearSearch"
+                    class="clear-search hidden"
+                    aria-label="Clear search"
+                >
+                    ×
+                </button>
+
+            </div>
+
+            <button
+                type="button"
+                id="addRoomButton"
+                class="primary-button"
+            >
+                <span>+</span>
+                Add Room
+            </button>
+
+        </section>
+
+
+        <!-- =========================
+             ROOM FILTERS
+        ========================== -->
+        <section class="room-filters" aria-label="Room filters">
+
+            <button
+                type="button"
+                class="filter-chip active"
+                data-filter="all"
+            >
+                All
+                <span id="allCount">0</span>
+            </button>
+
+            <button
+                type="button"
+                class="filter-chip"
+                data-filter="living"
+            >
+                Living
+                <span id="livingCount">0</span>
+            </button>
+
+            <button
+                type="button"
+                class="filter-chip"
+                data-filter="store"
+            >
+                Store
+                <span id="storeCount">0</span>
+            </button>
+
+            <button
+                type="button"
+                class="filter-chip"
+                data-filter="available"
+            >
+                Vacant
+                <span id="availableCount">0</span>
+            </button>
+
+            <button
+                type="button"
+                class="filter-chip"
+                data-filter="occupied"
+            >
+                Occupied
+                <span id="occupiedCount">0</span>
+            </button>
+
+            <button
+                type="button"
+                class="filter-chip"
+                data-filter="maintenance"
+            >
+                Maintenance
+                <span id="maintenanceCount">0</span>
+            </button>
+
+        </section>
+
+
+        <!-- =========================
+             SUMMARY
+        ========================== -->
+        <section class="room-summary">
+
+            <div class="summary-card">
+                <span>Total Rooms</span>
+                <strong id="summaryTotal">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Vacant</span>
+                <strong id="summaryAvailable">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Occupied</span>
+                <strong id="summaryOccupied">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Maintenance</span>
+                <strong id="summaryMaintenance">0</strong>
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             ROOM CONTENT
+        ========================== -->
+        <section class="rooms-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <span class="section-kicker">YOUR PROPERTY</span>
+                    <h2>Room inventory</h2>
+                </div>
+
+                <span id="resultsLabel" class="results-label">
+                    0 rooms
+                </span>
+
+            </div>
+
+
+            <!-- LOADING -->
+            <div id="roomsLoading" class="state-box">
+
+                <div class="loading-spinner"></div>
+
+                <strong>Loading rooms...</strong>
+
+                <span>
+                    Connecting to your property records.
+                </span>
+
+            </div>
+
+
+            <!-- EMPTY -->
+            <div
+                id="roomsEmpty"
+                class="state-box empty-state hidden"
+            >
+
+                <div class="empty-icon">⌂</div>
+
+                <strong>No rooms found</strong>
+
+                <span>
+                    Add your first living room or storeroom.
+                </span>
+
+                <button
+                    type="button"
+                    id="emptyAddRoomButton"
+                    class="primary-button"
+                >
+                    + Add Room
+                </button>
+
+            </div>
+
+
+            <!-- GRID -->
+            <div
+                id="roomsGrid"
+                class="rooms-grid hidden"
+            ></div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         MOBILE BOTTOM NAVIGATION
+    ========================== -->
+    <nav class="mobile-bottom-nav">
+
+        <a href="../dashboard/index.html">
+            <span class="bottom-icon">⌂</span>
+            <span>Home</span>
+        </a>
+
+        <a href="./index.html" class="active">
+            <span class="bottom-icon">▣</span>
+            <span>Rooms</span>
+        </a>
+
+        <button
+            type="button"
+            id="mobileAddRoomButton"
+            class="mobile-add-button"
+            aria-label="Add room"
+        >
+            +
+        </button>
+
+        <a href="../clients/index.html">
+            <span class="bottom-icon">♙</span>
+            <span>Clients</span>
+        </a>
+
+        <a href="../payments/index.html">
+            <span class="bottom-icon">₵</span>
+            <span>Money</span>
+        </a>
+
+    </nav>
+
+
+    <!-- =========================
+         ADD / EDIT ROOM MODAL
+    ========================== -->
+    <div
+        id="roomModal"
+        class="modal-overlay hidden"
+        aria-hidden="true"
+    >
+
+        <div
+            class="room-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="roomModalTitle"
+        >
+
+            <div class="modal-header">
+
+                <div>
+                    <span class="section-kicker">ROOM MANAGEMENT</span>
+
+                    <h2 id="roomModalTitle">
+                        Add Room
+                    </h2>
+
+                    <p id="roomModalDescription">
+                        Add a new property space to HomeRent.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    id="closeRoomModal"
+                    class="modal-close"
+                    aria-label="Close"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="roomForm" novalidate>
+
+                <input
+                    type="hidden"
+                    id="editingRoomId"
+                >
+
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+                        Basic information
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="form-field">
+
+                            <label for="roomType">
+                                Property type
+                            </label>
+
+                            <select id="roomType" required>
+
+                                <option value="">
+                                    Select type
+                                </option>
+
+                                <option value="living">
+                                    Living Room
+                                </option>
+
+                                <option value="store">
+                                    Storeroom
+                                </option>
+
+                            </select>
+
+                            <small class="field-error" id="roomTypeError"></small>
+
+                        </div>
+
+
+                        <div class="form-field">
+
+                            <label for="roomNumber">
+                                Room number
+                            </label>
+
+                            <input
+                                type="text"
+                                id="roomNumber"
+                                placeholder="e.g. 001"
+                                maxlength="30"
+                                required
+                            >
+
+                            <small class="field-help">
+                                This identifies the room in HomeRent.
+                            </small>
+
+                            <small class="field-error" id="roomNumberError"></small>
+
+                        </div>
+
+
+                        <div class="form-field">
+
+                            <label for="roomSize">
+                                Size
+                            </label>
+
+                            <input
+                                type="text"
+                                id="roomSize"
+                                placeholder="e.g. Medium or 20 × 15 ft"
+                                maxlength="80"
+                            >
+
+                        </div>
+
+
+                        <div class="form-field">
+
+                            <label for="roomLocation">
+                                Location
+                            </label>
+
+                            <input
+                                type="text"
+                                id="roomLocation"
+                                placeholder="e.g. Block A"
+                                maxlength="120"
+                            >
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+                        Rental information
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <div class="form-field">
+
+                            <label for="roomPrice">
+                                Current rental price
+                            </label>
+
+                            <div class="input-with-prefix">
+
+                                <span id="currencyPrefix">₵</span>
+
+                                <input
+                                    type="number"
+                                    id="roomPrice"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                >
+
+                            </div>
+
+                            <small class="field-error" id="roomPriceError"></small>
+
+                        </div>
+
+
+                        <div class="form-field">
+
+                            <label for="roomStatus">
+                                Status
+                            </label>
+
+                            <select id="roomStatus">
+
+                                <option value="available">
+                                    Vacant
+                                </option>
+
+                                <option value="occupied">
+                                    Occupied
+                                </option>
+
+                                <option value="reserved">
+                                    Reserved
+                                </option>
+
+                                <option value="maintenance">
+                                    Maintenance
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+                        Condition & notes
+                    </div>
+
+
+                    <div class="form-field">
+
+                        <label for="conditionNotes">
+                            Condition
+                        </label>
+
+                        <textarea
+                            id="conditionNotes"
+                            rows="3"
+                            maxlength="500"
+                            placeholder="Describe the current condition or any important notes..."
+                        ></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-section">
+
+                    <div class="form-section-title">
+                        Photos
+                    </div>
+
+                    <div class="form-field">
+
+                        <label for="photoUrls">
+                            Photo URLs
+                        </label>
+
+                        <textarea
+                            id="photoUrls"
+                            rows="2"
+                            placeholder="Paste photo URLs separated by commas"
+                        ></textarea>
+
+                        <small class="field-help">
+                            Firebase Storage is not required yet. We can connect it later without redesigning this form.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="formMessage"
+                    class="form-message hidden"
+                    role="alert"
+                ></div>
+
+
+                <div class="modal-footer">
+
+                    <button
+                        type="button"
+                        id="cancelRoomButton"
+                        class="secondary-button"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="submit"
+                        id="saveRoomButton"
+                        class="primary-button"
+                    >
+                        Save Room
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         ROOM DETAILS MODAL
+    ========================== -->
+    <div
+        id="detailsModal"
+        class="modal-overlay hidden"
+        aria-hidden="true"
+    >
+
+        <div
+            class="details-modal"
+            role="dialog"
+            aria-modal="true"
+        >
+
+            <div class="modal-header">
+
+                <div>
+                    <span class="section-kicker">ROOM DETAILS</span>
+                    <h2 id="detailsTitle">Room</h2>
+                </div>
+
+                <button
+                    type="button"
+                    id="closeDetailsModal"
+                    class="modal-close"
+                >
+                    ×
+                </button>
+
+            </div>
+
+            <div id="roomDetailsContent"></div>
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    id="detailsEditButton"
+                    class="secondary-button"
+                >
+                    Edit
+                </button>
+
+                <button
+                    type="button"
+                    id="detailsArchiveButton"
+                    class="danger-button"
+                >
+                    Archive
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         TOAST
+    ========================== -->
+    <div
+        id="toast"
+        class="toast"
+        role="status"
+        aria-live="polite"
+    ></div>
+
+</div>
+
+
+<script type="module" src="../../js/rooms/rooms.js"></script>
+
+</body>
+</html>

@@ -35,7 +35,7 @@ import { collection, getDocs } from
 import { signOut } from
   "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-import { db, auth } from "../firebase.js";
+import { db, auth } from "../../firebase.js";
 
 import { loadSettings } from "../core/settings-service.js";
 
@@ -1748,53 +1748,76 @@ function closeSidebar() {
 /* =========================================================
    MOBILE NAVIGATION
    ========================================================= */
-
 function setupMobileNavigation() {
 
+  const pageRoutes = {
+
+    home:
+      "./index.html",
+
+    rooms:
+      "../rooms/index.html",
+
+    tenants:
+      "../clients/index.html",
+
+    money:
+      "../payments/index.html"
+
+  };
+
+
   document
-    .querySelectorAll(
-      "[data-mobile-page]"
-    )
-    .forEach(
-      (item) => {
+    .querySelectorAll("[data-mobile-page]")
+    .forEach((item) => {
 
-        item.addEventListener(
-          "click",
-          (event) => {
+      item.addEventListener(
+        "click",
+        (event) => {
 
-            event.preventDefault();
+          const page =
+            item.dataset.mobilePage;
 
-
-            document
-              .querySelectorAll(
-                ".mobile-nav-item"
-              )
-              .forEach(
-                (nav) => {
-
-                  nav.classList.remove(
-                    "active"
-                  );
-
-                }
-              );
+          const route =
+            pageRoutes[page];
 
 
-            item.classList.add(
-              "active"
+          if (!route) {
+
+            console.warn(
+              `HomeRent: No mobile route configured for "${page}".`
             );
 
-
-            /*
-             * Actual module routing will be
-             * connected when those pages exist.
-             */
+            return;
 
           }
-        );
 
-      }
-    );
+
+          event.preventDefault();
+
+
+          /*
+           * Update active state before navigation.
+           */
+          document
+            .querySelectorAll(".mobile-nav-item")
+            .forEach((nav) => {
+
+              nav.classList.remove("active");
+
+            });
+
+
+          item.classList.add("active");
+
+
+          window.location.href =
+            route;
+
+        }
+      );
+
+    });
 
 }
 
@@ -1805,50 +1828,96 @@ function setupMobileNavigation() {
 
 function setupDesktopNavigation() {
 
+  const pageRoutes = {
+
+    dashboard:
+      "./index.html",
+
+    rooms:
+      "../rooms/index.html",
+
+    tenancies:
+      "../tenancies/index.html",
+
+    payments:
+      "../payments/index.html",
+
+    receipts:
+      "../receipts/index.html",
+
+    finances:
+      "../finances/index.html",
+
+    reports:
+      "../reports/index.html",
+
+    documents:
+      "../documents/index.html",
+
+    settings:
+      "../settings/index.html"
+
+  };
+
+
   document
-    .querySelectorAll(
-      "[data-page]"
-    )
-    .forEach(
-      (link) => {
+    .querySelectorAll("[data-page]")
+    .forEach((link) => {
 
-        link.addEventListener(
-          "click",
-          (event) => {
+      link.addEventListener(
+        "click",
+        (event) => {
 
-            event.preventDefault();
+          const page =
+            link.dataset.page;
 
-
-            document
-              .querySelectorAll(
-                ".nav-link"
-              )
-              .forEach(
-                (nav) => {
-
-                  nav.classList.remove(
-                    "active"
-                  );
-
-                }
-              );
+          const route =
+            pageRoutes[page];
 
 
-            link.classList.add(
-              "active"
+          /*
+           * If a route has not been created yet,
+           * don't send the user to a broken page.
+           */
+          if (!route) {
+
+            console.warn(
+              `HomeRent: No route configured for "${page}".`
             );
 
-
-            /*
-             * Actual module routing will be
-             * connected as each page is built.
-             */
+            return;
 
           }
-        );
 
-      }
-    );
+
+          event.preventDefault();
+
+
+          /*
+           * Preserve the active navigation state.
+           */
+          document
+            .querySelectorAll(".nav-link")
+            .forEach((nav) => {
+
+              nav.classList.remove("active");
+
+            });
+
+
+          link.classList.add("active");
+
+
+          /*
+           * Navigate to the actual module.
+           */
+          window.location.href =
+            route;
+
+        }
+      );
+
+    });
 
 }
 
@@ -1856,145 +1925,47 @@ function setupDesktopNavigation() {
 /* =========================================================
    QUICK ACTIONS
    ========================================================= */
-
-function setupQuickActions() {
-
-  mobileAddButton?.addEventListener(
-    "click",
-    openQuickSheet
-  );
-
-
-  quickSheetClose?.addEventListener(
-    "click",
-    closeQuickSheet
-  );
-
-
-  quickSheetOverlay?.addEventListener(
-    "click",
-    (event) => {
-
-      if (
-        event.target ===
-        quickSheetOverlay
-      ) {
-
-        closeQuickSheet();
-
-      }
-
-    }
-  );
-
-
-  document
-    .querySelectorAll(
-      "[data-action]"
-    )
-    .forEach(
-      (button) => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            const action =
-              button.dataset.action;
-
-
-            handleQuickAction(
-              action
-            );
-
-          }
-        );
-
-      }
-    );
-
-}
-
-
-function openQuickSheet() {
-
-  if (!quickSheetOverlay) {
-
-    return;
-
-  }
-
-
-  quickSheetOverlay.hidden =
-    false;
-
-
-  document.body.style.overflow =
-    "hidden";
-
-}
-
-
-function closeQuickSheet() {
-
-  if (!quickSheetOverlay) {
-
-    return;
-
-  }
-
-
-  quickSheetOverlay.hidden =
-    true;
-
-
-  document.body.style.overflow =
-    "";
-
-}
-
-
 function handleQuickAction(action) {
 
   switch (action) {
 
     case "room":
 
-      console.log(
-        "Add Room selected"
-      );
+      window.location.href =
+        "../rooms/index.html?action=add";
 
       break;
 
 
     case "tenancy":
 
-      console.log(
-        "New Tenancy selected"
-      );
+      window.location.href =
+        "../tenancies/index.html?action=add";
 
       break;
 
 
     case "payment":
 
-      console.log(
-        "Record Payment selected"
-      );
+      window.location.href =
+        "../payments/index.html?action=add";
 
       break;
 
 
     case "document":
 
-      console.log(
-        "Add Document selected"
-      );
+      window.location.href =
+        "../documents/index.html?action=add";
 
       break;
 
 
     default:
+
+      console.warn(
+        `HomeRent: Unknown quick action "${action}".`
+      );
 
       break;
 
@@ -2004,7 +1975,6 @@ function handleQuickAction(action) {
   closeQuickSheet();
 
 }
-
 
 /* =========================================================
    PROFILE
