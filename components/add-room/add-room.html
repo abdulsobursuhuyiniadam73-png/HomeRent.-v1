@@ -1,0 +1,222 @@
+<div class="add-room-overlay" id="addRoomOverlay" hidden>
+    <section
+        class="add-room-modal"
+        id="addRoomModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="addRoomTitle"
+    >
+
+        <div class="add-room-header">
+            <div>
+                <span class="add-room-eyebrow">ROOM MANAGEMENT</span>
+                <h2 id="addRoomTitle">Add Room</h2>
+                <p id="addRoomDescription">
+                    Add a living room or storeroom to your property records.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                class="add-room-close"
+                id="addRoomClose"
+                aria-label="Close"
+            >
+                &times;
+            </button>
+        </div>
+
+        <div class="add-room-error" id="addRoomError" hidden>
+            <span class="add-room-error-icon">!</span>
+            <div>
+                <strong>Unable to save room</strong>
+                <p id="addRoomErrorMessage"></p>
+            </div>
+        </div>
+
+        <form id="addRoomForm" novalidate>
+
+            <div class="add-room-section">
+                <div class="add-room-section-heading">
+                    <h3>Room information</h3>
+                    <span>Required</span>
+                </div>
+
+                <div class="add-room-grid">
+
+                    <div class="add-room-field">
+                        <label for="addRoomNumber">
+                            Room number <span>*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            id="addRoomNumber"
+                            name="roomNumber"
+                            placeholder="e.g. 001 or A01"
+                            autocomplete="off"
+                            required
+                        />
+
+                        <small class="field-error" id="addRoomNumberError"></small>
+                    </div>
+
+                    <div class="add-room-field">
+                        <label for="addRoomType">
+                            Room type <span>*</span>
+                        </label>
+
+                        <select id="addRoomType" name="type" required>
+                            <option value="">Select room type</option>
+                            <option value="living">Living Room</option>
+                            <option value="storeroom">Storeroom</option>
+                        </select>
+
+                        <small class="field-error" id="addRoomTypeError"></small>
+                    </div>
+
+                    <div class="add-room-field">
+                        <label for="addRoomSize">
+                            Size
+                        </label>
+
+                        <input
+                            type="text"
+                            id="addRoomSize"
+                            name="size"
+                            placeholder="e.g. 12 × 14 ft"
+                        />
+                    </div>
+
+                    <div class="add-room-field">
+                        <label for="addRoomLocation">
+                            Location
+                        </label>
+
+                        <input
+                            type="text"
+                            id="addRoomLocation"
+                            name="location"
+                            placeholder="e.g. Block A, Ground Floor"
+                        />
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="add-room-section">
+
+                <div class="add-room-section-heading">
+                    <h3>Rental information</h3>
+                    <span>Required</span>
+                </div>
+
+                <div class="add-room-grid">
+
+                    <div class="add-room-field">
+                        <label for="addRoomPrice">
+                            Current price <span>*</span>
+                        </label>
+
+                        <div class="add-room-input-prefix">
+                            <span id="addRoomCurrency">GH₵</span>
+
+                            <input
+                                type="number"
+                                id="addRoomPrice"
+                                name="currentPrice"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                required
+                            />
+                        </div>
+
+                        <small class="field-error" id="addRoomPriceError"></small>
+                    </div>
+
+                    <div class="add-room-field">
+                        <label for="addRoomStatus">
+                            Initial status <span>*</span>
+                        </label>
+
+                        <select id="addRoomStatus" name="status" required>
+                            <option value="available">Available</option>
+                            <option value="reserved">Reserved</option>
+                            <option value="occupied">Occupied</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+
+                        <small class="field-error" id="addRoomStatusError"></small>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="add-room-section">
+
+                <div class="add-room-section-heading">
+                    <h3>Condition & photos</h3>
+                    <span>Optional</span>
+                </div>
+
+                <div class="add-room-field">
+                    <label for="addRoomCondition">
+                        Condition / notes
+                    </label>
+
+                    <textarea
+                        id="addRoomCondition"
+                        name="conditionNotes"
+                        rows="4"
+                        placeholder="Describe the current condition of the room..."
+                    ></textarea>
+                </div>
+
+                <div class="add-room-field">
+                    <label for="addRoomPhotos">
+                        Photo URLs
+                    </label>
+
+                    <textarea
+                        id="addRoomPhotos"
+                        name="photoUrls"
+                        rows="3"
+                        placeholder="Paste one image URL per line"
+                    ></textarea>
+
+                    <small class="add-room-help">
+                        You can add photos later. One URL per line.
+                    </small>
+                </div>
+
+            </div>
+
+            <div class="add-room-actions">
+
+                <button
+                    type="button"
+                    class="add-room-secondary-button"
+                    id="addRoomCancel"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="add-room-primary-button"
+                    id="addRoomSave"
+                >
+                    <span id="addRoomSaveText">Save Room</span>
+                    <span
+                        class="add-room-spinner"
+                        id="addRoomSaveSpinner"
+                        hidden
+                    ></span>
+                </button>
+
+            </div>
+
+        </form>
+    </section>
+</div>

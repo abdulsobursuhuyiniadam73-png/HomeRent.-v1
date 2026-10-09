@@ -10,11 +10,64 @@ import { signOut } from
 
 import { db, auth } from "../../firebase.js";
 
+import { initAddRoom } from "../../components/add-room/add-room.js";
+
 import { loadSettings } from "../core/settings-service.js";
 
 import { getSettings } from "../core/settings.js";
 
 import { applyGlobalBranding } from "../core/branding.js";
+
+
+/* =========================================================
+   ADD ROOM
+   ========================================================= */
+
+let addRoomController = null;
+
+
+async function initializeAddRoom() {
+
+  try {
+
+    addRoomController =
+      await initAddRoom({
+
+        mountId:
+          "addRoomMount",
+
+        onSaved:
+          async (room) => {
+
+            console.log(
+              "HomeRent: New room created:",
+              room
+            );
+
+
+            /*
+             * Refresh dashboard data immediately
+             * after a new room is created.
+             */
+            await loadDashboardData();
+
+            renderDashboard();
+
+          }
+
+      });
+
+
+  } catch (error) {
+
+    console.error(
+      "HomeRent: Failed to initialize Add Room.",
+      error
+    );
+
+  }
+
+}
 
 
 /* =========================================================
@@ -102,6 +155,13 @@ async function initDashboard() {
    * Load branding/settings.
    */
   await loadDashboardBranding();
+
+
+  /*
+   * Initialize the reusable Add Room
+   * interface after the DOM is ready.
+   */
+  await initializeAddRoom();
 
 
   /*
@@ -760,9 +820,6 @@ function renderOccupancy() {
         room.id;
 
 
-      /*
-       * Room module can later use this.
-       */
       roomButton.addEventListener(
         "click",
         () => {
@@ -2026,21 +2083,42 @@ function closeQuickSheet() {
 function handleQuickAction(action) {
 
   /*
-   * Always close the sheet before navigation.
+   * Always close the quick sheet first.
    */
   closeQuickSheet();
 
 
   switch (action) {
 
+    /* -----------------------------------------
+       ADD ROOM
+       ----------------------------------------- */
+
     case "room":
 
-      window.location.assign(
-        "../rooms/index.html?action=add"
-      );
+      /*
+       * Open the SAME reusable Add Room
+       * interface used by the Rooms page.
+       */
+      if (!addRoomController) {
+
+        console.error(
+          "HomeRent: Add Room interface is not ready."
+        );
+
+        return;
+
+      }
+
+
+      addRoomController.open();
 
       break;
 
+
+    /* -----------------------------------------
+       NEW TENANCY
+       ----------------------------------------- */
 
     case "tenancy":
 
@@ -2051,6 +2129,10 @@ function handleQuickAction(action) {
       break;
 
 
+    /* -----------------------------------------
+       RECORD PAYMENT
+       ----------------------------------------- */
+
     case "payment":
 
       window.location.assign(
@@ -2060,6 +2142,10 @@ function handleQuickAction(action) {
       break;
 
 
+    /* -----------------------------------------
+       DOCUMENT
+       ----------------------------------------- */
+
     case "document":
 
       window.location.assign(
@@ -2068,6 +2154,10 @@ function handleQuickAction(action) {
 
       break;
 
+
+    /* -----------------------------------------
+       UNKNOWN ACTION
+       ----------------------------------------- */
 
     default:
 

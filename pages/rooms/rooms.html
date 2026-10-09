@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    />
+
+    <title>Rooms — HomeRent</title>
+
+    <link rel="stylesheet" href="./rooms.css" />
+</head>
+
+<body>
+
+    <!-- ======================================================
+         DESKTOP SIDEBAR
+         ====================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="sidebar-brand">
+
+            <a href="../dashboard/index.html" class="brand-link">
+
+                <div class="brand-logo" id="brandLogo">
+                    
+                </div>
+
+                <div class="brand-text">
+                    <strong id="brandSystemName">
+                        HomeRent
+                    </strong>
+
+                    <span>Property Management</span>
+                </div>
+
+            </a>
+
+        </div>
+
+        <nav class="sidebar-navigation">
+
+            <a href="../dashboard/dashboard.html"
+               class="nav-item">
+
+                <span class="nav-icon">⌂</span>
+                <span>Dashboard</span>
+
+            </a>
+
+            <a href="./rooms.html"
+               class="nav-item active"
+               aria-current="page">
+
+                <span class="nav-icon">▦</span>
+                <span>Rooms</span>
+
+            </a>
+
+            <a href="../tenancies/tenancies.html"
+               class="nav-item">
+
+                <span class="nav-icon">♙</span>
+                <span>Tenancies</span>
+
+            </a>
+
+            <a href="../payments/payments.html"
+               class="nav-item">
+
+                <span class="nav-icon">₵</span>
+                <span>Payments</span>
+
+            </a>
+
+            <a href="../finances/finances.html"
+               class="nav-item">
+
+                <span class="nav-icon">◫</span>
+                <span>Finances</span>
+
+            </a>
+
+            <a href="../reports/reports.html"
+               class="nav-item">
+
+                <span class="nav-icon">▤</span>
+                <span>Reports</span>
+
+            </a>
+
+            <a href="../settings/settings.html"
+               class="nav-item">
+
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+            <span id="sidebarFooterText">
+                HomeRent
+            </span>
+        </div>
+
+    </aside>
+
+
+    <!-- ======================================================
+         MAIN
+         ====================================================== -->
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <span class="topbar-label">PROPERTY</span>
+                <strong id="topbarBusinessName">
+                    HomeRent
+                </strong>
+            </div>
+
+            <div class="topbar-actions">
+
+                <button
+                    type="button"
+                    class="topbar-add-button"
+                    id="topbarAddRoomButton"
+                >
+                    + Add Room
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- ==================================================
+             MOBILE HEADER
+             ================================================== -->
+
+        <section class="mobile-header">
+
+            <div class="mobile-page-title">
+
+                <span>PROPERTY MANAGEMENT</span>
+
+                <h1>Rooms</h1>
+
+            </div>
+
+            <div class="mobile-search">
+
+                <input
+                    type="search"
+                    id="mobileRoomSearch"
+                    placeholder="Search rooms..."
+                    autocomplete="off"
+                />
+
+            </div>
+
+        </section>
+
+
+        <!-- ==================================================
+             PAGE CONTENT
+             ================================================== -->
+
+        <section class="page-content">
+
+            <div class="page-heading">
+
+                <div>
+
+                    <span class="page-eyebrow">
+                        PROPERTY MANAGEMENT
+                    </span>
+
+                    <h1>Rooms & Storerooms</h1>
+
+                    <p>
+                        Manage your available spaces, rental status,
+                        prices and room records.
+                    </p>
+
+                </div>
+
+                <button
+                    type="button"
+                    class="desktop-add-button"
+                    id="desktopAddRoomButton"
+                >
+                    + Add Room
+                </button>
+
+            </div>
+
+
+            <!-- ==================================================
+                 SUMMARY
+                 ================================================== -->
+
+            <section class="room-summary">
+
+                <article class="summary-card">
+
+                    <div class="summary-icon blue">
+                        ▦
+                    </div>
+
+                    <div>
+                        <span>Total Rooms</span>
+                        <strong id="totalRooms">0</strong>
+                    </div>
+
+                </article>
+
+                <article class="summary-card">
+
+                    <div class="summary-icon green">
+                        ✓
+                    </div>
+
+                    <div>
+                        <span>Available</span>
+                        <strong id="availableRooms">0</strong>
+                    </div>
+
+                </article>
+
+                <article class="summary-card">
+
+                    <div class="summary-icon orange">
+                        ◉
+                    </div>
+
+                    <div>
+                        <span>Occupied</span>
+                        <strong id="occupiedRooms">0</strong>
+                    </div>
+
+                </article>
+
+                <article class="summary-card">
+
+                    <div class="summary-icon purple">
+                        ⚒
+                    </div>
+
+                    <div>
+                        <span>Maintenance</span>
+                        <strong id="maintenanceRooms">0</strong>
+                    </div>
+
+                </article>
+
+            </section>
+
+
+            <!-- ==================================================
+                 TOOLBAR
+                 ================================================== -->
+
+            <section class="rooms-toolbar">
+
+                <div class="room-search">
+
+                    <span>⌕</span>
+
+                    <input
+                        type="search"
+                        id="roomSearch"
+                        placeholder="Search by room number, type or location..."
+                        autocomplete="off"
+                    />
+
+                    <button
+                        type="button"
+                        id="clearSearch"
+                        hidden
+                        aria-label="Clear search"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+                <div class="room-filter-chips">
+
+                    <button
+                        type="button"
+                        class="filter-chip active"
+                        data-filter="all"
+                    >
+                        All
+                    </button>
+
+                    <button
+                        type="button"
+                        class="filter-chip"
+                        data-filter="available"
+                    >
+                        Available
+                    </button>
+
+                    <button
+                        type="button"
+                        class="filter-chip"
+                        data-filter="reserved"
+                    >
+                        Reserved
+                    </button>
+
+                    <button
+                        type="button"
+                        class="filter-chip"
+                        data-filter="occupied"
+                    >
+                        Occupied
+                    </button>
+
+                    <button
+                        type="button"
+                        class="filter-chip"
+                        data-filter="maintenance"
+                    >
+                        Maintenance
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <div class="results-row">
+
+                <span id="resultsLabel">
+                    Loading rooms...
+                </span>
+
+            </div>
+
+
+            <!-- ==================================================
+                 LOADING
+                 ================================================== -->
+
+            <section
+                class="rooms-state"
+                id="roomsLoading"
+            >
+
+                <div class="loading-spinner"></div>
+
+                <h3>Loading rooms</h3>
+
+                <p>
+                    Getting the latest records from Firebase...
+                </p>
+
+            </section>
+
+
+            <!-- ==================================================
+                 ERROR
+                 ================================================== -->
+
+            <section
+                class="rooms-state error-state"
+                id="roomsError"
+                hidden
+            >
+
+                <div class="state-icon">!</div>
+
+                <h3>Unable to load rooms</h3>
+
+                <p id="roomsErrorMessage">
+                    Something went wrong.
+                </p>
+
+                <button
+                    type="button"
+                    id="roomsRetry"
+                    class="state-button"
+                >
+                    Try again
+                </button>
+
+            </section>
+
+
+            <!-- ==================================================
+                 EMPTY
+                 ================================================== -->
+
+            <section
+                class="rooms-state"
+                id="roomsEmpty"
+                hidden
+            >
+
+                <div class="state-icon">▦</div>
+
+                <h3>No rooms found</h3>
+
+                <p id="roomsEmptyMessage">
+                    There are no rooms matching your current selection.
+                </p>
+
+                <button
+                    type="button"
+                    id="emptyAddRoomButton"
+                    class="state-button"
+                >
+                    + Add Room
+                </button>
+
+            </section>
+
+
+            <!-- ==================================================
+                 ROOMS GRID
+                 ================================================== -->
+
+            <section
+                class="rooms-grid"
+                id="roomsGrid"
+                hidden
+            ></section>
+
+        </section>
+
+    </main>
+
+
+    <!-- ======================================================
+         MOBILE BOTTOM NAVIGATION
+         ====================================================== -->
+
+    <nav class="mobile-bottom-navigation">
+
+        <a href="../dashboard/dashboard.html">
+            <span>⌂</span>
+            <small>Home</small>
+        </a>
+
+        <a href="./rooms.html" class="active">
+            <span>▦</span>
+            <small>Rooms</small>
+        </a>
+
+        <button
+            type="button"
+            class="mobile-add-button-circle"
+            id="mobileAddRoomButton"
+            aria-label="Add Room"
+        >
+            +
+        </button>
+
+        <a href="../tenancies/tenancies.html">
+            <span>♙</span>
+            <small>Tenancies</small>
+        </a>
+
+        <a href="../settings/settings.html">
+            <span>⚙</span>
+            <small>Settings</small>
+        </a>
+
+    </nav>
+
+
+    <!-- ======================================================
+         REUSABLE ADD ROOM COMPONENT MOUNT
+         ====================================================== -->
+
+    <div id="addRoomMount"></div>
+
+
+    <!-- ======================================================
+         DETAILS MODAL
+         ====================================================== -->
+
+    <div
+        class="details-overlay"
+        id="detailsModal"
+        hidden
+    >
+
+        <section class="details-modal">
+
+            <header class="details-header">
+
+                <div>
+                    <span>ROOM DETAILS</span>
+                    <h2 id="detailsRoomTitle">
+                        Room
+                    </h2>
+                </div>
+
+                <button
+                    type="button"
+                    id="detailsClose"
+                    class="details-close"
+                >
+                    &times;
+                </button>
+
+            </header>
+
+            <div class="details-body">
+
+                <div class="details-status-row">
+                    <span>Status</span>
+                    <strong id="detailsStatus"></strong>
+                </div>
+
+                <div class="details-info-grid">
+
+                    <div>
+                        <span>Room type</span>
+                        <strong id="detailsType">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Current price</span>
+                        <strong id="detailsPrice">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Size</span>
+                        <strong id="detailsSize">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Location</span>
+                        <strong id="detailsLocation">—</strong>
+                    </div>
+
+                </div>
+
+                <div class="details-notes">
+
+                    <span>Condition / notes</span>
+
+                    <p id="detailsCondition">
+                        No notes recorded.
+                    </p>
+
+                </div>
+
+                <div class="details-actions">
+
+                    <button
+                        type="button"
+                        id="detailsEdit"
+                        class="details-primary-button"
+                    >
+                        Edit Room
+                    </button>
+
+                    <button
+                        type="button"
+                        id="detailsArchive"
+                        class="details-danger-button"
+                    >
+                        Archive Room
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+    <!-- ======================================================
+         TOAST
+         ====================================================== -->
+
+    <div
+        class="rooms-toast"
+        id="toast"
+        role="status"
+        aria-live="polite"
+    ></div>
+
+
+    <script
+        type="module"
+        src="./rooms.js"
+    ></script>
+
+</body>
+</html>
