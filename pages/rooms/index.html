@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087fdf">
+
+  <title>Rooms | HomeRent</title>
+
+  <!-- Shared application styles -->
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <link rel="stylesheet" href="../../css/rooms.css">
+
+  <!-- Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+</head>
+
+<body class="rooms-page">
+
+  <div class="app-shell">
+
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <img
+          data-system-logo
+          src=""
+          alt="System logo"
+          class="system-logo"
+        >
+        <div class="sidebar-brand-text">
+          <strong data-business-name>HomeRent</strong>
+          <small>Management System</small>
+        </div>
+        <button
+          type="button"
+          class="icon-button sidebar-close"
+          id="sidebarClose"
+          aria-label="Close navigation"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Main navigation">
+        <a href="../dashboard/index.html" class="nav-link">
+          <i class="fa-solid fa-house"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="index.html" class="nav-link active" aria-current="page">
+          <i class="fa-solid fa-door-open"></i>
+          <span>Rooms</span>
+        </a>
+
+        <a href="../tenancies/index.html" class="nav-link">
+          <i class="fa-solid fa-file-contract"></i>
+          <span>Tenancies</span>
+        </a>
+
+        <a href="../clients/index.html" class="nav-link">
+          <i class="fa-solid fa-users"></i>
+          <span>Clients</span>
+        </a>
+
+        <a href="../payments/index.html" class="nav-link">
+          <i class="fa-solid fa-wallet"></i>
+          <span>Payments</span>
+        </a>
+
+        <a href="../inspections/index.html" class="nav-link">
+          <i class="fa-solid fa-clipboard-check"></i>
+          <span>Inspections</span>
+        </a>
+
+        <a href="../reports/index.html" class="nav-link">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Reports</span>
+        </a>
+
+        <a href="../settings/index.html" class="nav-link">
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-dot"></span>
+        <span>Secure management</span>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- Top header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button
+            type="button"
+            class="icon-button mobile-menu-button"
+            id="mobileMenuButton"
+            aria-label="Open navigation"
+            aria-expanded="false"
+          >
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
+          <div>
+            <p class="eyebrow">PROPERTY MANAGEMENT</p>
+            <h1>Rooms</h1>
+            <p class="page-subtitle">
+              Manage your living rooms and storerooms in one place.
+            </p>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <button
+            type="button"
+            class="icon-button"
+            id="notificationsButton"
+            aria-label="Notifications"
+          >
+            <i class="fa-regular fa-bell"></i>
+          </button>
+
+          <button
+            type="button"
+            class="profile-button"
+            id="profileButton"
+            aria-label="Account menu"
+          >
+            <span class="profile-initial" id="profileInitial">A</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Summary cards -->
+      <section class="room-summary-grid" aria-label="Room summary">
+        <article class="summary-card">
+          <div class="summary-icon summary-icon-blue">
+            <i class="fa-solid fa-door-open"></i>
+          </div>
+          <div>
+            <p>Total rooms</p>
+            <h2 id="totalRooms">—</h2>
+            <small>Active room records</small>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon summary-icon-green">
+            <i class="fa-solid fa-check-circle"></i>
+          </div>
+          <div>
+            <p>Available</p>
+            <h2 id="availableRooms">—</h2>
+            <small>Ready for occupancy</small>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon summary-icon-purple">
+            <i class="fa-solid fa-user-check"></i>
+          </div>
+          <div>
+            <p>Occupied</p>
+            <h2 id="occupiedRooms">—</h2>
+            <small>Currently occupied</small>
+          </div>
+        </article>
+
+        <article class="summary-card">
+          <div class="summary-icon summary-icon-orange">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+          </div>
+          <div>
+            <p>Maintenance</p>
+            <h2 id="maintenanceRooms">—</h2>
+            <small>Needs attention</small>
+          </div>
+        </article>
+      </section>
+
+      <!-- Rooms workspace -->
+      <section class="rooms-workspace">
+
+        <div class="rooms-section-heading">
+          <div>
+            <h2>Your rooms</h2>
+            <p>Search, filter, and manage your property spaces.</p>
+          </div>
+
+          <button
+            type="button"
+            class="primary-button desktop-add-room"
+            id="addRoomButton"
+          >
+            <i class="fa-solid fa-plus"></i>
+            <span>Add room</span>
+          </button>
+        </div>
+
+        <!-- Search -->
+        <div class="rooms-search-row">
+          <label class="rooms-search-box" for="roomSearch">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="search"
+              id="roomSearch"
+              placeholder="Search room number, type or location..."
+              autocomplete="off"
+            >
+            <button
+              type="button"
+              class="search-clear-button"
+              id="clearSearchButton"
+              aria-label="Clear search"
+              hidden
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </label>
+
+          <label class="rooms-sort-box">
+            <span class="visually-hidden">Sort rooms</span>
+            <i class="fa-solid fa-arrow-down-wide-short"></i>
+            <select id="roomSort">
+              <option value="number-asc">Room number</option>
+              <option value="price-high">Price: high to low</option>
+              <option value="price-low">Price: low to high</option>
+              <option value="recent">Recently added</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- Category filters -->
+        <div
+          class="room-filter-list"
+          id="roomFilters"
+          role="group"
+          aria-label="Filter rooms"
+        >
+          <button type="button" class="filter-chip active" data-filter="all">
+            All <span id="allRoomsCount">0</span>
+          </button>
+
+          <button type="button" class="filter-chip" data-filter="living">
+            <i class="fa-solid fa-house"></i>
+            Living
+          </button>
+
+          <button type="button" class="filter-chip" data-filter="store">
+            <i class="fa-solid fa-box"></i>
+            Store
+          </button>
+
+          <button type="button" class="filter-chip" data-filter="vacant">
+            <i class="fa-solid fa-door-open"></i>
+            Vacant
+          </button>
+
+          <button type="button" class="filter-chip" data-filter="occupied">
+            <i class="fa-solid fa-user-check"></i>
+            Occupied
+          </button>
+
+          <button type="button" class="filter-chip" data-filter="maintenance">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            Maintenance
+          </button>
+        </div>
+
+        <!-- Results information -->
+        <div class="rooms-results-bar">
+          <p id="roomsResultsText" aria-live="polite">
+            Loading rooms...
+          </p>
+
+          <button
+            type="button"
+            class="text-button"
+            id="refreshRoomsButton"
+          >
+            <i class="fa-solid fa-rotate"></i>
+            Refresh
+          </button>
+        </div>
+
+        <!-- Loading state -->
+        <div class="rooms-loading" id="roomsLoading">
+          <span class="loading-spinner" aria-hidden="true"></span>
+          <p>Loading your rooms...</p>
+        </div>
+
+        <!-- Room cards are rendered here by rooms.js -->
+        <div
+          class="rooms-grid"
+          id="roomsGrid"
+          aria-live="polite"
+          aria-busy="true"
+        ></div>
+
+        <!-- Empty/error state -->
+        <div class="rooms-empty-state" id="roomsEmptyState" hidden>
+          <div class="empty-state-icon">
+            <i class="fa-solid fa-door-closed"></i>
+          </div>
+          <h3 id="emptyStateTitle">No rooms found</h3>
+          <p id="emptyStateMessage">
+            Add your first room to begin managing your property.
+          </p>
+          <button
+            type="button"
+            class="primary-button"
+            id="emptyStateAddButton"
+          >
+            <i class="fa-solid fa-plus"></i>
+            Add your first room
+          </button>
+        </div>
+
+        <!-- Error state -->
+        <div class="rooms-error-state" id="roomsErrorState" hidden>
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <h3>We couldn't load your rooms</h3>
+          <p id="roomsErrorMessage">
+            Check your connection and try again.
+          </p>
+          <button
+            type="button"
+            class="secondary-button"
+            id="retryRoomsButton"
+          >
+            Try again
+          </button>
+        </div>
+
+      </section>
+
+      <footer class="page-footer">
+        <p data-footer-text>Secure Property &amp; Storeroom Management</p>
+        <p>
+          <span data-business-name>HomeRent</span>
+          <span aria-hidden="true">·</span>
+          <span data-system-version>1.0.0</span>
+        </p>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Mobile bottom navigation -->
+  <nav class="mobile-bottom-nav" aria-label="Quick navigation">
+    <a href="../dashboard/index.html" class="mobile-nav-item">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+
+    <a href="index.html" class="mobile-nav-item active" aria-current="page">
+      <i class="fa-solid fa-door-open"></i>
+      <span>Rooms</span>
+    </a>
+
+    <button
+      type="button"
+      class="mobile-nav-add"
+      id="mobileAddRoomButton"
+      aria-label="Add room"
+    >
+      <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <a href="../clients/index.html" class="mobile-nav-item">
+      <i class="fa-solid fa-users"></i>
+      <span>Clients</span>
+    </a>
+
+    <a href="../payments/index.html" class="mobile-nav-item">
+      <i class="fa-solid fa-wallet"></i>
+      <span>Money</span>
+    </a>
+  </nav>
+
+  <!-- Reusable Add/Edit Room modal mount point -->
+  <div id="roomModalRoot"></div>
+
+  <!-- Shared branding must populate the logo and fallback -->
+  <script type="module">
+    import { loadSettings } from "../../js/core/settings-service.js";
+    import { applyGlobalBranding } from "../../js/core/branding.js";
+
+    try {
+      await loadSettings();
+      applyGlobalBranding();
+    } catch (error) {
+      console.error("HomeRent branding could not be loaded:", error);
+    }
+  </script>
+
+  <!-- Rooms page controller -->
+  <script type="module" src="../../js/rooms/rooms.js"></script>
+
+</body>
+</html>
