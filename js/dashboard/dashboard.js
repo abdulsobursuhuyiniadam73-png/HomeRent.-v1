@@ -1,1729 +1,121 @@
 /* =========================================================
    HOMERENT DASHBOARD
+   Clean foundation — no dependency on unfinished modules
    ========================================================= */
 
-import { collection, getDocs } from
-  "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+import {
+  collection,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-import { signOut } from
-  "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import {
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-import { db, auth } from "../../firebase.js";
-
-import { initAddRoom } from "../../components/add-room/add-room.js";
+import { db, auth } from "../firebase.js";
 
 import { loadSettings } from "../core/settings-service.js";
-
 import { getSettings } from "../core/settings.js";
 
-import { applyGlobalBranding } from "../core/branding.js";
-
 
 /* =========================================================
-   ADD ROOM
+   DOM HELPERS
    ========================================================= */
 
-let addRoomController = null;
+const $ = (id) => document.getElementById(id);
 
+const sidebar = $("sidebar");
+const sidebarOverlay = $("sidebarOverlay");
+const mobileMenuButton = $("mobileMenuButton");
+const quickSheetOverlay = $("quickSheetOverlay");
+const quickSheetClose = $("quickSheetClose");
 
-async function initializeAddRoom() {
-
-  try {
-
-    addRoomController =
-      await initAddRoom({
-
-        mountId:
-          "addRoomMount",
-
-        onSaved:
-          async (room) => {
-
-            console.log(
-              "HomeRent: New room created:",
-              room
-            );
-
-
-            /*
-             * Refresh dashboard data immediately
-             * after a new room is created.
-             */
-            await loadDashboardData();
-
-            renderDashboard();
-
-          }
-
-      });
-
-
-  } catch (error) {
-
-    console.error(
-      "HomeRent: Failed to initialize Add Room.",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   DOM ELEMENTS
-   ========================================================= */
-
-const sidebar =
-  document.getElementById("sidebar");
-
-const sidebarOverlay =
-  document.getElementById("sidebarOverlay");
-
-const mobileMenuButton =
-  document.getElementById("mobileMenuButton");
-
-const systemLogo =
-  document.getElementById("systemLogo");
-
-const systemName =
-  document.getElementById("systemName");
-
-const mobileBrandName =
-  document.getElementById("mobileBrandName");
-
-const profileAvatar =
-  document.getElementById("profileAvatar");
-
-const profileName =
-  document.getElementById("profileName");
-
-const mobileAddButton =
-  document.getElementById("mobileAddButton");
-
-const quickSheetOverlay =
-  document.getElementById("quickSheetOverlay");
-
-const quickSheetClose =
-  document.getElementById("quickSheetClose");
-
-
-/* =========================================================
-   DASHBOARD STATE
-   ========================================================= */
-
+let settings = {};
 let dashboardData = {
-
   rooms: [],
   clients: [],
   tenancies: [],
-  payments: [],
-  settings: null
-
+  payments: []
 };
 
 
 /* =========================================================
-   INITIALISE DASHBOARD
+   STARTUP
    ========================================================= */
 
-document.addEventListener(
-  "DOMContentLoaded",
-  initDashboard
-);
-
+document.addEventListener("DOMContentLoaded", initDashboard);
 
 async function initDashboard() {
-
-  /*
-   * Set up interface controls first.
-   */
   setupSidebar();
-
   setupMobileNavigation();
-
   setupDesktopNavigation();
-
   setupQuickActions();
-
   setupLogout();
-
   setupProfile();
 
-
-  /*
-   * Load branding/settings.
-   */
   await loadDashboardBranding();
-
-
-  /*
-   * Initialize the reusable Add Room
-   * interface after the DOM is ready.
-   */
-  await initializeAddRoom();
-
-
-  /*
-   * Load Firestore data.
-   */
   await loadDashboardData();
 
-
-  /*
-   * Render dashboard.
-   */
   renderDashboard();
-
 }
 
 
 /* =========================================================
-   BRANDING
-   ========================================================= */
-
-async function loadDashboardBranding() {
-
-  try {
-
-    await loadSettings();
-
-  } catch (error) {
-
-    console.warn(
-      "HomeRent: Could not load dashboard settings.",
-      error
-    );
-
-  }
-
-
-  try {
-
-    await applyGlobalBranding();
-
-  } catch (error) {
-
-    console.warn(
-      "HomeRent: Global branding could not be applied.",
-      error
-    );
-
-  }
-
-
-  try {
-
-    const settings =
-      getSettings();
-
-    dashboardData.settings =
-      settings;
-
-
-    const businessName =
-      settings.businessName ||
-      settings.systemName ||
-      "HomeRent";
-
-
-    const logoUrl =
-      settings.logoUrl ||
-      settings.systemLogo ||
-      "";
-
-
-    if (systemName) {
-
-      systemName.textContent =
-        businessName;
-
-    }
-
-
-    if (mobileBrandName) {
-
-      mobileBrandName.textContent =
-        businessName;
-
-    }
-
-
-    if (
-      logoUrl &&
-      systemLogo
-    ) {
-
-      systemLogo.src =
-        logoUrl;
-
-    }
-
-
-    document.title =
-      `${businessName} — Dashboard`;
-
-  } catch (error) {
-
-    console.warn(
-      "HomeRent: Dashboard settings could not be applied.",
-      error
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-   FIRESTORE DATA
-   ========================================================= */
-
-async function loadDashboardData() {
-
-  try {
-
-    const [
-      roomsSnapshot,
-      clientsSnapshot,
-      tenanciesSnapshot,
-      paymentsSnapshot
-    ] = await Promise.all([
-
-      getDocs(
-        collection(db, "rooms")
-      ),
-
-      getDocs(
-        collection(db, "clients")
-      ),
-
-      getDocs(
-        collection(db, "tenancies")
-      ),
-
-      getDocs(
-        collection(db, "payments")
-      )
-
-    ]);
-
-
-    dashboardData.rooms =
-      roomsSnapshot.docs.map(
-        (document) => ({
-          id: document.id,
-          ...document.data()
-        })
-      );
-
-
-    dashboardData.clients =
-      clientsSnapshot.docs.map(
-        (document) => ({
-          id: document.id,
-          ...document.data()
-        })
-      );
-
-
-    dashboardData.tenancies =
-      tenanciesSnapshot.docs.map(
-        (document) => ({
-          id: document.id,
-          ...document.data()
-        })
-      );
-
-
-    dashboardData.payments =
-      paymentsSnapshot.docs.map(
-        (document) => ({
-          id: document.id,
-          ...document.data()
-        })
-      );
-
-
-  } catch (error) {
-
-    console.error(
-      "HomeRent: Failed to load dashboard data.",
-      error
-    );
-
-
-    dashboardData.rooms = [];
-    dashboardData.clients = [];
-    dashboardData.tenancies = [];
-    dashboardData.payments = [];
-
-
-    showDashboardError();
-
-  }
-
-}
-
-
-/* =========================================================
-   MAIN RENDER
-   ========================================================= */
-
-function renderDashboard() {
-
-  renderOverview();
-
-  renderCollectionSummary();
-
-  renderOccupancy();
-
-  renderAttention();
-
-  renderRecentPayments();
-
-  renderInsight();
-
-}
-
-
-/* =========================================================
-   OVERVIEW
-   ========================================================= */
-
-function renderOverview() {
-
-  const rooms =
-    getActiveRooms();
-
-
-  const total =
-    rooms.length;
-
-
-  const occupied =
-    rooms.filter(
-      (room) =>
-        isRoomOccupied(room)
-    ).length;
-
-
-  const vacant =
-    rooms.filter(
-      (room) =>
-        !isRoomOccupied(room)
-    ).length;
-
-
-  const rentDue =
-    getRentDueTenancies().length;
-
-
-  const monthlyIncome =
-    getMonthlyCollectedAmount();
-
-
-  const occupiedElement =
-    document.getElementById(
-      "occupiedCount"
-    );
-
-
-  const totalElement =
-    document.getElementById(
-      "totalRoomCount"
-    );
-
-
-  const vacantElement =
-    document.getElementById(
-      "vacantCount"
-    );
-
-
-  const rentDueElement =
-    document.getElementById(
-      "rentDueCount"
-    );
-
-
-  const monthlyIncomeElement =
-    document.getElementById(
-      "monthlyIncome"
-    );
-
-
-  if (occupiedElement) {
-
-    occupiedElement.textContent =
-      occupied;
-
-  }
-
-
-  if (totalElement) {
-
-    totalElement.textContent =
-      `/ ${total}`;
-
-  }
-
-
-  if (vacantElement) {
-
-    vacantElement.textContent =
-      vacant;
-
-  }
-
-
-  if (rentDueElement) {
-
-    rentDueElement.textContent =
-      rentDue;
-
-  }
-
-
-  if (monthlyIncomeElement) {
-
-    monthlyIncomeElement.textContent =
-      formatMoney(monthlyIncome);
-
-  }
-
-}
-
-
-/* =========================================================
-   COLLECTION SUMMARY
-   ========================================================= */
-
-function renderCollectionSummary() {
-
-  const collected =
-    getMonthlyCollectedAmount();
-
-
-  const expected =
-    getMonthlyExpectedAmount();
-
-
-  let percentage = 0;
-
-
-  if (expected > 0) {
-
-    percentage =
-      Math.round(
-        (collected / expected) * 100
-      );
-
-  }
-
-
-  const progress =
-    Math.min(
-      Math.max(percentage, 0),
-      100
-    );
-
-
-  const percentageElement =
-    document.getElementById(
-      "collectionPercentage"
-    );
-
-
-  const collectedElement =
-    document.getElementById(
-      "collectedAmount"
-    );
-
-
-  const expectedElement =
-    document.getElementById(
-      "expectedAmount"
-    );
-
-
-  const progressElement =
-    document.getElementById(
-      "collectionProgressBar"
-    );
-
-
-  if (percentageElement) {
-
-    percentageElement.textContent =
-      `${percentage}%`;
-
-  }
-
-
-  if (collectedElement) {
-
-    collectedElement.textContent =
-      formatMoney(collected);
-
-  }
-
-
-  if (expectedElement) {
-
-    expectedElement.textContent =
-      formatMoney(expected);
-
-  }
-
-
-  if (progressElement) {
-
-    progressElement.style.width =
-      `${progress}%`;
-
-  }
-
-}
-
-
-/* =========================================================
-   ACTIVE ROOMS
-   ========================================================= */
-
-function getActiveRooms() {
-
-  return dashboardData.rooms.filter(
-    (room) =>
-      room.isArchived !== true
-  );
-
-}
-
-
-/* =========================================================
-   ACTIVE TENANCIES
-   ========================================================= */
-
-function getActiveTenancies() {
-
-  return dashboardData.tenancies.filter(
-    (tenancy) => {
-
-      if (
-        tenancy.isArchived === true
-      ) {
-
-        return false;
-
-      }
-
-
-      const status =
-        String(
-          tenancy.status || ""
-        ).toLowerCase();
-
-
-      if (!status) {
-
-        return true;
-
-      }
-
-
-      return ![
-        "ended",
-        "terminated",
-        "cancelled",
-        "canceled",
-        "inactive",
-        "archived"
-      ].includes(status);
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   ROOM OCCUPANCY
-   ========================================================= */
-
-function isRoomOccupied(room) {
-
-  const status =
-    String(
-      room.status || ""
-    ).toLowerCase();
-
-
-  if (
-    [
-      "occupied",
-      "rented",
-      "leased"
-    ].includes(status)
-  ) {
-
-    return true;
-
-  }
-
-
-  if (
-    [
-      "vacant",
-      "available",
-      "empty"
-    ].includes(status)
-  ) {
-
-    return false;
-
-  }
-
-
-  if (room.currentTenancyId) {
-
-    return true;
-
-  }
-
-
-  return getActiveTenancies().some(
-    (tenancy) =>
-      tenancy.roomId === room.id
-  );
-
-}
-
-
-/* =========================================================
-   ROOM DISPLAY STATUS
-   ========================================================= */
-
-function getRoomDisplayStatus(room) {
-
-  if (
-    !isRoomOccupied(room)
-  ) {
-
-    return "vacant";
-
-  }
-
-
-  const tenancy =
-    getActiveTenancies().find(
-      (item) =>
-        item.roomId === room.id
-    );
-
-
-  if (
-    tenancy &&
-    isTenancyOverdue(tenancy)
-  ) {
-
-    return "overdue";
-
-  }
-
-
-  if (
-    tenancy &&
-    isTenancyDue(tenancy)
-  ) {
-
-    return "due";
-
-  }
-
-
-  return "paid";
-
-}
-
-
-/* =========================================================
-   OCCUPANCY
-   ========================================================= */
-
-function renderOccupancy() {
-
-  const grid =
-    document.getElementById(
-      "occupancyGrid"
-    );
-
-
-  const summary =
-    document.getElementById(
-      "occupancySummary"
-    );
-
-
-  if (!grid) {
-
-    return;
-
-  }
-
-
-  const rooms =
-    getActiveRooms();
-
-
-  grid.innerHTML = "";
-
-
-  rooms.forEach(
-    (room, index) => {
-
-      const status =
-        getRoomDisplayStatus(room);
-
-
-      const roomNumber =
-        room.roomNumber ||
-        room.name ||
-        `Room ${index + 1}`;
-
-
-      const roomButton =
-        document.createElement(
-          "button"
-        );
-
-
-      roomButton.type =
-        "button";
-
-
-      roomButton.className =
-        `occupancy-room ${status}`;
-
-
-      roomButton.title =
-        `${roomNumber} — ${formatRoomStatus(status)}`;
-
-
-      roomButton.setAttribute(
-        "aria-label",
-        roomButton.title
-      );
-
-
-      roomButton.dataset.roomId =
-        room.id;
-
-
-      roomButton.addEventListener(
-        "click",
-        () => {
-
-          window.location.href =
-            `../rooms/index.html?room=${encodeURIComponent(room.id)}`;
-
-        }
-      );
-
-
-      grid.appendChild(
-        roomButton
-      );
-
-    }
-  );
-
-
-  const occupied =
-    rooms.filter(
-      (room) =>
-        isRoomOccupied(room)
-    ).length;
-
-
-  if (summary) {
-
-    summary.textContent =
-      `${occupied} of ${rooms.length} rooms`;
-
-  }
-
-}
-
-
-/* =========================================================
-   STATUS LABEL
-   ========================================================= */
-
-function formatRoomStatus(status) {
-
-  const names = {
-
-    paid: "Paid",
-
-    overdue: "Overdue",
-
-    due: "Due",
-
-    vacant: "Vacant"
-
-  };
-
-
-  return (
-    names[status] ||
-    "Unknown"
-  );
-
-}
-
-
-/* =========================================================
-   MONTHLY PAYMENTS
-   ========================================================= */
-
-function getMonthlyPayments() {
-
-  const now =
-    new Date();
-
-
-  const year =
-    now.getFullYear();
-
-
-  const month =
-    now.getMonth();
-
-
-  return dashboardData.payments.filter(
-    (payment) => {
-
-      if (
-        payment.isArchived === true
-      ) {
-
-        return false;
-
-      }
-
-
-      const date =
-        getDateValue(
-          payment.paymentDate ||
-          payment.date ||
-          payment.createdAt
-        );
-
-
-      if (!date) {
-
-        return false;
-
-      }
-
-
-      return (
-        date.getFullYear() === year &&
-        date.getMonth() === month
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   MONTHLY COLLECTED
-   ========================================================= */
-
-function getMonthlyCollectedAmount() {
-
-  return getMonthlyPayments()
-    .reduce(
-      (total, payment) => {
-
-        const amount =
-          Number(
-            payment.amount || 0
-          );
-
-
-        return (
-          total +
-          (
-            Number.isFinite(amount)
-              ? amount
-              : 0
-          )
-        );
-
-      },
-      0
-    );
-
-}
-
-
-/* =========================================================
-   MONTHLY EXPECTED
-   ========================================================= */
-
-function getMonthlyExpectedAmount() {
-
-  const tenancies =
-    getActiveTenancies();
-
-
-  return tenancies.reduce(
-    (total, tenancy) => {
-
-      const amount =
-        Number(
-          tenancy.amount || 0
-        );
-
-
-      if (
-        !Number.isFinite(amount) ||
-        amount <= 0
-      ) {
-
-        return total;
-
-      }
-
-
-      const unit =
-        String(
-          tenancy.durationUnit ||
-          tenancy.unit ||
-          ""
-        ).toLowerCase();
-
-
-      if (
-        unit === "week" ||
-        unit === "weeks" ||
-        unit === "weekly"
-      ) {
-
-        return (
-          total +
-          (amount * 52 / 12)
-        );
-
-      }
-
-
-      if (
-        unit === "year" ||
-        unit === "years" ||
-        unit === "yearly" ||
-        unit === "annual"
-      ) {
-
-        return (
-          total +
-          (amount / 12)
-        );
-
-      }
-
-
-      return total + amount;
-
-    },
-    0
-  );
-
-}
-
-
-/* =========================================================
-   RENT DUE
-   ========================================================= */
-
-function getRentDueTenancies() {
-
-  return getActiveTenancies()
-    .filter(
-      (tenancy) =>
-        isTenancyDue(tenancy) ||
-        isTenancyOverdue(tenancy)
-    );
-
-}
-
-
-/* =========================================================
-   TENANCY DUE
-   ========================================================= */
-
-function isTenancyDue(tenancy) {
-
-  const endDate =
-    getDateValue(
-      tenancy.endDate
-    );
-
-
-  if (!endDate) {
-
-    return false;
-
-  }
-
-
-  const today =
-    startOfDay(
-      new Date()
-    );
-
-
-  const dueWindow =
-    Number(
-      dashboardData.settings
-        ?.reminderDaysBeforeDue ?? 3
-    );
-
-
-  const reminderDate =
-    new Date(endDate);
-
-
-  reminderDate.setDate(
-    reminderDate.getDate() -
-    dueWindow
-  );
-
-
-  return (
-    today >=
-    startOfDay(reminderDate)
-  );
-
-}
-
-
-/* =========================================================
-   TENANCY OVERDUE
-   ========================================================= */
-
-function isTenancyOverdue(tenancy) {
-
-  const endDate =
-    getDateValue(
-      tenancy.endDate
-    );
-
-
-  if (!endDate) {
-
-    return false;
-
-  }
-
-
-  return (
-    startOfDay(new Date()) >
-    startOfDay(endDate)
-  );
-
-}
-
-
-/* =========================================================
-   ATTENTION LIST
-   ========================================================= */
-
-function renderAttention() {
-
-  const container =
-    document.getElementById(
-      "attentionList"
-    );
-
-
-  if (!container) {
-
-    return;
-
-  }
-
-
-  const dueTenancies =
-    getRentDueTenancies();
-
-
-  if (
-    dueTenancies.length === 0
-  ) {
-
-    container.innerHTML = `
-
-      <div class="empty-state">
-
-        <span class="empty-icon">✓</span>
-
-        <strong>
-          You're all caught up
-        </strong>
-
-        <p>
-          No urgent property actions right now.
-        </p>
-
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML = "";
-
-
-  dueTenancies
-    .slice(0, 5)
-    .forEach(
-      (tenancy) => {
-
-        const item =
-          document.createElement(
-            "div"
-          );
-
-
-        item.className =
-          "attention-item";
-
-
-        const room =
-          getRoomForTenancy(
-            tenancy
-          );
-
-
-        const roomName =
-          room?.roomNumber ||
-          tenancy.roomNumber ||
-          "Room";
-
-
-        const overdue =
-          isTenancyOverdue(
-            tenancy
-          );
-
-
-        item.innerHTML = `
-
-          <div class="attention-item-icon">
-            ${overdue ? "!" : "₵"}
-          </div>
-
-          <div class="attention-item-content">
-
-            <strong>
-              ${escapeHtml(roomName)}
-            </strong>
-
-            <p>
-              ${
-                overdue
-                  ? "Rental period requires attention."
-                  : "Rent is approaching its due date."
-              }
-            </p>
-
-          </div>
-
-        `;
-
-
-        container.appendChild(
-          item
-        );
-
-      }
-    );
-
-}
-
-
-/* =========================================================
-   RECENT PAYMENTS
-   ========================================================= */
-
-function renderRecentPayments() {
-
-  const container =
-    document.getElementById(
-      "paymentList"
-    );
-
-
-  if (!container) {
-
-    return;
-
-  }
-
-
-  const payments =
-    [...dashboardData.payments]
-      .filter(
-        (payment) =>
-          payment.isArchived !== true
-      )
-      .sort(
-        (a, b) => {
-
-          const dateA =
-            getDateValue(
-              a.paymentDate ||
-              a.date ||
-              a.createdAt
-            );
-
-
-          const dateB =
-            getDateValue(
-              b.paymentDate ||
-              b.date ||
-              b.createdAt
-            );
-
-
-          return (
-            (dateB?.getTime() || 0) -
-            (dateA?.getTime() || 0)
-          );
-
-        }
-      )
-      .slice(0, 5);
-
-
-  if (
-    payments.length === 0
-  ) {
-
-    container.innerHTML = `
-
-      <div class="empty-state">
-
-        <span class="empty-icon">₵</span>
-
-        <strong>
-          No payments yet
-        </strong>
-
-        <p>
-          Recorded payments will appear here.
-        </p>
-
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-
-  container.innerHTML = "";
-
-
-  payments.forEach(
-    (payment) => {
-
-      const item =
-        document.createElement(
-          "div"
-        );
-
-
-      item.className =
-        "payment-item";
-
-
-      const amount =
-        Number(
-          payment.amount || 0
-        );
-
-
-      const date =
-        getDateValue(
-          payment.paymentDate ||
-          payment.date ||
-          payment.createdAt
-        );
-
-
-      const room =
-        getRoomForPayment(
-          payment
-        );
-
-
-      const client =
-        getClientForPayment(
-          payment
-        );
-
-
-      const roomName =
-        room?.roomNumber ||
-        payment.roomNumber ||
-        "Room";
-
-
-      const clientName =
-        client?.fullName ||
-        payment.clientName ||
-        "Client";
-
-
-      item.innerHTML = `
-
-        <div class="payment-item-icon">
-          ₵
-        </div>
-
-        <div class="payment-item-content">
-
-          <strong>
-            ${escapeHtml(clientName)}
-          </strong>
-
-          <p>
-            ${escapeHtml(roomName)}
-            ${
-              date
-                ? ` · ${formatDate(date)}`
-                : ""
-            }
-          </p>
-
-        </div>
-
-        <strong class="payment-item-amount">
-          ${formatMoney(amount)}
-        </strong>
-
-      `;
-
-
-      container.appendChild(
-        item
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================================
-   PROPERTY INSIGHT
-   ========================================================= */
-
-function renderInsight() {
-
-  const title =
-    document.getElementById(
-      "insightTitle"
-    );
-
-
-  const text =
-    document.getElementById(
-      "insightText"
-    );
-
-
-  if (!title || !text) {
-
-    return;
-
-  }
-
-
-  const rooms =
-    getActiveRooms();
-
-
-  const occupied =
-    rooms.filter(
-      (room) =>
-        isRoomOccupied(room)
-    ).length;
-
-
-  const total =
-    rooms.length;
-
-
-  const due =
-    getRentDueTenancies().length;
-
-
-  if (total === 0) {
-
-    title.textContent =
-      "Add your first room";
-
-
-    text.textContent =
-      "Once your rooms are recorded, HomeRent will start showing occupancy and rental insights.";
-
-    return;
-
-  }
-
-
-  const occupancyRate =
-    Math.round(
-      (occupied / total) * 100
-    );
-
-
-  if (due > 0) {
-
-    title.textContent =
-      `${due} rental record${due === 1 ? "" : "s"} need attention`;
-
-
-    text.textContent =
-      "Review upcoming or overdue rental periods so your collection records stay current.";
-
-    return;
-
-  }
-
-
-  if (occupancyRate >= 90) {
-
-    title.textContent =
-      "Your property is highly occupied";
-
-
-    text.textContent =
-      `Current occupancy is ${occupancyRate}%. Keep your room and payment records up to date.`;
-
-    return;
-
-  }
-
-
-  if (occupancyRate >= 70) {
-
-    title.textContent =
-      "Occupancy is looking healthy";
-
-
-    text.textContent =
-      `Your property is currently ${occupancyRate}% occupied.`;
-
-    return;
-
-  }
-
-
-  title.textContent =
-    "There is room to grow";
-
-
-  text.textContent =
-    `Current occupancy is ${occupancyRate}%. Your vacant rooms may be opportunities for new tenancies.`;
-
-}
-
-
-/* =========================================================
-   ROOM / TENANCY LOOKUPS
-   ========================================================= */
-
-function getRoomForTenancy(tenancy) {
-
-  return dashboardData.rooms.find(
-    (room) =>
-      room.id === tenancy.roomId
-  );
-
-}
-
-
-function getRoomForPayment(payment) {
-
-  if (payment.roomId) {
-
-    return dashboardData.rooms.find(
-      (room) =>
-        room.id === payment.roomId
-    );
-
-  }
-
-
-  if (payment.tenancyId) {
-
-    const tenancy =
-      dashboardData.tenancies.find(
-        (item) =>
-          item.id === payment.tenancyId
-      );
-
-
-    if (tenancy) {
-
-      return getRoomForTenancy(
-        tenancy
-      );
-
-    }
-
-  }
-
-
-  return null;
-
-}
-
-
-function getClientForPayment(payment) {
-
-  if (payment.clientId) {
-
-    return dashboardData.clients.find(
-      (client) =>
-        client.id === payment.clientId
-    );
-
-  }
-
-
-  if (payment.tenancyId) {
-
-    const tenancy =
-      dashboardData.tenancies.find(
-        (item) =>
-          item.id === payment.tenancyId
-      );
-
-
-    if (
-      tenancy &&
-      tenancy.clientId
-    ) {
-
-      return dashboardData.clients.find(
-        (client) =>
-          client.id === tenancy.clientId
-      );
-
-    }
-
-  }
-
-
-  return null;
-
-}
-
-
-/* =========================================================
-   SIDEBAR
+   MOBILE SIDEBAR
    ========================================================= */
 
 function setupSidebar() {
-
   if (mobileMenuButton) {
-
-    mobileMenuButton.addEventListener(
-      "click",
-      openSidebar
-    );
-
+    mobileMenuButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      openSidebar();
+    });
+  } else {
+    console.warn("HomeRent: mobileMenuButton was not found.");
   }
 
+  sidebarOverlay?.addEventListener("click", closeSidebar);
 
-  sidebarOverlay?.addEventListener(
-    "click",
-    closeSidebar
-  );
-
-
-  document
-    .querySelectorAll(".nav-link")
-    .forEach(
-      (link) => {
-
-        link.addEventListener(
-          "click",
-          () => {
-
-            if (
-              window.innerWidth <= 700
-            ) {
-
-              closeSidebar();
-
-            }
-
-          }
-        );
-
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.innerWidth <= 700) {
+        closeSidebar();
       }
-    );
+    });
+  });
 
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeSidebar();
+      closeQuickSheet();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 700) {
+      closeSidebar();
+    }
+  });
 }
-
 
 function openSidebar() {
+  if (!sidebar) {
+    console.error("HomeRent: sidebar element was not found.");
+    return;
+  }
 
-  sidebar?.classList.add(
-    "open"
-  );
+  sidebar.classList.add("open");
+  sidebarOverlay?.classList.add("active");
+  document.body.style.overflow = "hidden";
 
-
-  sidebarOverlay?.classList.add(
-    "active"
-  );
-
-
-  document.body.style.overflow =
-    "hidden";
-
+  console.log("HomeRent: Mobile sidebar opened.");
 }
 
-
 function closeSidebar() {
-
-  sidebar?.classList.remove(
-    "open"
-  );
-
-
-  sidebarOverlay?.classList.remove(
-    "active"
-  );
-
-
-  document.body.style.overflow =
-    "";
-
+  sidebar?.classList.remove("open");
+  sidebarOverlay?.classList.remove("active");
+  document.body.style.overflow = "";
 }
 
 
@@ -1732,67 +124,27 @@ function closeSidebar() {
    ========================================================= */
 
 function setupMobileNavigation() {
-
-  const pageRoutes = {
-
-    home:
-      "./index.html",
-
-    rooms:
-      "../rooms/index.html",
-
-    tenants:
-      "../clients/index.html",
-
-    money:
-      "../payments/index.html"
-
+  const routes = {
+    home: "./index.html",
+    rooms: "../rooms/index.html",
+    tenants: "../clients/index.html",
+    money: "../payments/index.html"
   };
 
+  document.querySelectorAll("[data-mobile-page]").forEach((item) => {
+    item.addEventListener("click", (event) => {
+      const page = item.dataset.mobilePage;
+      const route = routes[page];
 
-  document
-    .querySelectorAll("[data-mobile-page]")
-    .forEach(
-      (item) => {
-
-        item.addEventListener(
-          "click",
-          (event) => {
-
-            event.preventDefault();
-
-            event.stopPropagation();
-
-
-            const page =
-              item.dataset.mobilePage;
-
-
-            const route =
-              pageRoutes[page];
-
-
-            if (!route) {
-
-              console.warn(
-                `HomeRent: No mobile route configured for "${page}".`
-              );
-
-              return;
-
-            }
-
-
-            window.location.assign(
-              route
-            );
-
-          }
-        );
-
+      if (!route) {
+        console.warn(`HomeRent: No mobile route for "${page}".`);
+        return;
       }
-    );
 
+      event.preventDefault();
+      window.location.assign(route);
+    });
+  });
 }
 
 
@@ -1801,100 +153,32 @@ function setupMobileNavigation() {
    ========================================================= */
 
 function setupDesktopNavigation() {
-
-  const pageRoutes = {
-
-    dashboard:
-      "./index.html",
-
-    rooms:
-      "../rooms/index.html",
-
-    tenancies:
-      "../tenancies/index.html",
-
-    payments:
-      "../payments/index.html",
-
-    receipts:
-      "../receipts/index.html",
-
-    finances:
-      "../finances/index.html",
-
-    reports:
-      "../reports/index.html",
-
-    documents:
-      "../documents/index.html",
-
-    settings:
-      "../settings/index.html"
-
+  const routes = {
+    dashboard: "./index.html",
+    rooms: "../rooms/index.html",
+    tenancies: "../tenancies/index.html",
+    payments: "../payments/index.html",
+    receipts: "../receipts/index.html",
+    finances: "../finances/index.html",
+    reports: "../reports/index.html",
+    documents: "../documents/index.html",
+    settings: "../settings/index.html"
   };
 
+  document.querySelectorAll("[data-page]").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const page = link.dataset.page;
+      const route = routes[page];
 
-  document
-    .querySelectorAll("[data-page]")
-    .forEach(
-      (link) => {
-
-        link.addEventListener(
-          "click",
-          (event) => {
-
-            event.preventDefault();
-
-            event.stopPropagation();
-
-
-            const page =
-              link.dataset.page;
-
-
-            const route =
-              pageRoutes[page];
-
-
-            if (!route) {
-
-              console.warn(
-                `HomeRent: No desktop route configured for "${page}".`
-              );
-
-              return;
-
-            }
-
-
-            document
-              .querySelectorAll(".nav-link")
-              .forEach(
-                (nav) => {
-
-                  nav.classList.remove(
-                    "active"
-                  );
-
-                }
-              );
-
-
-            link.classList.add(
-              "active"
-            );
-
-
-            window.location.assign(
-              route
-            );
-
-          }
-        );
-
+      if (!route) {
+        console.warn(`HomeRent: No desktop route for "${page}".`);
+        return;
       }
-    );
 
+      event.preventDefault();
+      window.location.assign(route);
+    });
+  });
 }
 
 
@@ -1903,621 +187,616 @@ function setupDesktopNavigation() {
    ========================================================= */
 
 function setupQuickActions() {
+  document.querySelectorAll("[data-action]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      handleQuickAction(button.dataset.action);
+    });
+  });
 
-  /*
-   * Desktop quick actions
-   * and quick-sheet buttons.
-   */
-  document
-    .querySelectorAll("[data-action]")
-    .forEach(
-      (button) => {
+  $("mobileAddButton")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    openQuickSheet();
+  });
 
-        button.addEventListener(
-          "click",
-          (event) => {
+  quickSheetClose?.addEventListener("click", closeQuickSheet);
 
-            event.preventDefault();
-
-            event.stopPropagation();
-
-
-            const action =
-              button.dataset.action;
-
-
-            handleQuickAction(
-              action
-            );
-
-          }
-        );
-
-      }
-    );
-
-
-  /*
-   * Mobile + button.
-   */
-  if (mobileAddButton) {
-
-    mobileAddButton.addEventListener(
-      "click",
-      (event) => {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-        openQuickSheet();
-
-      }
-    );
-
-  }
-
-
-  /*
-   * Quick-sheet close button.
-   */
-  if (quickSheetClose) {
-
-    quickSheetClose.addEventListener(
-      "click",
-      (event) => {
-
-        event.preventDefault();
-
-        event.stopPropagation();
-
-        closeQuickSheet();
-
-      }
-    );
-
-  }
-
-
-  /*
-   * Clicking outside the sheet closes it.
-   */
-  if (quickSheetOverlay) {
-
-    quickSheetOverlay.addEventListener(
-      "click",
-      (event) => {
-
-        if (
-          event.target ===
-          quickSheetOverlay
-        ) {
-
-          closeQuickSheet();
-
-        }
-
-      }
-    );
-
-  }
-
-
-  /*
-   * Escape key closes the sheet.
-   */
-  document.addEventListener(
-    "keydown",
-    (event) => {
-
-      if (
-        event.key === "Escape" &&
-        quickSheetOverlay &&
-        !quickSheetOverlay.hidden
-      ) {
-
-        closeQuickSheet();
-
-      }
-
+  quickSheetOverlay?.addEventListener("click", (event) => {
+    if (event.target === quickSheetOverlay) {
+      closeQuickSheet();
     }
-  );
-
+  });
 }
-
-
-/* =========================================================
-   OPEN QUICK SHEET
-   ========================================================= */
 
 function openQuickSheet() {
-
   if (!quickSheetOverlay) {
-
-    console.error(
-      "HomeRent: quickSheetOverlay was not found."
-    );
-
+    console.warn("HomeRent: Quick-action sheet was not found.");
     return;
-
   }
 
-
-  quickSheetOverlay.hidden =
-    false;
-
-
-  document.body.style.overflow =
-    "hidden";
-
+  quickSheetOverlay.hidden = false;
+  document.body.style.overflow = "hidden";
 }
-
-
-/* =========================================================
-   CLOSE QUICK SHEET
-   ========================================================= */
 
 function closeQuickSheet() {
-
-  if (!quickSheetOverlay) {
-
-    return;
-
+  if (quickSheetOverlay) {
+    quickSheetOverlay.hidden = true;
   }
 
-
-  quickSheetOverlay.hidden =
-    true;
-
-
-  document.body.style.overflow =
-    "";
-
+  document.body.style.overflow = "";
 }
-
-
-/* =========================================================
-   HANDLE QUICK ACTION
-   ========================================================= */
 
 function handleQuickAction(action) {
-
-  /*
-   * Always close the quick sheet first.
-   */
   closeQuickSheet();
 
+  const routes = {
+    room: "../rooms/index.html?action=add",
+    tenancy: "../tenancies/index.html?action=add",
+    payment: "../payments/index.html?action=add",
+    document: "../documents/index.html?action=add"
+  };
 
-  switch (action) {
-
-    /* -----------------------------------------
-       ADD ROOM
-       ----------------------------------------- */
-
-    case "room":
-
-      /*
-       * Open the SAME reusable Add Room
-       * interface used by the Rooms page.
-       */
-      if (!addRoomController) {
-
-        console.error(
-          "HomeRent: Add Room interface is not ready."
-        );
-
-        return;
-
-      }
-
-
-      addRoomController.open();
-
-      break;
-
-
-    /* -----------------------------------------
-       NEW TENANCY
-       ----------------------------------------- */
-
-    case "tenancy":
-
-      window.location.assign(
-        "../tenancies/index.html?action=add"
-      );
-
-      break;
-
-
-    /* -----------------------------------------
-       RECORD PAYMENT
-       ----------------------------------------- */
-
-    case "payment":
-
-      window.location.assign(
-        "../payments/index.html?action=add"
-      );
-
-      break;
-
-
-    /* -----------------------------------------
-       DOCUMENT
-       ----------------------------------------- */
-
-    case "document":
-
-      window.location.assign(
-        "../documents/index.html?action=add"
-      );
-
-      break;
-
-
-    /* -----------------------------------------
-       UNKNOWN ACTION
-       ----------------------------------------- */
-
-    default:
-
-      console.warn(
-        `HomeRent: Unknown quick action "${action}".`
-      );
-
-      break;
-
+  if (!routes[action]) {
+    console.warn(`HomeRent: Unknown quick action "${action}".`);
+    return;
   }
 
+  window.location.assign(routes[action]);
 }
 
 
 /* =========================================================
-   PROFILE
+   BRANDING AND SETTINGS
+   ========================================================= */
+
+async function loadDashboardBranding() {
+  try {
+    await loadSettings();
+    settings = getSettings();
+
+    const businessName =
+      settings.businessName ||
+      settings.systemName ||
+      "HomeRent";
+
+    const logoUrl =
+      settings.logoUrl ||
+      settings.systemLogo ||
+      "";
+
+    if ($("systemName")) {
+      $("systemName").textContent = businessName;
+    }
+
+    if ($("mobileBrandName")) {
+      $("mobileBrandName").textContent = businessName;
+    }
+
+    if ($("systemSubtitle")) {
+      $("systemSubtitle").textContent =
+        settings.businessType || "Property Management";
+    }
+
+    if ($("systemLogo") && logoUrl) {
+      $("systemLogo").src = logoUrl;
+    }
+
+    document.title = `${businessName} — Dashboard`;
+
+  } catch (error) {
+    console.error("HomeRent: Settings failed to load.", error);
+    settings = getSettings();
+  }
+}
+
+
+/* =========================================================
+   FIRESTORE DATA
+   ========================================================= */
+
+async function loadDashboardData() {
+  const collections = [
+    ["rooms", "rooms"],
+    ["clients", "clients"],
+    ["tenancies", "tenancies"],
+    ["payments", "payments"]
+  ];
+
+  await Promise.all(collections.map(async ([key, name]) => {
+    try {
+      const snapshot = await getDocs(collection(db, name));
+
+      dashboardData[key] = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data()
+      }));
+
+    } catch (error) {
+      console.error(`HomeRent: Could not load ${name}.`, error);
+      dashboardData[key] = [];
+    }
+  }));
+}
+
+
+/* =========================================================
+   DASHBOARD RENDERING
+   ========================================================= */
+
+function renderDashboard() {
+  renderOverview();
+  renderCollectionSummary();
+  renderOccupancy();
+  renderAttention();
+  renderRecentPayments();
+  renderInsight();
+}
+
+function activeRooms() {
+  return dashboardData.rooms.filter(
+    (room) => room.isArchived !== true
+  );
+}
+
+function activeTenancies() {
+  const inactive = [
+    "ended", "terminated", "cancelled",
+    "canceled", "inactive", "archived"
+  ];
+
+  return dashboardData.tenancies.filter((item) => {
+    if (item.isArchived === true) return false;
+
+    return !inactive.includes(
+      String(item.status || "").toLowerCase()
+    );
+  });
+}
+
+function isRoomOccupied(room) {
+  const status = String(room.status || "").toLowerCase();
+
+  if (["occupied", "rented", "leased"].includes(status)) {
+    return true;
+  }
+
+  if (["available", "vacant", "empty", "maintenance"].includes(status)) {
+    return false;
+  }
+
+  return activeTenancies().some((item) => item.roomId === room.id);
+}
+
+function getDate(value) {
+  if (!value) return null;
+
+  if (typeof value.toDate === "function") {
+    return value.toDate();
+  }
+
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (typeof value === "object" && typeof value.seconds === "number") {
+    return new Date(value.seconds * 1000);
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function monthlyPayments() {
+  const now = new Date();
+
+  return dashboardData.payments.filter((payment) => {
+    if (payment.isArchived === true) return false;
+
+    const date = getDate(
+      payment.paymentDate || payment.date || payment.createdAt
+    );
+
+    return date &&
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth();
+  });
+}
+
+function monthlyCollected() {
+  return monthlyPayments().reduce(
+    (sum, payment) => sum + (Number(payment.amount) || 0),
+    0
+  );
+}
+
+function monthlyExpected() {
+  return activeTenancies().reduce((sum, tenancy) => {
+    const amount = Number(
+      tenancy.amount ?? tenancy.rentAmount ?? tenancy.rent ?? 0
+    );
+
+    if (!Number.isFinite(amount) || amount <= 0) return sum;
+
+    const unit = String(
+      tenancy.durationUnit || tenancy.unit || "month"
+    ).toLowerCase();
+
+    if (["week", "weeks", "weekly"].includes(unit)) {
+      return sum + amount * 52 / 12;
+    }
+
+    if (["year", "years", "yearly", "annual"].includes(unit)) {
+      return sum + amount / 12;
+    }
+
+    return sum + amount;
+  }, 0);
+}
+
+function isDue(tenancy) {
+  const end = getDate(tenancy.endDate);
+  if (!end) return false;
+
+  const reminderDays = Number(settings.reminderDaysBeforeDue ?? 3);
+  const reminderDate = new Date(end);
+
+  reminderDate.setDate(reminderDate.getDate() - reminderDays);
+
+  return startOfDay(new Date()) >= startOfDay(reminderDate);
+}
+
+function isOverdue(tenancy) {
+  const end = getDate(tenancy.endDate);
+  return end && startOfDay(new Date()) > startOfDay(end);
+}
+
+function startOfDay(date) {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  return result;
+}
+
+
+/* =========================================================
+   OVERVIEW
+   ========================================================= */
+
+function renderOverview() {
+  const rooms = activeRooms();
+  const occupied = rooms.filter(isRoomOccupied).length;
+
+  setText("occupiedCount", occupied);
+  setText("totalRoomCount", `/ ${rooms.length}`);
+  setText("vacantCount", rooms.length - occupied);
+
+  setText(
+    "rentDueCount",
+    activeTenancies().filter((item) => isDue(item) || isOverdue(item)).length
+  );
+
+  setText("monthlyIncome", money(monthlyCollected()));
+}
+
+
+/* =========================================================
+   COLLECTION SUMMARY
+   ========================================================= */
+
+function renderCollectionSummary() {
+  const collected = monthlyCollected();
+  const expected = monthlyExpected();
+
+  const percentage = expected > 0
+    ? Math.round(collected / expected * 100)
+    : 0;
+
+  setText("collectionPercentage", `${percentage}%`);
+  setText("collectedAmount", money(collected));
+  setText("expectedAmount", money(expected));
+
+  const progress = $("collectionProgressBar");
+
+  if (progress) {
+    progress.style.width = `${Math.min(100, Math.max(0, percentage))}%`;
+  }
+}
+
+
+/* =========================================================
+   OCCUPANCY GRID
+   ========================================================= */
+
+function renderOccupancy() {
+  const grid = $("occupancyGrid");
+  if (!grid) return;
+
+  grid.replaceChildren();
+
+  const rooms = activeRooms();
+
+  rooms.forEach((room, index) => {
+    const occupied = isRoomOccupied(room);
+
+    const tenancy = activeTenancies().find(
+      (item) => item.roomId === room.id
+    );
+
+    let status = occupied ? "paid" : "vacant";
+
+    if (tenancy && isOverdue(tenancy)) {
+      status = "overdue";
+    } else if (tenancy && isDue(tenancy)) {
+      status = "due";
+    }
+
+    const number = room.roomNumber || room.name || `Room ${index + 1}`;
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = `occupancy-room ${status}`;
+    button.title = `${number} — ${status}`;
+    button.setAttribute("aria-label", button.title);
+
+    button.addEventListener("click", () => {
+      window.location.assign(
+        `../rooms/index.html?room=${encodeURIComponent(room.id)}`
+      );
+    });
+
+    grid.appendChild(button);
+  });
+
+  const occupied = rooms.filter(isRoomOccupied).length;
+  setText("occupancySummary", `${occupied} of ${rooms.length} rooms`);
+}
+
+
+/* =========================================================
+   ATTENTION LIST
+   ========================================================= */
+
+function renderAttention() {
+  const container = $("attentionList");
+  if (!container) return;
+
+  const due = activeTenancies().filter(
+    (item) => isDue(item) || isOverdue(item)
+  );
+
+  container.replaceChildren();
+
+  if (due.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">✓</span>
+        <strong>You're all caught up</strong>
+        <p>No urgent property actions right now.</p>
+      </div>
+    `;
+    return;
+  }
+
+  due.slice(0, 5).forEach((tenancy) => {
+    const room = dashboardData.rooms.find(
+      (item) => item.id === tenancy.roomId
+    );
+
+    const row = document.createElement("div");
+    row.className = "attention-item";
+
+    const icon = document.createElement("div");
+    icon.className = "attention-item-icon";
+    icon.textContent = isOverdue(tenancy) ? "!" : "₵";
+
+    const content = document.createElement("div");
+    content.className = "attention-item-content";
+
+    const title = document.createElement("strong");
+    title.textContent = room?.roomNumber || tenancy.roomNumber || "Room";
+
+    const description = document.createElement("p");
+    description.textContent = isOverdue(tenancy)
+      ? "Rental period requires attention."
+      : "Rental period is approaching its end date.";
+
+    content.append(title, description);
+    row.append(icon, content);
+    container.appendChild(row);
+  });
+}
+
+
+/* =========================================================
+   RECENT PAYMENTS
+   ========================================================= */
+
+function renderRecentPayments() {
+  const container = $("paymentList");
+  if (!container) return;
+
+  container.replaceChildren();
+
+  const payments = [...dashboardData.payments]
+    .filter((item) => item.isArchived !== true)
+    .sort((a, b) => {
+      const dateA = getDate(a.paymentDate || a.date || a.createdAt);
+      const dateB = getDate(b.paymentDate || b.date || b.createdAt);
+
+      return (dateB?.getTime() || 0) - (dateA?.getTime() || 0);
+    })
+    .slice(0, 5);
+
+  if (payments.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <span class="empty-icon">₵</span>
+        <strong>No payments yet</strong>
+        <p>Recorded payments will appear here.</p>
+      </div>
+    `;
+    return;
+  }
+
+  payments.forEach((payment) => {
+    const room = dashboardData.rooms.find(
+      (item) => item.id === payment.roomId
+    );
+
+    const tenancy = dashboardData.tenancies.find(
+      (item) => item.id === payment.tenancyId
+    );
+
+    const clientId = payment.clientId || tenancy?.clientId;
+
+    const client = dashboardData.clients.find(
+      (item) => item.id === clientId
+    );
+
+    const row = document.createElement("div");
+    row.className = "payment-item";
+
+    const icon = document.createElement("div");
+    icon.className = "payment-item-icon";
+    icon.textContent = "₵";
+
+    const content = document.createElement("div");
+    content.className = "payment-item-content";
+
+    const name = document.createElement("strong");
+    name.textContent =
+      client?.fullName || payment.clientName || "Client";
+
+    const detail = document.createElement("p");
+    const date = getDate(
+      payment.paymentDate || payment.date || payment.createdAt
+    );
+
+    detail.textContent = [
+      room?.roomNumber || payment.roomNumber || "Room",
+      date ? formatDate(date) : ""
+    ].filter(Boolean).join(" · ");
+
+    const amount = document.createElement("strong");
+    amount.className = "payment-item-amount";
+    amount.textContent = money(payment.amount);
+
+    content.append(name, detail);
+    row.append(icon, content, amount);
+    container.appendChild(row);
+  });
+}
+
+
+/* =========================================================
+   INSIGHT
+   ========================================================= */
+
+function renderInsight() {
+  const title = $("insightTitle");
+  const text = $("insightText");
+
+  if (!title || !text) return;
+
+  const rooms = activeRooms();
+  const occupied = rooms.filter(isRoomOccupied).length;
+  const due = activeTenancies().filter(
+    (item) => isDue(item) || isOverdue(item)
+  ).length;
+
+  if (rooms.length === 0) {
+    title.textContent = "Your dashboard is ready";
+    text.textContent =
+      "Once you add your first room, HomeRent can show occupancy and rental insights.";
+    return;
+  }
+
+  const rate = Math.round(occupied / rooms.length * 100);
+
+  if (due > 0) {
+    title.textContent = `${due} rental record${due === 1 ? "" : "s"} need attention`;
+    text.textContent =
+      "Review rental dates and keep your property records up to date.";
+  } else if (rate >= 90) {
+    title.textContent = "Your property is highly occupied";
+    text.textContent = `Current occupancy is ${rate}%.`;
+  } else if (rate >= 70) {
+    title.textContent = "Occupancy is looking healthy";
+    text.textContent = `Your property is currently ${rate}% occupied.`;
+  } else {
+    title.textContent = "There is room to grow";
+    text.textContent =
+      `Current occupancy is ${rate}%. Review your vacant rooms when the Rooms module is ready.`;
+  }
+}
+
+
+/* =========================================================
+   PROFILE AND AUTHENTICATION
    ========================================================= */
 
 function setupProfile() {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      window.location.replace("../auth/login.html");
+      return;
+    }
 
-  const user =
-    auth.currentUser;
+    const name = user.displayName || "Admin";
 
+    setText("profileName", name);
+    setText("profileAvatar", name.charAt(0).toUpperCase());
 
-  if (!user) {
-
-    return;
-
-  }
-
-
-  const displayName =
-    user.displayName ||
-    "Admin";
-
-
-  if (profileName) {
-
-    profileName.textContent =
-      displayName;
-
-  }
-
-
-  if (profileAvatar) {
-
-    profileAvatar.textContent =
-      displayName
-        .charAt(0)
-        .toUpperCase();
-
-  }
-
+    if ($("profileAvatar")) {
+      $("profileAvatar").textContent = name.charAt(0).toUpperCase();
+    }
+  });
 }
-
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
 
 function setupLogout() {
-
-  const logoutButton =
-    document.getElementById(
-      "logoutButton"
-    );
-
-
-  if (!logoutButton) {
-
-    return;
-
-  }
-
-
-  logoutButton.addEventListener(
-    "click",
-    async () => {
-
-      try {
-
-        await signOut(auth);
-
-
-        window.location.assign(
-          "../auth/login.html"
-        );
-
-
-      } catch (error) {
-
-        console.error(
-          "HomeRent: Logout failed.",
-          error
-        );
-
-      }
-
+  $("logoutButton")?.addEventListener("click", async () => {
+    try {
+      await signOut(auth);
+      window.location.replace("../auth/login.html");
+    } catch (error) {
+      console.error("HomeRent: Logout failed.", error);
+      alert("Logout failed. Please try again.");
     }
-  );
-
+  });
 }
 
 
 /* =========================================================
-   MONEY
+   FORMATTING HELPERS
    ========================================================= */
 
-function formatMoney(amount) {
+function setText(id, value) {
+  const element = $(id);
+  if (element) element.textContent = String(value ?? "");
+}
 
-  const settings =
-    dashboardData.settings ||
-    getSettings();
-
-
-  const symbol =
-    settings.currencySymbol ||
-    settings.currency ||
+function money(value) {
+  const symbol = settings.currencySymbol ||
+    (settings.currency === "GHS" ? "₵" : settings.currency) ||
     "₵";
 
+  const amount = Number(value) || 0;
 
-  const numericAmount =
-    Number(amount || 0);
-
-
-  return (
-    `${symbol} ` +
-    numericAmount.toLocaleString(
-      undefined,
-      {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }
-    )
-  );
-
+  return `${symbol} ${amount.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  })}`;
 }
-
-
-/* =========================================================
-   DATE
-   ========================================================= */
-
-function getDateValue(value) {
-
-  if (!value) {
-
-    return null;
-
-  }
-
-
-  /*
-   * Firestore Timestamp.
-   */
-  if (
-    typeof value.toDate ===
-    "function"
-  ) {
-
-    return value.toDate();
-
-  }
-
-
-  /*
-   * JavaScript Date.
-   */
-  if (
-    value instanceof Date
-  ) {
-
-    return value;
-
-  }
-
-
-  /*
-   * Firestore timestamp-like object.
-   */
-  if (
-    typeof value === "object" &&
-    typeof value.seconds === "number"
-  ) {
-
-    return new Date(
-      value.seconds * 1000
-    );
-
-  }
-
-
-  const date =
-    new Date(value);
-
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-
-    return null;
-
-  }
-
-
-  return date;
-
-}
-
-
-/* =========================================================
-   FORMAT DATE
-   ========================================================= */
 
 function formatDate(date) {
+  const format = settings.dateFormat || "DD/MM/YYYY";
 
-  const settings =
-    dashboardData.settings ||
-    getSettings();
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
 
-
-  const format =
-    settings.dateFormat ||
-    "DD/MM/YYYY";
-
-
-  const day =
-    String(
-      date.getDate()
-    ).padStart(2, "0");
-
-
-  const month =
-    String(
-      date.getMonth() + 1
-    ).padStart(2, "0");
-
-
-  const year =
-    date.getFullYear();
-
-
-  if (
-    format ===
-    "MM/DD/YYYY"
-  ) {
-
-    return `${month}/${day}/${year}`;
-
-  }
-
-
-  if (
-    format ===
-    "YYYY-MM-DD"
-  ) {
-
-    return `${year}-${month}-${day}`;
-
-  }
-
+  if (format === "MM/DD/YYYY") return `${month}/${day}/${year}`;
+  if (format === "YYYY-MM-DD") return `${year}-${month}-${day}`;
 
   return `${day}/${month}/${year}`;
-
-}
-
-
-/* =========================================================
-   START OF DAY
-   ========================================================= */
-
-function startOfDay(date) {
-
-  const result =
-    new Date(date);
-
-
-  result.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-
-  return result;
-
-}
-
-
-/* =========================================================
-   ESCAPE HTML
-   ========================================================= */
-
-function escapeHtml(value) {
-
-  return String(
-    value ?? ""
-  )
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-
-}
-
-
-/* =========================================================
-   DASHBOARD ERROR
-   ========================================================= */
-
-function showDashboardError() {
-
-  const attention =
-    document.getElementById(
-      "attentionList"
-    );
-
-
-  if (!attention) {
-
-    return;
-
-  }
-
-
-  attention.innerHTML = `
-
-    <div class="empty-state">
-
-      <span class="empty-icon">!</span>
-
-      <strong>
-        Could not load property data
-      </strong>
-
-      <p>
-        Please check your connection and refresh the dashboard.
-      </p>
-
-    </div>
-
-  `;
-
 }
