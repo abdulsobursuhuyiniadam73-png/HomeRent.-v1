@@ -15,6 +15,7 @@ import { initAddRoom } from "../../components/add-room/add-room.js";
 
 import { loadSettings } from "../core/settings-service.js";
 import { applyGlobalBranding } from "../core/branding.js";
+import { getSettings } from "../core/settings.js";
 
 // --------------------------------------------------
 // PAGE STATE
@@ -336,7 +337,16 @@ function createRoomCard(room) {
   archiveButton.dataset.roomId = room.id;
   archiveButton.innerHTML = '<i class="fa-solid fa-box-archive"></i> Archive';
 
-  actions.append(editButton, archiveButton);
+
+  const detailsButton = document.createElement("button");
+detailsButton.type = "button";
+detailsButton.className = "secondary-button";
+detailsButton.dataset.action = "details";
+detailsButton.dataset.roomId = room.id;
+detailsButton.innerHTML =
+  '<i class="fa-solid fa-eye"></i> View Details';
+
+  actions.append(detailsButton,editButton, archiveButton);
 
   card.append(top, details, actions);
 
@@ -556,6 +566,12 @@ function initRoomActions() {
     const action = button.dataset.action;
 
     if (!roomId) return;
+
+    if (action === "details") {
+  window.location.href =
+    `details.html?id=${encodeURIComponent(roomId)}`;
+  return;
+    }
 
     if (action === "edit") {
       addRoomController.open(roomId);

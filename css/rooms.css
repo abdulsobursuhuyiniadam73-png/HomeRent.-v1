@@ -146,8 +146,13 @@
   font-size: 11px;
 }
 
-.rooms-page .sidebar-close {
-  display: none;
+.sidebar-inner {
+  min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 22px 14px;
 }
 
 .rooms-page .sidebar-nav {

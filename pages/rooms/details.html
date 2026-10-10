@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Room Details | HomeRent</title>
+
+  <meta
+    name="description"
+    content="View room information and records in HomeRent."
+  >
+
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/rooms.css">
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+
+  <style>
+    .room-details-page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px;
+    }
+
+    .room-details-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 24px;
+      color: var(--primary-color, #087fdf);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .room-details-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .room-details-heading h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+    }
+
+    .room-details-heading p {
+      margin: 0;
+      color: #6b7280;
+    }
+
+    .room-details-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .room-details-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 42px;
+      padding: 10px 15px;
+      border: 1px solid #dbe2ea;
+      border-radius: 9px;
+      background: #fff;
+      color: #243247;
+      text-decoration: none;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+    }
+
+    .room-details-button.primary {
+      background: var(--primary-color, #087fdf);
+      border-color: var(--primary-color, #087fdf);
+      color: #fff;
+    }
+
+    .room-details-status {
+      display: inline-flex;
+      margin-top: 14px;
+      padding: 7px 12px;
+      border-radius: 20px;
+      background: #e8f7ee;
+      color: #187344;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .room-details-status.occupied {
+      background: #e8f1ff;
+      color: #245bb5;
+    }
+
+    .room-details-status.reserved {
+      background: #fff4d9;
+      color: #936500;
+    }
+
+    .room-details-status.maintenance {
+      background: #ffebeb;
+      color: #a52b2b;
+    }
+
+    .room-details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .room-details-panel {
+      min-width: 0;
+      padding: 22px;
+      border: 1px solid #e5eaf0;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 3px 14px rgba(15, 23, 42, 0.04);
+    }
+
+    .room-details-panel h2 {
+      margin: 0 0 20px;
+      font-size: 1.05rem;
+    }
+
+    .room-details-field {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 13px 0;
+      border-bottom: 1px solid #edf0f4;
+    }
+
+    .room-details-field:last-child {
+      border-bottom: 0;
+    }
+
+    .room-details-field span {
+      color: #687386;
+    }
+
+    .room-details-field strong {
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .room-details-notes {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.7;
+    }
+
+    .room-details-message {
+      padding: 24px;
+      border: 1px solid #e5eaf0;
+      border-radius: 12px;
+      background: #fff;
+      line-height: 1.6;
+    }
+
+    .room-details-message.error {
+      border-color: #fecaca;
+      color: #991b1b;
+      background: #fff7f7;
+    }
+
+    .room-details-message[hidden] {
+      display: none;
+    }
+
+    @media (max-width: 650px) {
+      .room-details-page {
+        padding: 18px 14px;
+      }
+
+      .room-details-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .room-details-actions {
+        width: 100%;
+      }
+
+      .room-details-actions .room-details-button {
+        flex: 1;
+      }
+
+      .room-details-panel {
+        padding: 17px;
+      }
+
+      .room-details-field {
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="room-details-page">
+
+    <a class="room-details-back" href="index.html">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      Back to Rooms
+    </a>
+
+    <section id="roomDetailsLoading" class="room-details-message">
+      <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+      Loading room details...
+    </section>
+
+    <section
+      id="roomDetailsError"
+      class="room-details-message error"
+      hidden
+      role="alert"
+    >
+      <h2>Unable to load room</h2>
+      <p id="roomDetailsErrorText">
+        Please try again.
+      </p>
+
+      <button
+        id="retryRoomDetailsButton"
+        class="room-details-button"
+        type="button"
+      >
+        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+        Try Again
+      </button>
+    </section>
+
+    <section id="roomDetailsContent" hidden>
+
+      <header class="room-details-header">
+        <div class="room-details-heading">
+          <h1 id="roomDetailsNumber">Room Details</h1>
+          <p id="roomDetailsType"></p>
+          <span id="roomDetailsStatus" class="room-details-status"></span>
+        </div>
+
+        <div class="room-details-actions">
+          <button
+            id="editRoomDetailsButton"
+            class="room-details-button primary"
+            type="button"
+          >
+            <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            Edit Room
+          </button>
+        </div>
+      </header>
+
+      <div class="room-details-grid">
+
+        <section class="room-details-panel">
+          <h2>
+            <i class="fa-solid fa-house" aria-hidden="true"></i>
+            Room Information
+          </h2>
+
+          <div class="room-details-field">
+            <span>Room number</span>
+            <strong id="detailRoomNumber">—</strong>
+          </div>
+
+          <div class="room-details-field">
+            <span>Room type</span>
+            <strong id="detailRoomType">—</strong>
+          </div>
+
+          <div class="room-details-field">
+            <span>Rental price</span>
+            <strong id="detailRoomPrice">—</strong>
+          </div>
+
+          <div class="room-details-field">
+            <span>Size</span>
+            <strong id="detailRoomSize">—</strong>
+          </div>
+
+          <div class="room-details-field">
+            <span>Location</span>
+            <strong id="detailRoomLocation">—</strong>
+          </div>
+
+          <div class="room-details-field">
+            <span>Record status</span>
+            <strong id="detailArchiveStatus">—</strong>
+          </div>
+        </section>
+
+        <section class="room-details-panel">
+          <h2>
+            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
+            Condition Information
+          </h2>
+
+          <p id="detailRoomCondition" class="room-details-notes"></p>
+        </section>
+
+        <section class="room-details-panel">
+          <h2>
+            <i class="fa-solid fa-clock" aria-hidden="true"></i>
+            Record Information
+          </h2>
+
+          <div class="room-details-field">
+            <span>Date created</span>
+            <strong id="detailRoomCreated">—</strong>
+          </div>
+
+          <div class="room-details-field">
+            <span>Last updated</span>
+            <strong id="detailRoomUpdated">—</strong>
+          </div>
+        </section>
+
+        <section class="room-details-panel">
+          <h2>
+            <i class="fa-solid fa-camera" aria-hidden="true"></i>
+            Room Photos
+          </h2>
+
+          <p id="detailRoomPhotos">No room photos recorded.</p>
+        </section>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="../../js/rooms/room-details.js"></script>
+</body>
+</html>
