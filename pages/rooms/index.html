@@ -23,72 +23,87 @@
 
   <div class="app-shell">
 
-    <!-- Mobile overlay -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+<!-- Mobile overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-brand">
-        <img
-          id="systemLogo"
-          src="../../assets/images/default-logo.svg"
-          alt="System logo"
-          data-default-logo
-        >
-        <div class="sidebar-brand-text">
-          <strong data-business-name>HomeRent</strong>
-          <small>Property Management</small>
-        </div>
-      
-      </div>
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <img
+      id="systemLogo"
+      src="../../assets/images/default-logo.svg"
+      alt="System logo"
+      data-default-logo
+    >
 
-      <nav class="sidebar-nav" aria-label="Main navigation">
-        <a href="../dashboard/index.html" class="nav-link">
-          <i class="fa-solid fa-house"></i>
-          <span>Dashboard</span>
-        </a>
+    <div class="sidebar-brand-text">
+      <strong data-business-name>HomeRent</strong>
+      <small>Property Management</small>
+    </div>
+  </div>
 
-        <a href="index.html" class="nav-link active" aria-current="page">
-          <i class="fa-solid fa-door-open"></i>
-          <span>Rooms</span>
-        </a>
+  <nav class="sidebar-nav" aria-label="Main navigation">
 
-        <a href="../tenancies/index.html" class="nav-link">
-          <i class="fa-solid fa-file-contract"></i>
-          <span>Tenancies</span>
-        </a>
+    <!-- Dashboard -->
+    <a href="../dashboard/index.html" class="nav-link">
+      <i class="fa-solid fa-house"></i>
+      <span>Dashboard</span>
+    </a>
 
-        <a href="../clients/index.html" class="nav-link">
-          <i class="fa-solid fa-users"></i>
-          <span>Clients</span>
-        </a>
+    <!-- Rooms -->
+    <a
+      href="index.html"
+      class="nav-link active"
+      aria-current="page"
+    >
+      <i class="fa-solid fa-door-open"></i>
+      <span>Rooms</span>
+    </a>
 
-        <a href="../payments/index.html" class="nav-link">
-          <i class="fa-solid fa-wallet"></i>
-          <span>Payments</span>
-        </a>
+    <!-- Clients -->
+    <a href="../clients/index.html" class="nav-link">
+      <i class="fa-solid fa-users"></i>
+      <span>Clients</span>
+    </a>
 
-        <a href="../inspections/index.html" class="nav-link">
-          <i class="fa-solid fa-clipboard-check"></i>
-          <span>Inspections</span>
-        </a>
+    <!-- Tenancies -->
+    <a href="../tenancies/index.html" class="nav-link">
+      <i class="fa-solid fa-file-contract"></i>
+      <span>Tenancies</span>
+    </a>
 
-        <a href="../reports/index.html" class="nav-link">
-          <i class="fa-solid fa-chart-line"></i>
-          <span>Reports</span>
-        </a>
+    <!-- Inspections: page to be implemented -->
+    <a href="../inspections/index.html" class="nav-link">
+      <i class="fa-solid fa-clipboard-check"></i>
+      <span>Inspections</span>
+    </a>
 
-        <a href="../settings/index.html" class="nav-link">
-          <i class="fa-solid fa-gear"></i>
-          <span>Settings</span>
-        </a>
-      </nav>
+    <!-- Payments -->
+    <a href="../payments/index.html" class="nav-link">
+      <i class="fa-solid fa-wallet"></i>
+      <span>Payments</span>
+    </a>
 
-      <div class="sidebar-footer">
-        <span class="sidebar-footer-dot"></span>
-        <span>Secure management</span>
-      </div>
-    </aside>
+    <!-- Reports -->
+    <a href="../reports/index.html" class="nav-link">
+      <i class="fa-solid fa-chart-line"></i>
+      <span>Reports</span>
+    </a>
+
+    <!-- Settings -->
+    <a href="../settings/index.html" class="nav-link">
+      <i class="fa-solid fa-gear"></i>
+      <span>Settings</span>
+    </a>
+
+  </nav>
+
+  <div class="sidebar-footer">
+    <span class="sidebar-footer-dot"></span>
+    <span>Secure management</span>
+  </div>
+</aside>
+
 
     <!-- Main content -->
     <main class="main-content">

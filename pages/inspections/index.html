@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Inspections | HomeRent</title>
+  <meta
+    name="description"
+    content="Manage property inspections, room conditions, defects, and follow-up actions."
+  >
+
+  <!-- Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
+
+  <!-- Shared dashboard styles -->
+  <link rel="stylesheet" href="../../css/dashboard.css">
+
+  <!-- Inspections page styles -->
+  <link rel="stylesheet" href="../../css/inspections.css">
+</head>
+
+<body>
+  <div class="app-layout">
+
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <img
+          id="systemLogo"
+          src="../../assets/images/default-logo.svg"
+          alt="System logo"
+          data-default-logo
+        >
+
+        <div class="sidebar-brand-text">
+          <strong data-business-name>HomeRent</strong>
+          <small>Property Management</small>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Main navigation">
+
+        <a href="../dashboard/index.html" class="nav-link">
+          <i class="fa-solid fa-house"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="../rooms/index.html" class="nav-link">
+          <i class="fa-solid fa-door-open"></i>
+          <span>Rooms</span>
+        </a>
+
+        <a href="../clients/index.html" class="nav-link">
+          <i class="fa-solid fa-users"></i>
+          <span>Clients</span>
+        </a>
+
+        <a href="../tenancies/index.html" class="nav-link">
+          <i class="fa-solid fa-file-contract"></i>
+          <span>Tenancies</span>
+        </a>
+
+        <a
+          href="index.html"
+          class="nav-link active"
+          aria-current="page"
+        >
+          <i class="fa-solid fa-clipboard-check"></i>
+          <span>Inspections</span>
+        </a>
+
+        <a href="../payments/index.html" class="nav-link">
+          <i class="fa-solid fa-wallet"></i>
+          <span>Payments</span>
+        </a>
+
+        <a href="../reports/index.html" class="nav-link">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Reports</span>
+        </a>
+
+        <a href="../settings/index.html" class="nav-link">
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </a>
+
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-dot"></span>
+        <span>Secure management</span>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- Mobile header -->
+      <header class="mobile-header">
+        <button
+          type="button"
+          class="sidebar-toggle"
+          id="sidebarToggle"
+          aria-label="Open navigation menu"
+          aria-controls="sidebar"
+          aria-expanded="false"
+        >
+          <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="mobile-header-brand">
+          <img
+            src="../../assets/images/default-logo.svg"
+            alt=""
+            data-default-logo
+          >
+          <strong data-business-name>HomeRent</strong>
+        </div>
+      </header>
+
+      <div class="page-container">
+
+        <!-- Page heading -->
+        <section class="page-header">
+          <div class="page-header-text">
+            <div class="breadcrumb">
+              <a href="../dashboard/index.html">Dashboard</a>
+              <i class="fa-solid fa-chevron-right"></i>
+              <span>Inspections</span>
+            </div>
+
+            <h1>Inspections</h1>
+            <p>
+              Inspect living rooms and storerooms, record their condition,
+              and track maintenance issues.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            id="addInspectionButton"
+          >
+            <i class="fa-solid fa-plus"></i>
+            <span>New Inspection</span>
+          </button>
+        </section>
+
+        <!-- Summary cards -->
+        <section
+          class="inspection-stats"
+          aria-label="Inspection summary"
+        >
+          <article class="stat-card">
+            <div class="stat-card-icon">
+              <i class="fa-solid fa-clipboard-list"></i>
+            </div>
+            <div class="stat-card-content">
+              <span>Total Inspections</span>
+              <strong id="totalInspections">—</strong>
+              <small>All recorded inspections</small>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-card-icon stat-icon-warning">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-card-content">
+              <span>Pending Follow-ups</span>
+              <strong id="pendingInspections">—</strong>
+              <small>Issues awaiting attention</small>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-card-icon stat-icon-danger">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="stat-card-content">
+              <span>Issues Identified</span>
+              <strong id="inspectionIssues">—</strong>
+              <small>Recorded defects and concerns</small>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-card-icon stat-icon-success">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="stat-card-content">
+              <span>Resolved</span>
+              <strong id="resolvedInspections">—</strong>
+              <small>Follow-ups marked resolved</small>
+            </div>
+          </article>
+        </section>
+
+        <!-- Inspection records -->
+        <section class="content-card inspections-card">
+
+          <div class="content-card-header">
+            <div>
+              <h2>Inspection Records</h2>
+              <p>Search, review, and manage recorded inspections.</p>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="refreshInspectionsButton"
+              aria-label="Refresh inspection records"
+            >
+              <i class="fa-solid fa-rotate"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          <!-- Search and filters -->
+          <div class="inspection-toolbar">
+
+            <div class="search-field">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input
+                type="search"
+                id="inspectionSearch"
+                placeholder="Search room number, notes..."
+                aria-label="Search inspection records"
+              >
+            </div>
+
+            <div class="filter-field">
+              <label for="inspectionTypeFilter">Room type</label>
+              <select id="inspectionTypeFilter">
+                <option value="">All room types</option>
+                <option value="living">Living rooms</option>
+                <option value="store">Storerooms</option>
+              </select>
+            </div>
+
+            <div class="filter-field">
+              <label for="inspectionStatusFilter">Follow-up status</label>
+              <select id="inspectionStatusFilter">
+                <option value="">All statuses</option>
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Loading state -->
+          <div
+            class="inspection-state"
+            id="inspectionLoading"
+            role="status"
+          >
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Loading inspection records...</p>
+          </div>
+
+          <!-- Error state -->
+          <div
+            class="inspection-state inspection-error"
+            id="inspectionError"
+            role="alert"
+            hidden
+          >
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <h3>Unable to load inspections</h3>
+            <p id="inspectionErrorMessage">
+              Please try refreshing the records.
+            </p>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="retryInspectionsButton"
+            >
+              Try Again
+            </button>
+          </div>
+
+          <!-- Empty state -->
+          <div
+            class="inspection-state"
+            id="inspectionEmpty"
+            hidden
+          >
+            <div class="empty-state-icon">
+              <i class="fa-solid fa-clipboard-check"></i>
+            </div>
+            <h3>No inspections found</h3>
+            <p>
+              Start by recording an inspection for one of your rooms
+              or storerooms.
+            </p>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="emptyStateAddInspectionButton"
+            >
+              <i class="fa-solid fa-plus"></i>
+              New Inspection
+            </button>
+          </div>
+
+          <!-- Records table -->
+          <div
+            class="table-responsive"
+            id="inspectionTableContainer"
+            hidden
+          >
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Inspection</th>
+                  <th scope="col">Room</th>
+                  <th scope="col">Inspection Date</th>
+                  <th scope="col">Condition</th>
+                  <th scope="col">Issues</th>
+                  <th scope="col">Follow-up</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody id="inspectionTableBody">
+                <!-- Inspection rows are rendered by inspections.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Filtered results state -->
+          <div
+            class="inspection-state"
+            id="inspectionNoResults"
+            hidden
+          >
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            <h3>No matching inspections</h3>
+            <p>Try changing your search or filters.</p>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="clearInspectionFiltersButton"
+            >
+              Clear Filters
+            </button>
+          </div>
+
+          <!-- Result count -->
+          <div class="table-footer" id="inspectionTableFooter" hidden>
+            <span id="inspectionResultCount">0 inspections</span>
+          </div>
+
+        </section>
+
+      </div>
+
+      <footer class="page-footer">
+        <span data-setting="footerText">
+          HomeRent Property Management
+        </span>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- New inspection form and detail views will mount here -->
+  <div id="inspectionModalRoot"></div>
+
+  <!-- Shared Firebase and branding logic will be connected in JS -->
+  <script type="module" src="../../js/inspections/inspections.js"></script>
+</body>
+</html>

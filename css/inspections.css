@@ -1,0 +1,1662 @@
+/* =========================================================
+   HOMERENT — INSPECTIONS MODULE
+   File: css/inspections.css
+
+   Design goals:
+   - Modern, clean property-management interface
+   - Responsive desktop, tablet and mobile layouts
+   - Easy navigation and readable records
+   - Accessible controls and visible focus states
+   - Works alongside the existing dashboard stylesheet
+   ========================================================= */
+
+
+/* =========================================================
+   1. DESIGN TOKENS
+   ========================================================= */
+
+:root {
+  --inspection-primary: var(--primary-color, #087fdf);
+  --inspection-primary-dark: #0668b8;
+  --inspection-primary-soft: #eaf4ff;
+
+  --inspection-text: #172b4d;
+  --inspection-muted: #718096;
+  --inspection-border: #e5eaf1;
+  --inspection-surface: #ffffff;
+  --inspection-background: #f5f8fc;
+
+  --inspection-success: #15803d;
+  --inspection-success-bg: #eaf8ef;
+
+  --inspection-warning: #b7791f;
+  --inspection-warning-bg: #fff6df;
+
+  --inspection-danger: #c53030;
+  --inspection-danger-bg: #fff0f0;
+
+  --inspection-info: #2563eb;
+  --inspection-info-bg: #eaf2ff;
+
+  --inspection-radius-sm: 8px;
+  --inspection-radius-md: 14px;
+  --inspection-radius-lg: 20px;
+
+  --inspection-shadow:
+    0 4px 18px rgba(23, 43, 77, 0.045);
+
+  --inspection-shadow-hover:
+    0 10px 28px rgba(23, 43, 77, 0.085);
+
+  --inspection-transition:
+    180ms ease;
+}
+
+
+/* =========================================================
+   2. BASE AND PAGE LAYOUT
+   ========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--inspection-text);
+  background: var(--inspection-background);
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font-size: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+a {
+  color: inherit;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.app-layout {
+  min-height: 100vh;
+}
+
+.main-content {
+  min-width: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--inspection-background);
+}
+
+.page-container {
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 30px 34px 38px;
+  flex: 1;
+}
+
+.page-footer {
+  padding: 18px 34px;
+  color: var(--inspection-muted);
+  font-size: 12px;
+  border-top: 1px solid var(--inspection-border);
+  background: var(--inspection-surface);
+}
+
+
+/* =========================================================
+   3. PAGE HEADER AND BREADCRUMBS
+   ========================================================= */
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.page-header-text {
+  min-width: 0;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 10px;
+  color: var(--inspection-muted);
+  font-size: 12px;
+}
+
+.breadcrumb a {
+  text-decoration: none;
+  transition: color var(--inspection-transition);
+}
+
+.breadcrumb a:hover {
+  color: var(--inspection-primary);
+}
+
+.breadcrumb i {
+  font-size: 9px;
+  opacity: 0.7;
+}
+
+.page-header h1 {
+  margin: 0;
+  color: var(--inspection-text);
+  font-size: clamp(25px, 2.2vw, 32px);
+  font-weight: 750;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+
+.page-header p {
+  max-width: 650px;
+  margin: 9px 0 0;
+  color: var(--inspection-muted);
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   4. BUTTONS
+   ========================================================= */
+
+.btn {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-weight: 650;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background var(--inspection-transition),
+    border-color var(--inspection-transition),
+    box-shadow var(--inspection-transition),
+    transform var(--inspection-transition);
+}
+
+.btn i {
+  font-size: 13px;
+}
+
+.btn-primary {
+  color: #ffffff;
+  background: var(--inspection-primary);
+  border-color: var(--inspection-primary);
+  box-shadow: 0 3px 9px rgba(8, 127, 223, 0.15);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--inspection-primary-dark);
+  border-color: var(--inspection-primary-dark);
+  box-shadow: 0 5px 14px rgba(8, 127, 223, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  color: var(--inspection-text);
+  background: #ffffff;
+  border-color: var(--inspection-border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  color: var(--inspection-primary);
+  background: #f8fbff;
+  border-color: #b9d9f8;
+}
+
+.btn:focus-visible,
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(8, 127, 223, 0.28);
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   5. INSPECTION SUMMARY CARDS
+   ========================================================= */
+
+.inspection-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.stat-card {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 22px 20px;
+  background: var(--inspection-surface);
+  border: 1px solid var(--inspection-border);
+  border-radius: var(--inspection-radius-md);
+  box-shadow: var(--inspection-shadow);
+  transition:
+    border-color var(--inspection-transition),
+    box-shadow var(--inspection-transition),
+    transform var(--inspection-transition);
+}
+
+.stat-card:hover {
+  border-color: #d5e4f3;
+  box-shadow: var(--inspection-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.stat-card-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--inspection-primary);
+  background: var(--inspection-primary-soft);
+  border-radius: 13px;
+  font-size: 18px;
+}
+
+.stat-icon-warning {
+  color: var(--inspection-warning);
+  background: var(--inspection-warning-bg);
+}
+
+.stat-icon-danger {
+  color: var(--inspection-danger);
+  background: var(--inspection-danger-bg);
+}
+
+.stat-icon-success {
+  color: var(--inspection-success);
+  background: var(--inspection-success-bg);
+}
+
+.stat-card-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.stat-card-content > span {
+  color: var(--inspection-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.stat-card-content > strong {
+  margin: 5px 0 3px;
+  color: var(--inspection-text);
+  font-size: clamp(23px, 2vw, 29px);
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.stat-card-content > small {
+  color: var(--inspection-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+
+/* =========================================================
+   6. MAIN INSPECTIONS PANEL
+   ========================================================= */
+
+.content-card {
+  min-width: 0;
+  background: var(--inspection-surface);
+  border: 1px solid var(--inspection-border);
+  border-radius: var(--inspection-radius-lg);
+  box-shadow: var(--inspection-shadow);
+  overflow: hidden;
+}
+
+.content-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px 25px;
+  border-bottom: 1px solid var(--inspection-border);
+}
+
+.content-card-header > div {
+  min-width: 0;
+}
+
+.content-card-header h2 {
+  margin: 0;
+  color: var(--inspection-text);
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
+}
+
+.content-card-header p {
+  margin: 5px 0 0;
+  color: var(--inspection-muted);
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   7. SEARCH AND FILTER TOOLBAR
+   ========================================================= */
+
+.inspection-toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(145px, 190px) minmax(165px, 210px);
+  align-items: end;
+  gap: 14px;
+  padding: 21px 25px;
+  border-bottom: 1px solid var(--inspection-border);
+  background: #fcfdff;
+}
+
+.search-field {
+  min-width: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 13px;
+  color: #8a99ad;
+  background: #ffffff;
+  border: 1px solid #dfe6ef;
+  border-radius: 10px;
+  transition:
+    border-color var(--inspection-transition),
+    box-shadow var(--inspection-transition);
+}
+
+.search-field:focus-within {
+  border-color: var(--inspection-primary);
+  box-shadow: 0 0 0 3px rgba(8, 127, 223, 0.09);
+}
+
+.search-field > i {
+  flex: 0 0 auto;
+  font-size: 13px;
+}
+
+.search-field input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  color: var(--inspection-text);
+  background: transparent;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+}
+
+.search-field input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.search-field input::placeholder {
+  color: #98a5b5;
+}
+
+.filter-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-field label {
+  color: #52647b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.filter-field select {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 30px 0 11px;
+  color: var(--inspection-text);
+  background-color: #ffffff;
+  border: 1px solid #dfe6ef;
+  border-radius: 10px;
+  outline: none;
+  cursor: pointer;
+  transition:
+    border-color var(--inspection-transition),
+    box-shadow var(--inspection-transition);
+}
+
+.filter-field select:focus {
+  border-color: var(--inspection-primary);
+  box-shadow: 0 0 0 3px rgba(8, 127, 223, 0.09);
+}
+
+
+/* =========================================================
+   8. INSPECTION RECORDS TABLE
+   ========================================================= */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd6e3 transparent;
+}
+
+.table-responsive::-webkit-scrollbar {
+  height: 7px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: #cbd6e3;
+  border-radius: 20px;
+}
+
+.data-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.data-table thead {
+  background: #f7f9fc;
+}
+
+.data-table th {
+  padding: 14px 17px;
+  color: #687a90;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--inspection-border);
+}
+
+.data-table td {
+  padding: 17px;
+  color: #344760;
+  font-size: 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.data-table tbody tr {
+  transition: background var(--inspection-transition);
+}
+
+.data-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.data-table td:first-child {
+  color: var(--inspection-text);
+  font-weight: 700;
+}
+
+.data-table button {
+  max-width: 100%;
+}
+
+
+/* Status badges generated by the JavaScript module */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 25px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.status-badge::before {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  content: "";
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.status-badge.pending {
+  color: var(--inspection-warning);
+  background: var(--inspection-warning-bg);
+}
+
+.status-badge.in_progress {
+  color: var(--inspection-info);
+  background: var(--inspection-info-bg);
+}
+
+.status-badge.resolved {
+  color: var(--inspection-success);
+  background: var(--inspection-success-bg);
+}
+
+.status-badge.open,
+.status-badge.critical {
+  color: var(--inspection-danger);
+  background: var(--inspection-danger-bg);
+}
+
+
+/* Optional compact row actions */
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.table-action-button {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #61748c;
+  background: #ffffff;
+  border: 1px solid var(--inspection-border);
+  border-radius: 9px;
+  transition:
+    color var(--inspection-transition),
+    background var(--inspection-transition),
+    border-color var(--inspection-transition);
+}
+
+.table-action-button:hover {
+  color: var(--inspection-primary);
+  background: var(--inspection-primary-soft);
+  border-color: #c7e2fc;
+}
+
+
+/* =========================================================
+   9. LOADING, ERROR, EMPTY AND FILTERED STATES
+   ========================================================= */
+
+.inspection-state {
+  min-height: 245px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 35px 24px;
+  text-align: center;
+}
+
+.inspection-state > i {
+  color: var(--inspection-primary);
+  font-size: 25px;
+}
+
+.inspection-state h3 {
+  margin: 2px 0 0;
+  color: var(--inspection-text);
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.inspection-state p {
+  max-width: 390px;
+  margin: 0;
+  color: var(--inspection-muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.inspection-state .btn {
+  margin-top: 7px;
+}
+
+.inspection-error > i {
+  color: var(--inspection-danger);
+}
+
+.empty-state-icon {
+  width: 58px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3px;
+  color: var(--inspection-primary);
+  background: var(--inspection-primary-soft);
+  border-radius: 18px;
+  font-size: 23px;
+}
+
+
+/* =========================================================
+   10. TABLE FOOTER
+   ========================================================= */
+
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 25px;
+  color: var(--inspection-muted);
+  font-size: 11px;
+  border-top: 1px solid var(--inspection-border);
+  background: #fcfdff;
+}
+
+
+/* =========================================================
+   11. MOBILE HEADER
+   ========================================================= */
+
+.mobile-header {
+  display: none;
+}
+
+.mobile-header-brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  overflow: hidden;
+}
+
+.mobile-header-brand img {
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
+  object-fit: contain;
+}
+
+.mobile-header-brand strong {
+  overflow: hidden;
+  color: var(--inspection-text);
+  font-size: 14px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-toggle {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--inspection-text);
+  background: #ffffff;
+  border: 1px solid var(--inspection-border);
+  border-radius: 11px;
+  font-size: 17px;
+}
+
+
+/* =========================================================
+   12. TABLET LAYOUT
+   ========================================================= */
+
+@media (max-width: 1200px) {
+  .page-container {
+    padding: 26px 24px 32px;
+  }
+
+  .inspection-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+  }
+
+  .inspection-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(150px, 190px);
+  }
+
+  .search-field {
+    grid-column: 1 / -1;
+  }
+
+  .content-card-header,
+  .inspection-toolbar {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+}
+
+
+/* =========================================================
+   13. MOBILE LAYOUT
+   ========================================================= */
+
+@media (max-width: 768px) {
+  body {
+    font-size: 13px;
+  }
+
+  .main-content {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .mobile-header {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--inspection-border);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  .page-container {
+    padding: 23px 15px 28px;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 17px;
+    margin-bottom: 22px;
+  }
+
+  .page-header h1 {
+    font-size: 26px;
+    letter-spacing: -0.6px;
+  }
+
+  .page-header p {
+    max-width: 100%;
+    font-size: 13px;
+  }
+
+  .page-header > .btn {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .breadcrumb {
+    margin-bottom: 9px;
+    font-size: 11px;
+  }
+
+  .inspection-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    min-height: 132px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 15px 13px;
+    border-radius: 13px;
+  }
+
+  .stat-card-icon {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+
+  .stat-card-content > span {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .stat-card-content > strong {
+    margin: 4px 0 2px;
+    font-size: 24px;
+  }
+
+  .stat-card-content > small {
+    font-size: 10px;
+  }
+
+  .content-card {
+    border-radius: 15px;
+  }
+
+  .content-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    padding: 19px 16px;
+  }
+
+  .content-card-header h2 {
+    font-size: 17px;
+  }
+
+  .content-card-header p {
+    line-height: 1.6;
+  }
+
+  .content-card-header > .btn {
+    width: 100%;
+    min-height: 42px;
+  }
+
+  .inspection-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+    padding: 16px;
+  }
+
+  .search-field {
+    grid-column: auto;
+    height: 46px;
+  }
+
+  .filter-field {
+    gap: 5px;
+  }
+
+  .filter-field label {
+    font-size: 11px;
+  }
+
+  .filter-field select {
+    height: 46px;
+    font-size: 13px;
+  }
+
+  /*
+   * Keep the full inspection table readable.
+   * On small screens, users can swipe horizontally
+   * rather than having narrow, broken table columns.
+   */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 790px;
+  }
+
+  .data-table th {
+    padding: 13px 12px;
+    font-size: 10px;
+  }
+
+  .data-table td {
+    padding: 14px 12px;
+    font-size: 11px;
+  }
+
+  .inspection-state {
+    min-height: 225px;
+    padding: 28px 18px;
+  }
+
+  .inspection-state h3 {
+    font-size: 15px;
+  }
+
+  .inspection-state p {
+    font-size: 12px;
+  }
+
+  .table-footer {
+    padding: 13px 16px;
+    font-size: 10px;
+  }
+
+  .page-footer {
+    padding: 15px 16px;
+    font-size: 11px;
+  }
+}
+
+
+/* =========================================================
+   14. SMALL MOBILE SCREENS
+   ========================================================= */
+
+@media (max-width: 380px) {
+  .page-container {
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .mobile-header {
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .inspection-stats {
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px 10px;
+  }
+
+  .stat-card-content > strong {
+    font-size: 22px;
+  }
+
+  .stat-card-content > small {
+    font-size: 9px;
+  }
+
+  .content-card-header,
+  .inspection-toolbar {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+}
+
+
+/* =========================================================
+   15. REDUCED MOTION ACCESSIBILITY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* =========================================================
+   16. DARK MODE PREPARATION
+   The shared theme can override these variables later.
+   ========================================================= */
+
+[data-theme="dark"] {
+  --inspection-text: #e7edf6;
+  --inspection-muted: #a3b1c4;
+  --inspection-border: #2b3a4f;
+  --inspection-surface: #182436;
+  --inspection-background: #101a29;
+  --inspection-primary-soft: #193653;
+
+  --inspection-success-bg: #183b2b;
+  --inspection-warning-bg: #42351d;
+  --inspection-danger-bg: #43272c;
+  --inspection-info-bg: #1e3152;
+
+  --inspection-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.12);
+
+  --inspection-shadow-hover:
+    0 10px 28px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .content-card-header,
+[data-theme="dark"] .inspection-toolbar,
+[data-theme="dark"] .table-footer,
+[data-theme="dark"] .data-table thead {
+  background: #152235;
+}
+
+[data-theme="dark"] .search-field,
+[data-theme="dark"] .filter-field select,
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .table-action-button,
+[data-theme="dark"] .sidebar-toggle {
+  color: var(--inspection-text);
+  background: #182436;
+  border-color: var(--inspection-border);
+}
+
+[data-theme="dark"] .data-table tbody tr:hover {
+  background: #1d2b40;
+}
+
+[data-theme="dark"] .data-table td {
+  color: #cbd6e5;
+  border-bottom-color: var(--inspection-border);
+}
+
+[data-theme="dark"] .data-table td:first-child {
+  color: var(--inspection-text);
+}
+
+[data-theme="dark"] .mobile-header,
+[data-theme="dark"] .page-footer {
+  background: var(--inspection-surface);
+  border-color: var(--inspection-border);
+}
+
+
+/* =========================================================
+   HOMERENT INSPECTIONS — PAGE LAYOUT CORRECTION
+   Desktop: Sidebar | Main content
+   Mobile: Collapsed off-canvas sidebar
+   Keep this section at the VERY END of inspections.css
+   ========================================================= */
+
+/* ---------- DESKTOP LAYOUT ---------- */
+
+.app-layout {
+  display: flex !important;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  overflow-x: clip;
+}
+
+.app-layout > .sidebar {
+  position: sticky !important;
+  top: 0;
+  left: auto;
+  right: auto;
+  bottom: auto;
+
+  width: 260px !important;
+  min-width: 260px !important;
+  max-width: 260px !important;
+  height: 100vh;
+
+  flex: 0 0 260px !important;
+  align-self: flex-start;
+
+  transform: none !important;
+  z-index: 30;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.app-layout > .main-content {
+  position: relative;
+  display: flex;
+  flex: 1 1 0 !important;
+
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: none;
+  min-height: 100vh;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow-x: clip;
+}
+
+.page-container {
+  width: 100%;
+  max-width: 1600px;
+  min-width: 0;
+  margin-inline: auto;
+}
+
+.mobile-header {
+  display: none !important;
+}
+
+/* Hide the mobile overlay on desktop. */
+.sidebar-overlay {
+  display: none;
+}
+
+/* Ensure cards and tables cannot expand the whole page. */
+.inspection-stats,
+.content-card,
+.content-card-header,
+.inspection-toolbar,
+.table-responsive {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.inspection-toolbar {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(140px, 190px)
+    minmax(155px, 210px);
+}
+
+
+/* ---------- TABLET ---------- */
+
+@media (max-width: 1100px) and (min-width: 769px) {
+  .app-layout > .sidebar {
+    width: 230px !important;
+    min-width: 230px !important;
+    max-width: 230px !important;
+    flex-basis: 230px !important;
+  }
+
+  .page-container {
+    padding: 24px 20px 30px;
+  }
+
+  .inspection-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(130px, 170px);
+  }
+
+  .inspection-toolbar .search-field {
+    grid-column: 1 / -1;
+  }
+}
+
+
+/* ---------- MOBILE NAVIGATION ---------- */
+
+@media (max-width: 768px) {
+  .app-layout {
+    display: block !important;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: clip;
+  }
+
+  /*
+   * Sidebar starts collapsed.
+   * The existing JS adds .open when the menu is tapped.
+   */
+  .app-layout > .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: 0 !important;
+
+    width: min(285px, 86vw) !important;
+    min-width: 0 !important;
+    max-width: 86vw !important;
+    height: 100vh;
+    height: 100dvh;
+
+    margin: 0 !important;
+    flex: none !important;
+
+    transform: translateX(-105%) !important;
+    transition: transform 240ms ease;
+    z-index: 1001;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    box-shadow: none;
+    visibility: visible;
+  }
+
+  .app-layout > .sidebar.open {
+    transform: translateX(0) !important;
+    box-shadow: 12px 0 36px rgba(15, 35, 60, 0.18);
+  }
+
+  /* Overlay stays behind the sidebar and above the page. */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    background: rgba(12, 24, 40, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+      opacity 200ms ease,
+      visibility 200ms ease;
+  }
+
+  .sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .app-layout > .main-content {
+    display: flex;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+
+    min-height: 100vh;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow-x: clip;
+  }
+
+  .mobile-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+
+    width: 100%;
+    min-height: 62px;
+
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+
+    padding: 9px 15px;
+    background: #ffffff;
+    border-bottom: 1px solid var(--inspection-border);
+  }
+
+  .page-container {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 22px 15px 28px;
+  }
+
+  .page-footer {
+    width: 100%;
+    padding: 15px;
+  }
+
+  /* Keep the primary action easy to tap. */
+  .page-header > .btn {
+    min-height: 46px;
+  }
+
+  /* Prevent a wide table from pushing the viewport sideways. */
+  .table-responsive {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    width: 100%;
+    min-width: 790px;
+  }
+
+  body {
+    overflow-x: clip;
+  }
+}
+
+
+/* ---------- VERY SMALL PHONES ---------- */
+
+@media (max-width: 380px) {
+  .page-container {
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .mobile-header {
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .inspection-stats {
+    gap: 8px;
+  }
+}
+
+
+/* ---------- ACCESSIBILITY ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .app-layout > .sidebar,
+  .sidebar-overlay {
+    transition: none !important;
+  }
+}
+
+
+
+/* =========================================================
+HOMERENT — ACTUAL NEW INSPECTION MODAL
+Matches openNewInspectionForm() in inspections.js
+========================================================= */
+
+#inspectionModalRoot:empty {
+display: none;
+}
+
+#inspectionModalRoot:not(:empty) {
+position: relative;
+z-index: 2000;
+}
+
+/* Full-screen backdrop */
+#inspectionModalRoot .inspection-modal-backdrop {
+position: fixed;
+inset: 0;
+z-index: 2000;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 24px;
+overflow-y: auto;
+background: rgba(15, 27, 45, 0.62);
+backdrop-filter: blur(4px);
+}
+
+/* Modal card */
+#inspectionModalRoot .inspection-modal {
+position: relative;
+width: 100%;
+max-width: 760px;
+max-height: calc(100vh - 48px);
+margin: auto;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+color: #172b4d;
+background: #ffffff;
+border: 1px solid #e5eaf1;
+border-radius: 18px;
+box-shadow: 0 24px 80px rgba(10, 25, 45, 0.25);
+}
+
+/* Header */
+#inspectionModalRoot .inspection-modal-header {
+flex: 0 0 auto;
+display: flex;
+align-items: flex-start;
+justify-content: space-between;
+gap: 18px;
+padding: 24px 28px;
+border-bottom: 1px solid #e5eaf1;
+background: #ffffff;
+}
+
+#inspectionModalRoot .inspection-modal-header h2 {
+margin: 0;
+color: #172b4d;
+font-size: 23px;
+font-weight: 750;
+line-height: 1.3;
+}
+
+#inspectionModalRoot .inspection-modal-header p {
+margin: 7px 0 0;
+color: #718096;
+font-size: 13px;
+line-height: 1.5;
+}
+
+#inspectionModalRoot .inspection-modal-header .table-action-button {
+flex: 0 0 36px;
+width: 36px;
+height: 36px;
+font-size: 16px;
+}
+
+/* Keep the form and its sections inside the modal */
+#inspectionModalRoot #newInspectionForm {
+min-height: 0;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+
+#inspectionModalRoot .inspection-modal-body {
+min-height: 0;
+padding: 24px 28px;
+display: flex;
+flex-direction: column;
+gap: 19px;
+overflow-y: auto;
+overscroll-behavior: contain;
+}
+
+/* Fields */
+#inspectionModalRoot .form-field {
+min-width: 0;
+display: flex;
+flex-direction: column;
+gap: 7px;
+}
+
+#inspectionModalRoot .form-field > label {
+color: #344760;
+font-size: 13px;
+font-weight: 650;
+}
+
+#inspectionModalRoot .form-field input:not([type="checkbox"]),
+#inspectionModalRoot .form-field select,
+#inspectionModalRoot .form-field textarea {
+width: 100%;
+min-width: 0;
+min-height: 44px;
+padding: 10px 12px;
+color: #172b4d;
+background: #ffffff;
+border: 1px solid #d9e2ee;
+border-radius: 9px;
+font: inherit;
+line-height: 1.5;
+outline: none;
+transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+#inspectionModalRoot .form-field textarea {
+min-height: 88px;
+resize: vertical;
+}
+
+#inspectionModalRoot .form-field input:focus,
+#inspectionModalRoot .form-field select:focus,
+#inspectionModalRoot .form-field textarea:focus {
+border-color: #087fdf;
+box-shadow: 0 0 0 3px rgba(8, 127, 223, 0.11);
+}
+
+#inspectionModalRoot .form-field small {
+color: #718096;
+font-size: 11px;
+line-height: 1.5;
+}
+
+/* Date and inspector fields */
+#inspectionModalRoot .form-grid {
+display: grid;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: 16px;
+}
+
+/* Areas checklist */
+#inspectionModalRoot .inspection-checklist {
+display: grid;
+grid-template-columns: repeat(2, minmax(0, 1fr));
+gap: 9px;
+}
+
+#inspectionModalRoot .inspection-check-option {
+min-width: 0;
+min-height: 42px;
+display: flex;
+align-items: flex-start;
+gap: 9px;
+padding: 10px 11px;
+color: #344760;
+background: #f7faff;
+border: 1px solid #e5eaf1;
+border-radius: 9px;
+font-size: 12px;
+font-weight: 500;
+line-height: 1.5;
+cursor: pointer;
+}
+
+#inspectionModalRoot .inspection-check-option input[type="checkbox"] {
+width: 16px;
+height: 16px;
+flex: 0 0 16px;
+margin: 2px 0 0;
+accent-color: #087fdf;
+}
+
+/* Validation message */
+#inspectionModalRoot .inspection-form-error:not([hidden]) {
+display: block;
+margin: 0;
+padding: 11px 13px;
+color: #c53030;
+background: #fff0f0;
+border: 1px solid #fed7d7;
+border-radius: 9px;
+font-size: 12px;
+}
+
+/* Footer buttons stay visible */
+#inspectionModalRoot .inspection-modal-footer {
+flex: 0 0 auto;
+display: flex;
+align-items: center;
+justify-content: flex-end;
+flex-wrap: wrap;
+gap: 10px;
+padding: 17px 28px;
+background: #ffffff;
+border-top: 1px solid #e5eaf1;
+}
+
+#inspectionModalRoot .inspection-modal-footer .btn {
+min-height: 44px;
+}
+
+/* Tablet and mobile */
+@media (max-width: 600px) {
+#inspectionModalRoot .inspection-modal-backdrop {
+align-items: flex-start;
+padding: 10px;
+}
+
+#inspectionModalRoot .inspection-modal {
+max-height: calc(100vh - 20px);
+max-height: calc(100dvh - 20px);
+border-radius: 14px;
+}
+
+#inspectionModalRoot .inspection-modal-header {
+padding: 18px 16px;
+gap: 10px;
+}
+
+#inspectionModalRoot .inspection-modal-header h2 {
+font-size: 20px;
+}
+
+#inspectionModalRoot .inspection-modal-body {
+padding: 18px 16px;
+gap: 16px;
+}
+
+#inspectionModalRoot .form-grid,
+#inspectionModalRoot .inspection-checklist {
+grid-template-columns: minmax(0, 1fr);
+}
+
+#inspectionModalRoot .inspection-modal-footer {
+padding: 14px 16px;
+flex-direction: column-reverse;
+align-items: stretch;
+}
+
+#inspectionModalRoot .inspection-modal-footer .btn {
+width: 100%;
+}
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+#inspectionModalRoot * {
+transition: none !important;
+}
+}
