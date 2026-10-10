@@ -1,101 +1,320 @@
-// File: js/rooms/room-details.js
-//
-// HomeRent — Room Details Controller
-// Loads one room from Firestore and displays its real stored data.
+/* ============================================================
+   HOMERENT — ROOM DETAILS CONTROLLER
+   File: js/rooms/room-details.js
 
-import { auth } from "../firebase.js";
+   Uses:
+   - Existing Firebase authentication
+   - Existing Firestore database
+   - Central branding loader
+   - Central settings
+   - Existing dashboard mobile sidebar behaviour
+   ============================================================ */
 
 import {
-  onAuthStateChanged
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 import {
-  getRoomById
-} from "./rooms-service.js";
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-import {
-  loadSettings
-} from "../core/settings-service.js";
+import { auth, db } from "../firebase.js";
 
-import {
-  applyGlobalBranding
-} from "../core/branding.js";
+import { applyGlobalBranding } from "../core/branding.js";
+import { getSettings } from "../core/settings.js";
 
-// --------------------------------------------------
-// ELEMENTS
-// --------------------------------------------------
 
-const $ = (selector) => document.querySelector(selector);
+const $ = (id) => document.getElementById(id);
 
-const elements = {
-  loading: $("#roomDetailsLoading"),
-  error: $("#roomDetailsError"),
-  errorText: $("#roomDetailsErrorText"),
-  retryButton: $("#retryRoomDetailsButton"),
-  content: $("#roomDetailsContent"),
+const ui = {
+  sidebar: $("sidebar"),
+  overlay: $("sidebarOverlay"),
+  menu: $("mobileMenuButton"),
+  logout: $("logoutButton"),
 
-  headingNumber: $("#roomDetailsNumber"),
-  headingType: $("#roomDetailsType"),
-  headingStatus: $("#roomDetailsStatus"),
+  loading: $("detailsLoading"),
+  error: $("detailsError"),
+  errorText: $("detailsErrorText"),
+  retry: $("retryDetails"),
+  body: $("roomDetailsBody"),
 
-  roomNumber: $("#detailRoomNumber"),
-  roomType: $("#detailRoomType"),
-  roomPrice: $("#detailRoomPrice"),
-  roomSize: $("#detailRoomSize"),
-  roomLocation: $("#detailRoomLocation"),
-  archiveStatus: $("#detailArchiveStatus"),
-  roomCondition: $("#detailRoomCondition"),
-  roomCreated: $("#detailRoomCreated"),
-  roomUpdated: $("#detailRoomUpdated"),
-  roomPhotos: $("#detailRoomPhotos"),
+  title: $("roomTitle"),
+  name: $("roomName"),
+  typeLabel: $("roomTypeLabel"),
+  status: $("roomStatus"),
 
-  editButton: $("#editRoomDetailsButton")
+  roomNumber: $("fieldRoomNumber"),
+  type: $("fieldType"),
+  fieldStatus: $("fieldStatus"),
+  price: $("fieldPrice"),
+  period: $("fieldPeriod"),
+  size: $("fieldSize"),
+  location: $("fieldLocation"),
+  id: $("fieldId"),
+  notes: $("fieldNotes"),
+  created: $("fieldCreated"),
+  updated: $("fieldUpdated")
 };
 
-const params = new URLSearchParams(window.location.search);
-const roomId = params.get("id");
+let currentRoomId = "";
+let currentSettings = getSettings();
+let authenticatedUser = null;
 
-let currentRoom = null;
-let authReady = false;
-let signedInUser = null;
-let isLoading = false;
 
-// --------------------------------------------------
-// DISPLAY HELPERS
-// --------------------------------------------------
+/* ============================================================
+   INITIALIZATION
+   ============================================================ */
 
-function setText(element, value) {
-  if (element) {
-    element.textContent = value ?? "";
+document.addEventListener("DOMContentLoaded", initialize);
+
+async function initialize() {
+  setupSidebar();
+  setupLogout();
+
+  ui.retry?.addEventListener("click", loadRoom);
+
+  currentRoomId = new URLSearchParams(
+    window.location.search
+  ).get("id") || "";
+
+  try {
+    await applyGlobalBranding();
+    currentSettings = getSettings();
+  } catch (error) {
+    console.error("HomeRent: Branding initialization failed.", error);
+  }
+
+  if (!currentRoomId) {
+    showError(
+      "No room ID was provided. Return to Rooms and select a room."
+    );
+    return;
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.replace("../auth/login.html");
+      return;
+    }
+
+    authenticatedUser = user;
+    await loadRoom();
+  });
+}
+
+
+/* ============================================================
+   MOBILE SIDEBAR
+   Matches the dashboard IDs and CSS classes.
+   ============================================================ */
+
+function setupSidebar() {
+  ui.menu?.addEventListener("click", () => {
+    const isOpen = ui.sidebar?.classList.contains("open");
+
+    if (isOpen) {
+      closeSidebar();
+    } else {
+      openSidebar();
+    }
+  });
+
+  ui.overlay?.addEventListener("click", closeSidebar);
+
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    link.addEventListener("click", closeSidebar);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeSidebar();
+    }
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 700) {
+      closeSidebar();
+    }
+  });
+}
+
+function openSidebar() {
+  if (!ui.sidebar) return;
+
+  ui.sidebar.classList.add("open");
+  ui.overlay?.classList.add("active");
+
+  ui.menu?.setAttribute("aria-expanded", "true");
+  document.body.style.overflow = "hidden";
+}
+
+function closeSidebar() {
+  ui.sidebar?.classList.remove("open");
+  ui.overlay?.classList.remove("active");
+
+  ui.menu?.setAttribute("aria-expanded", "false");
+  document.body.style.overflow = "";
+}
+
+
+/* ============================================================
+   LOGOUT
+   ============================================================ */
+
+function setupLogout() {
+  ui.logout?.addEventListener("click", async () => {
+    ui.logout.disabled = true;
+
+    try {
+      await signOut(auth);
+      window.location.replace("../auth/login.html");
+    } catch (error) {
+      console.error("HomeRent: Logout failed.", error);
+
+      alert("Logout failed. Please try again.");
+      ui.logout.disabled = false;
+    }
+  });
+}
+
+
+/* ============================================================
+   LOAD ROOM FROM FIRESTORE
+   ============================================================ */
+
+async function loadRoom() {
+  if (!authenticatedUser || !currentRoomId) return;
+
+  showLoading();
+
+  try {
+    const roomRef = doc(db, "rooms", currentRoomId);
+    const snapshot = await getDoc(roomRef);
+
+    if (!snapshot.exists()) {
+      throw new Error(
+        "This room record no longer exists or could not be found."
+      );
+    }
+
+    const room = {
+      id: snapshot.id,
+      ...snapshot.data()
+    };
+
+    if (room.isArchived === true) {
+      throw new Error(
+        "This room has been archived. Return to Rooms to review the available records."
+      );
+    }
+
+    renderRoom(room);
+    showDetails();
+
+  } catch (error) {
+    console.error("HomeRent: Could not load room details.", error);
+
+    showError(
+      error.message ||
+      "Could not load the room. Check your connection and Firestore permissions."
+    );
   }
 }
 
-function formatRoomType(type) {
-  if (type === "living") return "Living Room";
-  if (type === "store") return "Storeroom";
 
-  return "Room";
+/* ============================================================
+   RENDER ROOM INFORMATION
+   ============================================================ */
+
+function renderRoom(room) {
+  const roomNumber =
+    room.roomNumber || room.name || "Unnamed room";
+
+  const roomType = formatLabel(room.type || "Not specified");
+  const roomStatus = formatLabel(room.status || "Unknown");
+
+  if (ui.title) {
+    ui.title.textContent = roomNumber;
+  }
+
+  if (ui.name) {
+    ui.name.textContent = roomNumber;
+  }
+
+  if (ui.typeLabel) {
+    ui.typeLabel.textContent = roomType;
+  }
+
+  if (ui.status) {
+    ui.status.textContent = roomStatus;
+    ui.status.className =
+      `details-status status-${slugify(room.status || "unknown")}`;
+  }
+
+  setText(ui.roomNumber, roomNumber);
+  setText(ui.type, roomType);
+  setText(ui.fieldStatus, roomStatus);
+
+  setText(
+    ui.price,
+    formatPrice(room.currentPrice)
+  );
+
+  setText(
+    ui.period,
+    formatLabel(room.rentalPeriod || "Not specified")
+  );
+
+  setText(
+    ui.size,
+    room.size || "Not specified"
+  );
+
+  setText(
+    ui.location,
+    room.location || "Not specified"
+  );
+
+  setText(ui.id, room.id);
+
+  setText(
+    ui.notes,
+    room.conditionNotes || "No condition notes have been recorded."
+  );
+
+  setText(
+    ui.created,
+    formatDate(room.createdAt)
+  );
+
+  setText(
+    ui.updated,
+    formatDate(room.updatedAt)
+  );
+
+  document.title =
+    `${currentSettings.businessName || "HomeRent"} — ${roomNumber}`;
 }
 
-function formatStatus(status) {
-  const labels = {
-    available: "Available",
-    occupied: "Occupied",
-    reserved: "Reserved",
-    maintenance: "Maintenance"
-  };
 
-  return labels[status] || "Unknown status";
-}
+/* ============================================================
+   FORMATTING HELPERS
+   ============================================================ */
 
-function formatMoney(value) {
+function formatPrice(value) {
+  if (value === undefined || value === null || value === "") {
+    return "Not specified";
+  }
+
   const amount = Number(value);
 
   if (!Number.isFinite(amount)) {
-    return "Price not set";
+    return String(value);
   }
 
-  const currency = window.homeRentSettings?.currency || "GHS";
+  const currency = currentSettings.currency || "GHS";
 
   try {
     return new Intl.NumberFormat("en-GH", {
@@ -104,196 +323,84 @@ function formatMoney(value) {
       maximumFractionDigits: 2
     }).format(amount);
   } catch {
-    return `₵${amount.toFixed(2)}`;
+    const symbol = currentSettings.currencySymbol || "₵";
+
+    return `${symbol}${amount.toLocaleString("en-GH", {
+      maximumFractionDigits: 2
+    })}`;
   }
 }
 
-function formatDate(timestamp) {
-  if (!timestamp) return "Not recorded";
+function formatLabel(value) {
+  return String(value)
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function slugify(value) {
+  return String(value || "unknown")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function setText(element, value) {
+  if (element) {
+    element.textContent = value ?? "Not specified";
+  }
+}
+
+function formatDate(value) {
+  if (!value) return "Not available";
 
   let date;
 
-  if (typeof timestamp.toDate === "function") {
-    date = timestamp.toDate();
-  } else if (timestamp instanceof Date) {
-    date = timestamp;
+  if (typeof value.toDate === "function") {
+    date = value.toDate();
+  } else if (value instanceof Date) {
+    date = value;
+  } else if (typeof value.seconds === "number") {
+    date = new Date(value.seconds * 1000);
   } else {
-    date = new Date(timestamp);
+    date = new Date(value);
   }
 
   if (Number.isNaN(date.getTime())) {
-    return "Not recorded";
+    return "Not available";
   }
 
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
+  return new Intl.DateTimeFormat("en-GH", {
+    dateStyle: "medium",
+    timeStyle: "short"
   }).format(date);
 }
 
-// --------------------------------------------------
-// PAGE STATES
-// --------------------------------------------------
+
+/* ============================================================
+   PAGE STATES
+   ============================================================ */
 
 function showLoading() {
-  elements.loading.hidden = false;
-  elements.error.hidden = true;
-  elements.content.hidden = true;
+  if (ui.loading) ui.loading.hidden = false;
+  if (ui.error) ui.error.hidden = true;
+  if (ui.body) ui.body.hidden = true;
+}
+
+function showDetails() {
+  if (ui.loading) ui.loading.hidden = true;
+  if (ui.error) ui.error.hidden = true;
+  if (ui.body) ui.body.hidden = false;
 }
 
 function showError(message) {
-  elements.loading.hidden = true;
-  elements.content.hidden = true;
-  elements.error.hidden = false;
+  if (ui.loading) ui.loading.hidden = true;
+  if (ui.body) ui.body.hidden = true;
+  if (ui.error) ui.error.hidden = false;
 
-  setText(elements.errorText, message);
-}
+  setText(ui.errorText, message);
 
-function showContent() {
-  elements.loading.hidden = true;
-  elements.error.hidden = true;
-  elements.content.hidden = false;
-}
-
-// --------------------------------------------------
-// RENDER ROOM
-// --------------------------------------------------
-
-function renderRoom(room) {
-  currentRoom = room;
-
-  const number = room.roomNumber || "Unnamed room";
-  const type = formatRoomType(room.type);
-  const status = formatStatus(room.status);
-
-  setText(elements.headingNumber, number);
-  setText(elements.headingType, type);
-
-  setText(elements.headingStatus, status);
-
-  elements.headingStatus.className =
-    `room-details-status ${room.status || ""}`;
-
-  setText(elements.roomNumber, number);
-  setText(elements.roomType, type);
-  setText(elements.roomPrice, formatMoney(room.currentPrice));
-  setText(elements.roomSize, room.size || "Not recorded");
-  setText(elements.roomLocation, room.location || "Not recorded");
-
-  setText(
-    elements.archiveStatus,
-    room.isArchived === true ? "Archived" : "Active"
-  );
-
-  setText(
-    elements.roomCondition,
-    room.conditionNotes || "No condition notes recorded."
-  );
-
-  setText(elements.roomCreated, formatDate(room.createdAt));
-  setText(elements.roomUpdated, formatDate(room.updatedAt));
-
-  const photos = Array.isArray(room.photoUrls)
-    ? room.photoUrls.filter(Boolean)
-    : [];
-
-  if (photos.length === 0) {
-    setText(elements.roomPhotos, "No room photos recorded.");
-  } else {
-    setText(
-      elements.roomPhotos,
-      `${photos.length} photo link${photos.length === 1 ? "" : "s"} recorded.`
-    );
-  }
-
-  // Existing room-edit modal is not imported here yet.
-  // We will connect this button to the shared modal in the next step.
-  elements.editButton.disabled = room.isArchived === true;
-
-  showContent();
-}
-
-// --------------------------------------------------
-// LOAD ROOM FROM FIRESTORE
-// --------------------------------------------------
-
-async function loadRoomDetails() {
-  if (isLoading) return;
-
-  if (!authReady) return;
-
-  if (!signedInUser) {
-    window.location.href = "../../login.html";
-    return;
-  }
-
-  if (!roomId) {
-    showError(
-      "No room ID was supplied. Return to Rooms and select View Details."
-    );
-    return;
-  }
-
-  isLoading = true;
-  showLoading();
-
-  try {
-    const room = await getRoomById(roomId);
-
-    renderRoom(room);
-  } catch (error) {
-    console.error("HomeRent: Could not display room details.", error);
-
-    showError(
-      error.message || "Unable to load this room. Please try again."
-    );
-  } finally {
-    isLoading = false;
+  // A retry cannot help when the URL has no room ID.
+  if (ui.retry) {
+    ui.retry.hidden = !currentRoomId;
   }
 }
-
-// --------------------------------------------------
-// EVENTS
-// --------------------------------------------------
-
-elements.retryButton?.addEventListener("click", loadRoomDetails);
-
-elements.editButton?.addEventListener("click", () => {
-  if (!currentRoom) return;
-
-  // Intentionally disabled until connected to the existing shared modal.
-  // Avoid presenting a button that silently does nothing.
-  window.alert(
-    "Room editing from this page has not been connected yet. " +
-    "Return to Rooms and use the existing Edit button."
-  );
-});
-
-// --------------------------------------------------
-// INITIALIZATION
-// --------------------------------------------------
-
-async function initializeBranding() {
-  try {
-    await loadSettings();
-    applyGlobalBranding();
-  } catch (error) {
-    console.error("HomeRent: Could not initialize branding.", error);
-  }
-}
-
-async function initializePage() {
-  await initializeBranding();
-
-  onAuthStateChanged(auth, async (user) => {
-    signedInUser = user;
-    authReady = true;
-
-    await loadRoomDetails();
-  });
-}
-
-initializePage();

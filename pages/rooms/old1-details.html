@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087fdf">
+
+  <title>Room Details | HomeRent</title>
+
+  <!-- Existing global dashboard styles -->
+  <link rel="stylesheet" href="../../css/dashboard.css">
+
+  <!-- Dedicated Room Details styles -->
+  <link rel="stylesheet" href="../../css/room-details.css">
+</head>
+
+<body class="room-details-page">
+
+  <div class="dashboard-shell">
+
+    <!-- =================================================
+         SIDEBAR — MATCHES THE EXISTING DASHBOARD
+         ================================================= -->
+    <aside class="sidebar" id="sidebar">
+
+      <div class="sidebar-inner">
+
+        <!-- SYSTEM BRANDING -->
+        <div class="sidebar-brand">
+
+          <div class="sidebar-logo">
+            <img
+              id="systemLogo"
+              src="../../assets/images/default-logo.svg"
+              alt="System logo"
+              data-default-logo
+            >
+          </div>
+
+          <div class="sidebar-brand-text">
+            <strong id="systemName" data-setting="businessName">
+              HomeRent
+            </strong>
+
+            <span id="systemSubtitle">
+              Property Management
+            </span>
+          </div>
+
+        </div>
+
+        <!-- MAIN NAVIGATION -->
+        <nav class="sidebar-nav" aria-label="Main navigation">
+
+          <div class="nav-group">
+            <span class="nav-group-title">MAIN</span>
+
+            <a
+              href="../dashboard/index.html"
+              class="nav-link"
+              data-page="dashboard"
+            >
+              <span class="nav-icon">⌂</span>
+              <span>Dashboard</span>
+            </a>
+          </div>
+
+          <div class="nav-group">
+            <span class="nav-group-title">MANAGEMENT</span>
+
+            <a
+              href="./index.html"
+              class="nav-link active"
+              data-page="rooms"
+              aria-current="page"
+            >
+              <span class="nav-icon">▣</span>
+              <span>Rooms</span>
+            </a>
+
+            <a
+              href="../tenancies/index.html"
+              class="nav-link"
+              data-page="tenancies"
+            >
+              <span class="nav-icon">▤</span>
+              <span>Tenancies</span>
+            </a>
+          </div>
+
+          <div class="nav-group">
+            <span class="nav-group-title">FINANCE</span>
+
+            <a
+              href="../payments/index.html"
+              class="nav-link"
+              data-page="payments"
+            >
+              <span class="nav-icon">₵</span>
+              <span>Payments</span>
+            </a>
+
+            <a
+              href="../receipts/index.html"
+              class="nav-link"
+              data-page="receipts"
+            >
+              <span class="nav-icon">▤</span>
+              <span>Receipts</span>
+            </a>
+
+            <a
+              href="../finances/index.html"
+              class="nav-link"
+              data-page="finances"
+            >
+              <span class="nav-icon">◈</span>
+              <span>Finances</span>
+            </a>
+
+            <a
+              href="../reports/index.html"
+              class="nav-link"
+              data-page="reports"
+            >
+              <span class="nav-icon">▥</span>
+              <span>Reports</span>
+            </a>
+          </div>
+
+          <div class="nav-group">
+            <span class="nav-group-title">RECORDS</span>
+
+            <a
+              href="../documents/index.html"
+              class="nav-link"
+              data-page="documents"
+            >
+              <span class="nav-icon">□</span>
+              <span>Documents</span>
+            </a>
+          </div>
+
+          <div class="nav-group">
+            <span class="nav-group-title">SYSTEM</span>
+
+            <a
+              href="../settings/index.html"
+              class="nav-link"
+              data-page="settings"
+            >
+              <span class="nav-icon">⚙</span>
+              <span>Settings</span>
+            </a>
+          </div>
+
+        </nav>
+
+        <!-- SIDEBAR FOOTER -->
+        <div class="sidebar-footer">
+
+          <button
+            class="sidebar-footer-btn"
+            id="logoutButton"
+            type="button"
+          >
+            <span class="nav-icon">↪</span>
+            <span>Logout</span>
+          </button>
+
+        </div>
+
+      </div>
+
+    </aside>
+
+    <!-- MOBILE SIDEBAR OVERLAY -->
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+    ></div>
+
+    <!-- =================================================
+         MAIN CONTENT
+         ================================================= -->
+    <main class="dashboard-main">
+
+      <!-- TOP BAR -->
+      <header class="topbar">
+
+        <button
+          class="mobile-menu-button"
+          id="mobileMenuButton"
+          type="button"
+          aria-label="Open navigation"
+          aria-expanded="false"
+        >
+          ☰
+        </button>
+
+        <div class="topbar-title">
+          <span
+            class="mobile-brand-name"
+            id="mobileBrandName"
+            data-setting="businessName"
+          >
+            HomeRent
+          </span>
+        </div>
+
+        <div class="topbar-actions">
+          <span class="room-details-top-label">
+            ROOM RECORD
+          </span>
+        </div>
+
+      </header>
+
+      <!-- PAGE CONTENT -->
+      <div class="dashboard-content room-details-content">
+
+        <!-- PAGE HEADING -->
+        <section class="room-details-heading">
+
+          <div class="room-details-heading-copy">
+
+            <a class="back-link" href="./index.html">
+              ← Back to Rooms
+            </a>
+
+            <p class="hero-eyebrow">
+              PROPERTY INVENTORY
+            </p>
+
+            <h1 id="roomTitle">
+              Room Details
+            </h1>
+
+            <p class="room-details-subtitle">
+              View the saved information for this living room or storeroom.
+            </p>
+
+          </div>
+
+        </section>
+
+        <!-- LOADING STATE -->
+        <section
+          id="detailsLoading"
+          class="details-state"
+          aria-live="polite"
+        >
+          <span class="details-spinner"></span>
+          <p>Loading room information…</p>
+        </section>
+
+        <!-- ERROR STATE -->
+        <section
+          id="detailsError"
+          class="details-error"
+          role="alert"
+          hidden
+        >
+
+          <h2>Room details unavailable</h2>
+
+          <p id="detailsErrorText">
+            The room information could not be loaded.
+          </p>
+
+          <div class="details-actions">
+
+            <button
+              id="retryDetails"
+              class="details-primary"
+              type="button"
+            >
+              Try Again
+            </button>
+
+            <a
+              class="details-secondary"
+              href="./index.html"
+            >
+              Back to Rooms
+            </a>
+
+          </div>
+
+        </section>
+
+        <!-- ROOM DETAILS -->
+        <div id="roomDetailsBody" hidden>
+
+          <!-- ROOM SUMMARY -->
+          <section class="details-summary-card">
+
+            <div class="details-summary-icon" aria-hidden="true">
+              ⌂
+            </div>
+
+            <div class="details-summary-main">
+
+              <span class="details-eyebrow">
+                ROOM / STORE
+              </span>
+
+              <h2 id="roomName">—</h2>
+
+              <p id="roomTypeLabel">—</p>
+
+            </div>
+
+            <span
+              id="roomStatus"
+              class="details-status"
+            >
+              —
+            </span>
+
+          </section>
+
+          <!-- DETAILS GRID -->
+          <section class="details-grid">
+
+            <!-- GENERAL INFORMATION -->
+            <article class="details-card details-card-wide">
+
+              <div class="details-card-heading">
+
+                <div>
+                  <span class="details-eyebrow">
+                    OVERVIEW
+                  </span>
+
+                  <h2>Room Information</h2>
+                </div>
+
+                <span class="details-card-symbol" aria-hidden="true">
+                  ▤
+                </span>
+
+              </div>
+
+              <dl class="details-fields">
+
+                <div>
+                  <dt>Room name / number</dt>
+                  <dd id="fieldRoomNumber">—</dd>
+                </div>
+
+                <div>
+                  <dt>Room type</dt>
+                  <dd id="fieldType">—</dd>
+                </div>
+
+                <div>
+                  <dt>Current status</dt>
+                  <dd id="fieldStatus">—</dd>
+                </div>
+
+                <div>
+                  <dt>Rental price</dt>
+                  <dd id="fieldPrice">—</dd>
+                </div>
+
+                <div>
+                  <dt>Rental period</dt>
+                  <dd id="fieldPeriod">—</dd>
+                </div>
+
+                <div>
+                  <dt>Size</dt>
+                  <dd id="fieldSize">—</dd>
+                </div>
+
+                <div>
+                  <dt>Location</dt>
+                  <dd id="fieldLocation">—</dd>
+                </div>
+
+                <div>
+                  <dt>Firestore record ID</dt>
+                  <dd id="fieldId" class="record-id">—</dd>
+                </div>
+
+              </dl>
+
+            </article>
+
+            <!-- CONDITION AND NOTES -->
+            <article class="details-card">
+
+              <div class="details-card-heading">
+
+                <div>
+                  <span class="details-eyebrow">
+                    CONDITION
+                  </span>
+
+                  <h2>Condition &amp; Notes</h2>
+                </div>
+
+                <span class="details-card-symbol" aria-hidden="true">
+                  ✓
+                </span>
+
+              </div>
+
+              <p
+                id="fieldNotes"
+                class="details-notes"
+              >
+                No condition notes have been recorded.
+              </p>
+
+            </article>
+
+            <!-- RECORD HISTORY -->
+            <article class="details-card">
+
+              <div class="details-card-heading">
+
+                <div>
+                  <span class="details-eyebrow">
+                    RECORD HISTORY
+                  </span>
+
+                  <h2>Record Timestamps</h2>
+                </div>
+
+                <span class="details-card-symbol" aria-hidden="true">
+                  ◷
+                </span>
+
+              </div>
+
+              <dl class="details-fields details-fields-stack">
+
+                <div>
+                  <dt>Created</dt>
+                  <dd id="fieldCreated">Not available</dd>
+                </div>
+
+                <div>
+                  <dt>Last updated</dt>
+                  <dd id="fieldUpdated">Not available</dd>
+                </div>
+
+              </dl>
+
+            </article>
+
+          </section>
+
+          <!-- PAGE ACTIONS -->
+          <div class="details-bottom-actions">
+
+            <a
+              class="details-secondary"
+              href="./index.html"
+            >
+              ← Back to Rooms
+            </a>
+
+          </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="room-details-footer">
+          <span data-setting="businessName">HomeRent</span>
+          <span>•</span>
+          <span data-setting="footerText">
+            Secure Property &amp; Storeroom Management
+          </span>
+        </footer>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!--
+    ROOM DETAILS CONTROLLER
+    Loads room data, applies centralized branding,
+    checks authentication, and manages mobile navigation.
+  -->
+  <script
+    type="module"
+    src="../../js/rooms/room-details.js"
+  ></script>
+
+</body>
+</html>
