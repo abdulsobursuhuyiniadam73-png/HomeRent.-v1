@@ -116,13 +116,28 @@
   border-bottom: 1px solid var(--rooms-border);
 }
 
-.rooms-page .system-logo {
-  display: block;
+
+.sidebar-logo {
   width: 42px;
   height: 42px;
-  flex: 0 0 42px;
+
+  display: grid;
+  place-items: center;
+
+  flex-shrink: 0;
+
+  border-radius: 11px;
+
+  background: #eef6ff;
+
+  overflow: hidden;
+}
+
+.sidebar-logo img {
+  width: 100%;
+  height: 100%;
+
   object-fit: contain;
-  border-radius: 10px;
 }
 
 .rooms-page .sidebar-brand-text {
@@ -134,16 +149,23 @@
 }
 
 .rooms-page .sidebar-brand-text strong {
-  overflow: hidden;
-  font-size: 15px;
+font-size: 16px;
   font-weight: 800;
-  text-overflow: ellipsis;
+
+  color: var(--text-primary);
+
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.rooms-page .sidebar-brand-text small {
-  color: var(--rooms-muted);
-  font-size: 11px;
+.rooms-page .sidebar-brand-text span {
+    font-size: 11px;
+  color: var(--text-muted);
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-inner {
