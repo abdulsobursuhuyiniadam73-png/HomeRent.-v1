@@ -1,0 +1,1590 @@
+/* =====================================================
+   HOMERENT — CLIENTS MANAGEMENT
+   File: css/clients.css
+   Purpose: Responsive styling for the Clients page
+   ===================================================== */
+
+/* ---------- 1. Theme and page defaults ---------- */
+
+.clients-page {
+  --clients-primary: var(--primary-color, #087fdf);
+  --clients-primary-dark: #0768b8;
+  --clients-primary-soft: #eaf4ff;
+  --clients-text: var(--text-color, #172b4d);
+  --clients-muted: #718096;
+  --clients-border: var(--border-color, #e5eaf1);
+  --clients-surface: var(--card-bg, #ffffff);
+  --clients-page-bg: var(--background-color, #f5f8fc);
+  --clients-green: #16835d;
+  --clients-orange: #b7791f;
+  --clients-purple: #7656bd;
+  --clients-danger: #c24141;
+
+  margin: 0;
+  background: var(--clients-page-bg);
+  color: var(--clients-text);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+.clients-page *,
+.clients-page *::before,
+.clients-page *::after {
+  box-sizing: border-box;
+}
+
+.clients-page button,
+.clients-page input,
+.clients-page select {
+  font: inherit;
+}
+
+.clients-page button {
+  cursor: pointer;
+}
+
+.clients-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.clients-page a {
+  text-decoration: none;
+}
+
+.clients-page [hidden] {
+  display: none !important;
+}
+
+.clients-page .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.clients-page :focus-visible {
+  outline: 3px solid rgba(8, 127, 223, 0.35);
+  outline-offset: 3px;
+}
+
+
+/* ---------- 2. Main application layout ---------- */
+
+.clients-page .app-shell {
+  min-height: 100vh;
+}
+
+.clients-page .main-content {
+  min-width: 0;
+  min-height: 100vh;
+  margin-left: 260px;
+  transition: margin-left 0.25s ease;
+}
+
+.clients-page .page-container {
+  width: 100%;
+  max-width: 1700px;
+  margin: 0 auto;
+  padding: 30px;
+}
+
+
+/* ---------- 3. Sidebar ---------- */
+
+.clients-page .sidebar {
+  position: fixed;
+  z-index: 1000;
+  inset: 0 auto 0 0;
+  width: 260px;
+  height: 100dvh;
+  background: #ffffff;
+  border-right: 1px solid var(--clients-border);
+  box-shadow: 3px 0 18px rgba(24, 48, 82, 0.035);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.clients-page .sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 22px 15px 16px;
+}
+
+.clients-page .sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0 9px 24px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.clients-page .sidebar-logo,
+.clients-page .mobile-brand-logo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--clients-primary-soft);
+}
+
+.clients-page .sidebar-logo img,
+.clients-page .mobile-brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.clients-page .sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.clients-page .sidebar-brand-text strong {
+  overflow-wrap: anywhere;
+  color: #17365d;
+  font-size: 16px;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.clients-page .sidebar-brand-text span {
+  color: var(--clients-muted);
+  font-size: 11px;
+}
+
+.clients-page .sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 25px;
+}
+
+.clients-page .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 46px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #5e6d82;
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.clients-page .nav-link i {
+  width: 19px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.clients-page .nav-link:hover {
+  background: #f0f6ff;
+  color: var(--clients-primary);
+}
+
+.clients-page .nav-link.active {
+  background: var(--clients-primary-soft);
+  color: var(--clients-primary);
+  font-weight: 700;
+}
+
+.clients-page .sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: auto;
+  padding: 25px 12px 8px;
+  color: var(--clients-muted);
+  font-size: 11px;
+}
+
+.clients-page .sidebar-footer-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #20a46b;
+  box-shadow: 0 0 0 4px #e6f7ef;
+}
+
+
+/* ---------- 4. Mobile header ---------- */
+
+.clients-page .mobile-header {
+  display: none;
+}
+
+.clients-page .icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--clients-border);
+  border-radius: 11px;
+  background: #ffffff;
+  color: var(--clients-text);
+}
+
+.clients-page .mobile-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.clients-page .mobile-header-brand strong {
+  overflow: hidden;
+  color: #17365d;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ---------- 5. Page heading ---------- */
+
+.clients-page .topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 28px;
+}
+
+.clients-page .eyebrow {
+  margin: 0 0 9px;
+  color: var(--clients-primary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.clients-page .topbar h1 {
+  margin: 0;
+  color: #183153;
+  font-size: clamp(24px, 2.4vw, 31px);
+  font-weight: 750;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+}
+
+.clients-page .page-subtitle {
+  max-width: 620px;
+  margin: 10px 0 0;
+  color: var(--clients-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.clients-page .topbar-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+
+/* ---------- 6. Buttons ---------- */
+
+.clients-page .primary-button,
+.clients-page .secondary-button,
+.clients-page .text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.clients-page .primary-button {
+  border: 1px solid var(--clients-primary);
+  background: var(--clients-primary);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(8, 127, 223, 0.12);
+}
+
+.clients-page .primary-button:hover:not(:disabled) {
+  border-color: var(--clients-primary-dark);
+  background: var(--clients-primary-dark);
+  box-shadow: 0 6px 15px rgba(8, 127, 223, 0.18);
+  transform: translateY(-1px);
+}
+
+.clients-page .secondary-button {
+  border: 1px solid var(--clients-border);
+  background: #ffffff;
+  color: #40536c;
+}
+
+.clients-page .secondary-button:hover:not(:disabled) {
+  border-color: #b9d5f3;
+  background: #f4f8fd;
+}
+
+.clients-page .text-button {
+  border: 0;
+  background: transparent;
+  color: var(--clients-primary);
+}
+
+.clients-page .text-button:hover {
+  background: var(--clients-primary-soft);
+}
+
+
+/* ---------- 7. Summary cards ---------- */
+
+.clients-page .client-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 17px;
+  margin-bottom: 28px;
+}
+
+.clients-page .summary-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  min-width: 0;
+  min-height: 125px;
+  padding: 20px;
+  border: 1px solid var(--clients-border);
+  border-radius: 15px;
+  background: var(--clients-surface);
+  box-shadow: 0 3px 12px rgba(27, 51, 84, 0.025);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.clients-page .summary-card:hover {
+  box-shadow: 0 8px 22px rgba(27, 51, 84, 0.07);
+  transform: translateY(-2px);
+}
+
+.clients-page .summary-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  font-size: 19px;
+}
+
+.clients-page .summary-icon-blue {
+  background: #eaf3ff;
+  color: #2874d4;
+}
+
+.clients-page .summary-icon-green {
+  background: #e8f8ef;
+  color: var(--clients-green);
+}
+
+.clients-page .summary-icon-orange {
+  background: #fff3df;
+  color: var(--clients-orange);
+}
+
+.clients-page .summary-icon-purple {
+  background: #f1ebff;
+  color: var(--clients-purple);
+}
+
+.clients-page .summary-card > div:last-child {
+  min-width: 0;
+}
+
+.clients-page .summary-card p {
+  margin: 0 0 7px;
+  color: var(--clients-muted);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.clients-page .summary-card h2 {
+  margin: 0;
+  color: #183153;
+  font-size: 27px;
+  font-weight: 750;
+  letter-spacing: -0.7px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.clients-page .summary-card small {
+  display: block;
+  margin-top: 7px;
+  color: #94a0b0;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+
+/* ---------- 8. Client records workspace ---------- */
+
+.clients-page .clients-workspace {
+  min-width: 0;
+  padding: 25px;
+  border: 1px solid var(--clients-border);
+  border-radius: 16px;
+  background: var(--clients-surface);
+  box-shadow: 0 3px 15px rgba(27, 51, 84, 0.025);
+}
+
+.clients-page .clients-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.clients-page .clients-section-heading h2 {
+  margin: 0;
+  color: #183153;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.clients-page .clients-section-heading p {
+  margin: 7px 0 0;
+  color: var(--clients-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+
+/* ---------- 9. Search and sort ---------- */
+
+.clients-page .clients-search-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.clients-page .clients-search-box,
+.clients-page .clients-sort-box {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid var(--clients-border);
+  border-radius: 10px;
+  background: #ffffff;
+  color: #8290a2;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.clients-page .clients-search-box {
+  flex: 1;
+  min-width: 0;
+}
+
+.clients-page .clients-sort-box {
+  flex-shrink: 0;
+}
+
+.clients-page .clients-search-box:focus-within,
+.clients-page .clients-sort-box:focus-within {
+  border-color: var(--clients-primary);
+  box-shadow: 0 0 0 3px rgba(8, 127, 223, 0.08);
+}
+
+.clients-page .clients-search-box input {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--clients-text);
+  font-size: 12px;
+}
+
+.clients-page .clients-search-box input::placeholder {
+  color: #9aa5b4;
+}
+
+.clients-page .clients-search-box input:focus-visible {
+  outline: none;
+}
+
+.clients-page .clients-sort-box select {
+  max-width: 180px;
+  min-height: 42px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #516176;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+
+/* ---------- 10. Filter chips ---------- */
+
+.clients-page .client-filter-list {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.clients-page .filter-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 35px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: #f4f6fa;
+  color: #69788d;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.clients-page .filter-chip span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: rgba(100, 116, 139, 0.1);
+  font-size: 10px;
+}
+
+.clients-page .filter-chip:hover {
+  background: #eaf3ff;
+  color: var(--clients-primary);
+}
+
+.clients-page .filter-chip.active {
+  border-color: #cfe3fb;
+  background: #eaf3ff;
+  color: var(--clients-primary);
+}
+
+.clients-page .filter-chip.active span {
+  background: #d4e8ff;
+}
+
+
+/* ---------- 11. Results information ---------- */
+
+.clients-page .clients-results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+}
+
+.clients-page .clients-results-bar p {
+  margin: 0;
+  color: var(--clients-muted);
+  font-size: 11px;
+}
+
+
+/* ---------- 12. Desktop client table ---------- */
+
+.clients-page .clients-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #edf1f6;
+  border-radius: 11px;
+  scrollbar-width: thin;
+}
+
+.clients-page .clients-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.clients-page .clients-table thead {
+  background: #f7f9fc;
+}
+
+.clients-page .clients-table th {
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--clients-border);
+  color: #78869a;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.clients-page .clients-table td {
+  padding: 15px 16px;
+  border-bottom: 1px solid #edf1f6;
+  color: #45556b;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+.clients-page .clients-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.clients-page .clients-table tbody tr {
+  transition: background 0.15s ease;
+}
+
+.clients-page .clients-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.clients-page .clients-table td:first-child {
+  min-width: 180px;
+}
+
+.clients-page .client-identity {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.clients-page .client-avatar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 39px;
+  height: 39px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #eaf3ff;
+  color: #2874d4;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.clients-page .client-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clients-page .client-identity-text {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.clients-page .client-identity-text strong {
+  max-width: 220px;
+  overflow: hidden;
+  color: #243a59;
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+}
+
+.clients-page .client-identity-text small {
+  color: #8b98a9;
+  font-size: 10px;
+}
+
+.clients-page .client-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.clients-page .client-contact a {
+  color: #45556b;
+  font-size: 11px;
+}
+
+.clients-page .client-contact a:hover {
+  color: var(--clients-primary);
+  text-decoration: underline;
+}
+
+.clients-page .client-contact small {
+  color: #8995a5;
+  font-size: 10px;
+}
+
+.clients-page .client-room-name {
+  color: #45556b;
+  font-weight: 650;
+}
+
+.clients-page .client-room-empty {
+  color: #9aa5b4;
+  font-style: italic;
+}
+
+
+/* ---------- 13. Client status labels ---------- */
+
+.clients-page .client-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.clients-page .client-status::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.clients-page .status-active {
+  background: #e8f8ef;
+  color: #16835d;
+}
+
+.clients-page .status-prospective {
+  background: #fff3df;
+  color: #a96b12;
+}
+
+.clients-page .status-inactive {
+  background: #eef1f5;
+  color: #68778b;
+}
+
+.clients-page .status-archived {
+  background: #f0eafa;
+  color: #7656bd;
+}
+
+
+/* ---------- 14. Row action buttons ---------- */
+
+.clients-page .client-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.clients-page .client-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 33px;
+  height: 33px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #718096;
+  font-size: 12px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.clients-page .client-action-button:hover {
+  background: #eaf3ff;
+  color: var(--clients-primary);
+}
+
+.clients-page .client-action-button.danger:hover {
+  background: #fff0f0;
+  color: var(--clients-danger);
+}
+
+
+/* ---------- 15. Mobile client cards ---------- */
+
+.clients-page .client-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clients-page .client-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--clients-border);
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(27, 51, 84, 0.025);
+}
+
+.clients-page .client-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.clients-page .client-card .client-identity {
+  min-width: 0;
+}
+
+.clients-page .client-card .client-identity-text strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.clients-page .client-card-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px 12px;
+  margin-top: 17px;
+  padding-top: 15px;
+  border-top: 1px solid #edf1f6;
+}
+
+.clients-page .client-card-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.clients-page .client-card-detail span {
+  color: #8995a5;
+  font-size: 10px;
+}
+
+.clients-page .client-card-detail strong,
+.clients-page .client-card-detail a {
+  overflow-wrap: anywhere;
+  color: #45556b;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.clients-page .client-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 13px;
+  border-top: 1px solid #edf1f6;
+}
+
+
+/* ---------- 16. Loading, error and empty states ---------- */
+
+.clients-page .clients-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 230px;
+  padding: 28px 18px;
+  text-align: center;
+}
+
+.clients-page .clients-state > i {
+  margin-bottom: 14px;
+  color: var(--clients-primary);
+  font-size: 27px;
+}
+
+.clients-page .clients-state h3 {
+  margin: 0;
+  color: #243a59;
+  font-size: 16px;
+}
+
+.clients-page .clients-state p {
+  max-width: 340px;
+  margin: 9px 0 18px;
+  color: var(--clients-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.clients-page .clients-state.clients-error > i {
+  color: var(--clients-danger);
+}
+
+.clients-page .clients-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 67px;
+  height: 67px;
+  margin-bottom: 17px;
+  border-radius: 20px;
+  background: var(--clients-primary-soft);
+  color: var(--clients-primary);
+  font-size: 25px;
+}
+
+
+/* ---------- 17. Pagination ---------- */
+
+.clients-page .clients-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #edf1f6;
+}
+
+.clients-page .clients-pagination > span {
+  color: var(--clients-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+
+/* ---------- 18. Footer ---------- */
+
+.clients-page .app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 27px;
+  padding: 18px 3px 5px;
+  border-top: 1px solid #e6ebf2;
+}
+
+.clients-page .app-footer p {
+  margin: 0;
+  color: #8995a5;
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+
+/* ---------- 19. Sidebar overlay ---------- */
+
+.clients-page .sidebar-overlay {
+  display: none;
+}
+
+
+/* ---------- 20. Medium screens ---------- */
+
+@media (max-width: 1200px) {
+  .clients-page .page-container {
+    padding: 24px;
+  }
+
+  .clients-page .client-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clients-page .summary-card {
+    min-height: 112px;
+  }
+
+  .clients-page .clients-workspace {
+    padding: 20px;
+  }
+
+  .clients-page .clients-table {
+    min-width: 850px;
+  }
+}
+
+
+/* ---------- 21. Mobile navigation and layout ---------- */
+
+@media (max-width: 768px) {
+  .clients-page .main-content {
+    margin-left: 0;
+  }
+
+  .clients-page .sidebar {
+    z-index: 1200;
+    width: min(285px, 86vw);
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+    box-shadow: 12px 0 35px rgba(16, 36, 66, 0.12);
+  }
+
+  .clients-page .sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .clients-page .sidebar-overlay.is-visible {
+    position: fixed;
+    z-index: 1100;
+    inset: 0;
+    display: block;
+    background: rgba(17, 31, 51, 0.45);
+    backdrop-filter: blur(2px);
+  }
+
+  .clients-page .mobile-header {
+    position: sticky;
+    z-index: 900;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 66px;
+    padding: 11px 18px;
+    border-bottom: 1px solid var(--clients-border);
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+  }
+
+  .clients-page .mobile-brand-logo {
+    width: 35px;
+    height: 35px;
+    border-radius: 9px;
+  }
+
+  .clients-page .page-container {
+    padding: 22px 18px;
+  }
+
+  .clients-page .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  .clients-page .topbar-actions {
+    width: 100%;
+  }
+
+  .clients-page .topbar-actions .primary-button {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .clients-page .topbar h1 {
+    font-size: 26px;
+  }
+
+  .clients-page .client-summary-grid {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .clients-page .summary-card {
+    gap: 11px;
+    min-height: 105px;
+    padding: 15px 12px;
+    border-radius: 13px;
+  }
+
+  .clients-page .summary-icon {
+    width: 39px;
+    height: 39px;
+    border-radius: 11px;
+    font-size: 15px;
+  }
+
+  .clients-page .summary-card p {
+    font-size: 10px;
+  }
+
+  .clients-page .summary-card h2 {
+    font-size: 23px;
+  }
+
+  .clients-page .summary-card small {
+    font-size: 9px;
+  }
+
+  .clients-page .clients-workspace {
+    padding: 17px 14px;
+    border-radius: 14px;
+  }
+
+  .clients-page .clients-section-heading {
+    align-items: flex-start;
+  }
+
+  .clients-page .clients-search-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .clients-page .clients-sort-box {
+    width: 100%;
+  }
+
+  .clients-page .clients-sort-box select {
+    flex: 1;
+    max-width: none;
+  }
+
+  .clients-page .client-filter-list {
+    flex-wrap: nowrap;
+    gap: 7px;
+    margin-right: -14px;
+    padding-right: 14px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .clients-page .filter-chip {
+    flex-shrink: 0;
+  }
+
+  .clients-page .clients-table-wrapper {
+    display: none !important;
+  }
+
+  .clients-page .client-cards-list:not([hidden]) {
+    display: flex;
+  }
+
+  .clients-page .app-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}
+
+
+/* ---------- 22. Small mobile screens ---------- */
+
+@media (max-width: 420px) {
+  .clients-page .mobile-header {
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .clients-page .page-container {
+    padding: 18px 12px;
+  }
+
+  .clients-page .topbar h1 {
+    font-size: 23px;
+  }
+
+  .clients-page .page-subtitle {
+    font-size: 12px;
+  }
+
+  .clients-page .client-summary-grid {
+    gap: 9px;
+  }
+
+  .clients-page .summary-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 9px;
+    min-height: 137px;
+    padding: 13px;
+  }
+
+  .clients-page .summary-card h2 {
+    font-size: 24px;
+  }
+
+  .clients-page .clients-workspace {
+    padding: 15px 11px;
+  }
+
+  .clients-page .clients-section-heading h2 {
+    font-size: 15px;
+  }
+
+  .clients-page .clients-section-heading p {
+    font-size: 11px;
+  }
+
+  .clients-page .client-card {
+    padding: 13px;
+  }
+
+  .clients-page .client-card-details {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 13px;
+  }
+
+  .clients-page .clients-pagination .secondary-button {
+    min-height: 38px;
+    padding: 9px 10px;
+    font-size: 10px;
+  }
+}
+
+
+/* ---------- 23. Reduced motion preference ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .clients-page *,
+  .clients-page *::before,
+  .clients-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+
+
+
+
+
+/* =========================================================
+   HOMERENT — ADD / EDIT CLIENT MODAL
+   Add this section at the bottom of clients.css
+   ========================================================= */
+
+#clientModalRoot[hidden] {
+  display: none !important;
+}
+
+#clientModalRoot:not([hidden]) {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+}
+
+#clientModalRoot .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(5px);
+}
+
+#clientModalRoot .client-modal {
+  width: min(100%, 760px);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: #ffffff;
+  color: #172033;
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+  border: 1px solid #e5eaf2;
+  animation: clientModalEnter 0.2s ease-out;
+}
+
+#clientModalRoot .client-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 24px 28px;
+  border-bottom: 1px solid #e8edf4;
+  background: #f8faff;
+}
+
+#clientModalRoot .client-modal-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.4;
+  font-weight: 750;
+  color: #172b4d;
+}
+
+#clientModalRoot .client-modal-header p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+#clientModalRoot .client-modal-header [data-close-modal] {
+  display: inline-flex;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+#clientModalRoot .client-modal-header [data-close-modal]:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+#clientModalRoot #clientForm {
+  padding: 24px 28px 0;
+}
+
+#clientModalRoot .client-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+#clientModalRoot .client-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  color: #334155;
+  font-size: 0.88rem;
+  font-weight: 650;
+}
+
+#clientModalRoot .client-form-grid label span {
+  color: #dc2626;
+}
+
+#clientModalRoot .client-form-grid input,
+#clientModalRoot .client-form-grid select,
+#clientModalRoot .client-form-grid textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  outline: none;
+  background: #ffffff;
+  color: #172033;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 400;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#clientModalRoot .client-form-grid input,
+#clientModalRoot .client-form-grid select {
+  min-height: 45px;
+}
+
+#clientModalRoot .client-form-grid textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+#clientModalRoot .client-form-grid input:focus,
+#clientModalRoot .client-form-grid select:focus,
+#clientModalRoot .client-form-grid textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13);
+}
+
+#clientModalRoot .client-form-grid input::placeholder,
+#clientModalRoot .client-form-grid textarea::placeholder {
+  color: #94a3b8;
+}
+
+#clientModalRoot .client-form-full {
+  grid-column: 1 / -1;
+}
+
+#clientModalRoot .client-form-error {
+  margin: 18px 0;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 9px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+#clientModalRoot .client-form-error[hidden] {
+  display: none !important;
+}
+
+#clientModalRoot .client-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin: 24px -28px 0;
+  padding: 18px 28px;
+  border-top: 1px solid #e8edf4;
+  background: #f8faff;
+}
+
+#clientModalRoot .client-modal-footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 11px 20px;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+#clientModalRoot .client-cancel-button {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+}
+
+#clientModalRoot .client-cancel-button:hover {
+  background: #f1f5f9;
+}
+
+#clientModalRoot .client-save-button {
+  border: 1px solid #1d4ed8;
+  background: #2563eb;
+  color: #ffffff;
+}
+
+#clientModalRoot .client-save-button:hover {
+  background: #1d4ed8;
+}
+
+#clientModalRoot .client-modal-footer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+.home-rent-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 11000;
+  max-width: calc(100vw - 48px);
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: #172b4d;
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.home-rent-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes clientModalEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Tablet and mobile */
+@media (max-width: 640px) {
+  #clientModalRoot .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  #clientModalRoot .client-modal {
+    width: 100%;
+    max-height: 94dvh;
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+  }
+
+  #clientModalRoot .client-modal-header {
+    padding: 20px;
+  }
+
+  #clientModalRoot #clientForm {
+    padding: 20px 20px 0;
+  }
+
+  #clientModalRoot .client-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  #clientModalRoot .client-form-full {
+    grid-column: auto;
+  }
+
+  #clientModalRoot .client-modal-footer {
+    margin: 22px -20px 0;
+    padding: 16px 20px;
+  }
+
+  #clientModalRoot .client-modal-footer button {
+    flex: 1;
+    padding: 11px 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #clientModalRoot .client-modal {
+    animation: none;
+  }
+
+  #clientModalRoot *,
+  .home-rent-toast {
+    transition: none !important;
+  }
+}
