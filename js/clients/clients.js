@@ -1,51 +1,51 @@
-// ============================================================
-// HOMERENT — CLIENTS MANAGEMENT
-// File: js/clients/clients.js
-// ============================================================
+/*
+ * HomeRent — Clients Management Controller
+ * File: js/clients/clients.js
+ *
+ * Uses:
+ *   ../firebase.js
+ *   ../core/branding.js
+ *   ../core/settings.js
+ *   ./clients-service.js
+ *
+ * Does not create a second branding system.
+ * Does not delete client records.
+ */
 
 import { auth, db } from "../firebase.js";
 
-import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import { onAuthStateChanged } from
+  "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
 import {
   collection,
   getDocs,
   query,
-  orderBy,
-  where,
-  doc,
-  getDoc
+  orderBy
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
 import {
   getClients,
-  getClientById,
   addClient,
   updateClient,
   archiveClient,
   restoreClient
 } from "./clients-service.js";
 
-import {
-  applyGlobalBranding
-} from "../core/branding.js";
+import { applyGlobalBranding } from "../core/branding.js";
+import { getSettings } from "../core/settings.js";
 
-import {
-  getSettings
-} from "../core/settings.js";
-
-// ------------------------------------------------------------
-// CONFIGURATION — CHANGE HERE
-// ------------------------------------------------------------
+/* =====================================================
+   CONFIGURATION — CHANGE HERE IF REQUIRED
+   ===================================================== */
 
 const CLIENTS_PER_PAGE = 8;
+const LOGIN_PAGE = "../login.html";
+const PROFILE_PAGE = "details.html";
 
-// ------------------------------------------------------------
-// STATE
-// ------------------------------------------------------------
+/* =====================================================
+   PAGE STATE
+   ===================================================== */
 
 let clients = [];
 let filteredClients = [];
@@ -53,21 +53,24 @@ let currentPage = 1;
 let currentFilter = "all";
 let editingClientId = null;
 let settings = {};
-let isAdminVerified = false;
+let isInitialized = false;
 
-// ------------------------------------------------------------
-// DOM HELPERS
-// ------------------------------------------------------------
+/* =====================================================
+   DOM HELPERS
+   ===================================================== */
 
-const $ = (selector, root = document) =>
-  root.querySelector(selector);
+const $ = (selector, parent = document) =>
+  parent.querySelector(selector);
 
-const $$ = (selector, root = document) =>
-  [...root.querySelectorAll(selector)];
+const $$ = (selector, parent = document) =>
+  [...parent.querySelectorAll(selector)];
 
 function setText(id, value) {
   const element = document.getElementById(id);
-  if (element) element.textContent = value;
+
+  if (element) {
+    element.textContent = value ?? "";
+  }
 }
 
 function escapeHTML(value = "") {
@@ -80,121 +83,197 @@ function escapeHTML(value = "") {
   })[character]);
 }
 
-function getErrorMessage(error) {
-  const messages = {
-    "permission-denied": "You do not have permission to perform this action.",
-    "unavailable": "Firebase is temporarily unavailable. Check your connection.",
-    "failed-precondition": "The database needs an index or configuration update."
-  };
+function formatDate(value) {
+  if (!value) return "—";
 
-  return messages[error?.code] ||
-    error?.message ||
-    "Something went wrong. Please try again.";
+  let date;
+
+  if (typeof value.toDate === "function") {
+    date = value.toDate();
+  } else {
+    date = new Date(value);
+  }
+
+  if (Number.isNaN(date.getTime())) return "—";
+
+  const dateFormat = settings.dateFormat || "dd/MM/yyyy";
+
+  // Display a readable date while respecting the configured locale.
+  if (dateFormat === "MM/dd/yyyy") {
+    return new Intl.DateTimeFormat("en-US").format(date);
+  }
+
+  return new Intl.DateTimeFormat("en-GB").format(date);
 }
 
-// ------------------------------------------------------------
-// AUTHENTICATION
-// ------------------------------------------------------------
+function showToast(message, type = "success") {
+  let toast = $("#clientsToast");
 
-async function initializeApplication(user) {
-  try {
-    // Keep the project's existing admin-only security model.
-    // The Firestore rules must remain the final authority.
-    const settingsData = await getSettings();
-    settings = settingsData || {};
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "clientsToast";
+    toast.className = "clients-toast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    document.body.appendChild(toast);
+  }
 
-    await applyGlobalBranding();
+  toast.textContent = message;
+  toast.dataset.type = type;
+  toast.hidden = false;
 
-    // Verify that the signed-in account is authorized by the
-    // existing Firestore rules before loading client records.
-    await getDocs(query(collection(db, "clients"), orderBy("createdAt", "desc")));
+  // No timer is required; the next message replaces this one.
+}
 
-    isAdminVerified = true;
+function setButtonLoading(button, loading, loadingText = "Please wait...") {
+  if (!button) return;
 
-    await loadClients();
-    initializeNavigation();
-    initializeControls();
-  } catch (error) {
-    console.error("Clients initialization failed:", error);
-    showError(getErrorMessage(error));
+  if (loading) {
+    button.dataset.originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = escapeHTML(loadingText);
+  } else {
+    button.disabled = false;
+
+    if (button.dataset.originalText) {
+      button.innerHTML = button.dataset.originalText;
+      delete button.dataset.originalText;
+    }
   }
 }
+
+function errorMessage(error) {
+  if (error?.code === "permission-denied") {
+    return "Access denied. Check your administrator login and Firestore rules.";
+  }
+
+  if (error?.code === "unavailable") {
+    return "Firebase is temporarily unavailable. Check your internet connection.";
+  }
+
+  return error?.message || "An unexpected error occurred. Please try again.";
+}
+
+/* =====================================================
+   AUTHENTICATION AND INITIALIZATION
+   ===================================================== */
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "../login.html";
+    window.location.replace(LOGIN_PAGE);
     return;
   }
 
-  await initializeApplication(user);
+  if (isInitialized) return;
+
+  try {
+    showLoading(true);
+    hideError();
+
+    // Existing global branding remains the single source of branding.
+    settings = (await getSettings()) || {};
+    await applyGlobalBranding();
+
+    // Verify that the current signed-in user can read client records.
+    // Firestore rules remain the actual security boundary.
+    await getDocs(
+      query(
+        collection(db, "clients"),
+        orderBy("createdAt", "desc")
+      )
+    );
+
+    initializeControls();
+    initializeNavigation();
+
+    await loadClients();
+
+    isInitialized = true;
+  } catch (error) {
+    console.error("Clients page initialization failed:", error);
+    showError(errorMessage(error));
+  } finally {
+    showLoading(false);
+  }
 });
 
-// ------------------------------------------------------------
-// LOAD CLIENTS
-// ------------------------------------------------------------
+/* =====================================================
+   LOAD CLIENT RECORDS
+   ===================================================== */
 
 async function loadClients() {
   showLoading(true);
   hideError();
 
   try {
-    // Include archived records so the Archived filter can work.
+    // Includes archived and legacy records so summary counts are accurate.
     clients = await getClients(true);
 
-    // Defensive normalization for older records.
+    // Compatibility with older records.
     clients = clients.map((client) => ({
       ...client,
-      fullName: client.fullName ||
+      fullName:
+        client.fullName ||
         [client.firstName, client.otherNames, client.lastName]
           .filter(Boolean)
-          .join(" "),
-      isArchived: client.isArchived === true
+          .join(" ") ||
+        "Unnamed client",
+      isArchived: client.isArchived === true,
+      clientType: client.clientType || "prospective",
+      status: client.status || "active"
     }));
 
-    updateSummaryCards();
+    updateSummary();
     applyFilters();
   } catch (error) {
-    console.error("Could not load clients:", error);
-    showError(getErrorMessage(error));
+    console.error("Unable to load clients:", error);
+    showError(errorMessage(error));
   } finally {
     showLoading(false);
   }
 }
 
-// ------------------------------------------------------------
-// SUMMARY CARDS
-// ------------------------------------------------------------
+/* =====================================================
+   SUMMARY CARDS
+   ===================================================== */
 
-function updateSummaryCards() {
-  const total = clients.length;
-  const archived = clients.filter((client) => client.isArchived).length;
-  const active = clients.filter(
-    (client) => !client.isArchived && client.status === "active"
-  ).length;
-  const prospective = clients.filter(
-    (client) => !client.isArchived && client.clientType === "prospective"
-  ).length;
+function updateSummary() {
+  const visibleClients = clients.filter((client) => !client.isArchived);
 
-  setText("totalClients", total);
-  setText("activeClients", active);
-  setText("prospectiveClients", prospective);
-  setText("archivedClients", archived);
-  setText("allClientsCount", total);
+  setText("totalClients", clients.length);
+  setText(
+    "activeClients",
+    visibleClients.filter((client) => client.status === "active").length
+  );
+  setText(
+    "prospectiveClients",
+    visibleClients.filter((client) => client.clientType === "prospective").length
+  );
+  setText(
+    "archivedClients",
+    clients.filter((client) => client.isArchived).length
+  );
+
+  setText(
+    "allClientsCount",
+    clients.filter((client) => !client.isArchived).length
+  );
 }
 
-// ------------------------------------------------------------
-// SEARCH AND FILTERS
-// ------------------------------------------------------------
+/* =====================================================
+   SEARCH, FILTERS, SORTING AND PAGINATION
+   ===================================================== */
 
 function applyFilters() {
   const search = ($("#clientSearch")?.value || "")
     .trim()
     .toLowerCase();
 
-  const sort = $("#clientSort")?.value || "newest";
+  const sort = $("#clientSort")?.value || "name-asc";
 
   filteredClients = clients.filter((client) => {
-    const searchable = [
+    const archived = client.isArchived;
+    const matchesSearch = [
       client.clientId,
       client.fullName,
       client.firstName,
@@ -203,77 +282,84 @@ function applyFilters() {
       client.phone,
       client.alternativePhone,
       client.email
-    ].filter(Boolean).join(" ").toLowerCase();
+    ].some((value) =>
+      String(value || "").toLowerCase().includes(search)
+    );
 
-    const matchesSearch = searchable.includes(search);
-
-    let matchesFilter = true;
+    if (!matchesSearch) return false;
 
     switch (currentFilter) {
       case "active":
-        matchesFilter = !client.isArchived && client.status === "active";
-        break;
+        return !archived && client.status === "active";
 
       case "prospective":
-      case "prospects":
-        matchesFilter = !client.isArchived &&
-          client.clientType === "prospective";
-        break;
+        return !archived && client.clientType === "prospective";
 
       case "inactive":
-        matchesFilter = !client.isArchived && client.status === "inactive";
-        break;
+        return !archived && client.status === "inactive";
 
       case "archived":
-        matchesFilter = client.isArchived;
-        break;
+        return archived;
 
-      case "all":
       default:
-        matchesFilter = !client.isArchived;
-        break;
+        return !archived;
     }
-
-    return matchesSearch && matchesFilter;
   });
 
   filteredClients.sort((a, b) => {
-    if (sort === "name") {
-      return (a.fullName || "").localeCompare(b.fullName || "");
-    }
+    const nameA = a.fullName.toLowerCase();
+    const nameB = b.fullName.toLowerCase();
 
-    if (sort === "oldest") {
-      return timestampValue(a.createdAt) - timestampValue(b.createdAt);
-    }
+    const dateA = a.createdAt?.toMillis?.() ?? 0;
+    const dateB = b.createdAt?.toMillis?.() ?? 0;
 
-    return timestampValue(b.createdAt) - timestampValue(a.createdAt);
+    switch (sort) {
+      case "name-desc":
+        return nameB.localeCompare(nameA);
+
+      case "recent":
+        return dateB - dateA;
+
+      case "oldest":
+        return dateA - dateB;
+
+      default:
+        return nameA.localeCompare(nameB);
+    }
   });
 
   currentPage = 1;
   renderClients();
 }
 
-function timestampValue(value) {
-  if (value?.toMillis) return value.toMillis();
-  if (value instanceof Date) return value.getTime();
+function getCurrentPageClients() {
+  const start = (currentPage - 1) * CLIENTS_PER_PAGE;
 
-  const parsed = new Date(value || 0).getTime();
-  return Number.isFinite(parsed) ? parsed : 0;
+  return filteredClients.slice(start, start + CLIENTS_PER_PAGE);
 }
 
-// ------------------------------------------------------------
-// RENDER CLIENTS
-// ------------------------------------------------------------
-
 function renderClients() {
-  const start = (currentPage - 1) * CLIENTS_PER_PAGE;
-  const pageClients = filteredClients.slice(
-    start,
-    start + CLIENTS_PER_PAGE
+  const pageClients = getCurrentPageClients();
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredClients.length / CLIENTS_PER_PAGE)
   );
 
-  const tableBody = $("#clientsTableBody");
+  const hasClients = pageClients.length > 0;
+
+  const tableWrapper = $("#clientsTableWrapper");
   const cardsList = $("#clientCardsList");
+  const emptyState = $("#clientsEmpty");
+  const pagination = $("#clientsPagination");
+
+  if (tableWrapper) tableWrapper.hidden = !hasClients;
+  if (cardsList) cardsList.hidden = !hasClients;
+  if (emptyState) emptyState.hidden = hasClients;
+  if (pagination) {
+    pagination.hidden = !hasClients || filteredClients.length <= CLIENTS_PER_PAGE;
+  }
+
+  const tableBody = $("#clientsTableBody");
 
   if (tableBody) {
     tableBody.innerHTML = pageClients.map(renderTableRow).join("");
@@ -283,61 +369,120 @@ function renderClients() {
     cardsList.innerHTML = pageClients.map(renderClientCard).join("");
   }
 
-  const count = filteredClients.length;
   setText(
     "clientsResultsText",
-    count === 0
-      ? "No clients found"
-      : `Showing ${start + 1}–${Math.min(start + CLIENTS_PER_PAGE, count)} of ${count} clients`
+    filteredClients.length === 0
+      ? "No matching client records."
+      : `Showing ${(currentPage - 1) * CLIENTS_PER_PAGE + 1}–${Math.min(
+          currentPage * CLIENTS_PER_PAGE,
+          filteredClients.length
+        )} of ${filteredClients.length} client(s).`
   );
 
-  const empty = $("#clientsEmpty");
-  const table = $("#clientsTableWrapper");
-  const pagination = $("#clientsPagination");
+  setText("clientsPageInfo", `Page ${currentPage} of ${totalPages}`);
 
-  if (empty) empty.hidden = count !== 0;
-  if (table) table.hidden = count === 0;
-  if (cardsList) cardsList.hidden = count === 0;
-  if (pagination) pagination.hidden = count <= CLIENTS_PER_PAGE;
+  const previousButton = $("#previousClientsPage");
+  const nextButton = $("#nextClientsPage");
 
-  updatePagination();
-  updateFilterCounts();
+  if (previousButton) previousButton.disabled = currentPage <= 1;
+  if (nextButton) nextButton.disabled = currentPage >= totalPages;
+
+  if (!hasClients) {
+    const isSearching = Boolean($("#clientSearch")?.value.trim());
+    const isArchived = currentFilter === "archived";
+
+    setText(
+      "clientsEmptyTitle",
+      isSearching
+        ? "No matching clients"
+        : isArchived
+          ? "No archived clients"
+          : "No clients yet"
+    );
+
+    setText(
+      "clientsEmptyMessage",
+      isSearching
+        ? "Try another name, client ID, phone number or email."
+        : "Add a client to begin building your client records."
+    );
+  }
+
+  $$("#clientFilters [data-filter]").forEach((button) => {
+    const active = button.dataset.filter === currentFilter;
+
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
+
+/* =====================================================
+   CLIENT ROW AND CARD RENDERING
+   ===================================================== */
+
+function clientStatus(client) {
+  if (client.isArchived) return "Archived";
+
+  return client.status === "inactive" ? "Inactive" : "Active";
+}
+
+function profileUrl(client) {
+  // Use the Firestore document ID, never the display client ID.
+  return `${PROFILE_PAGE}?id=${encodeURIComponent(client.id)}`;
 }
 
 function renderTableRow(client) {
   const archived = client.isArchived;
-  const name = escapeHTML(client.fullName || "Unnamed client");
 
   return `
-    <tr>
+    <tr data-client-id="${escapeHTML(client.id)}">
       <td>
-        <div class="client-identity">
-          <div class="client-avatar">${escapeHTML(getInitials(client.fullName))}</div>
-          <div>
-            <strong>${name}</strong>
-            <small>${escapeHTML(client.clientId || "No client ID")}</small>
-          </div>
+        <div class="client-table-name">
+          <strong>${escapeHTML(client.fullName)}</strong>
+          <small>${escapeHTML(client.email || "No email provided")}</small>
         </div>
       </td>
-      <td>${escapeHTML(client.phone || "—")}</td>
-      <td>${escapeHTML(client.email || "—")}</td>
-      <td>${escapeHTML(capitalize(client.clientType || "prospective"))}</td>
-      <td><span class="client-status ${archived ? "archived" : escapeHTML(client.status || "active")}">
-        ${archived ? "Archived" : escapeHTML(capitalize(client.status || "active"))}
-      </span></td>
+
+      <td>${escapeHTML(client.clientId || "—")}</td>
+
       <td>
-        <div class="client-actions">
-          <button class="client-action-button" data-action="edit" data-id="${escapeHTML(client.id)}" title="Edit client" aria-label="Edit ${name}">
-            <i class="fa-solid fa-pen"></i>
-          </button>
+        <span>${escapeHTML(client.phone || "No phone")}</span>
+        ${
+          client.alternativePhone
+            ? `<small>${escapeHTML(client.alternativePhone)}</small>`
+            : ""
+        }
+      </td>
+
+      <td>
+        <span class="client-room-placeholder">Not assigned</span>
+      </td>
+
+      <td>
+        <span class="client-status-badge status-${archived ? "archived" : escapeHTML(client.status)}">
+          ${escapeHTML(clientStatus(client))}
+        </span>
+      </td>
+
+      <td>${escapeHTML(formatDate(client.createdAt))}</td>
+
+      <td>
+        <div class="client-row-actions">
+          <a
+            class="client-action-button view-profile-button"
+            href="${escapeHTML(profileUrl(client))}"
+            aria-label="View profile for ${escapeHTML(client.fullName)}"
+          >
+            View Profile
+          </a>
+
           ${
             archived
-              ? `<button class="client-action-button" data-action="restore" data-id="${escapeHTML(client.id)}" title="Restore client" aria-label="Restore ${name}">
-                  <i class="fa-solid fa-rotate-left"></i>
-                </button>`
-              : `<button class="client-action-button" data-action="archive" data-id="${escapeHTML(client.id)}" title="Archive client" aria-label="Archive ${name}">
-                  <i class="fa-solid fa-box-archive"></i>
-                </button>`
+              ? `<button type="button" class="client-action-button" data-action="restore" data-id="${escapeHTML(client.id)}">Restore</button>`
+              : `
+                <button type="button" class="client-action-button" data-action="edit" data-id="${escapeHTML(client.id)}">Edit</button>
+                <button type="button" class="client-action-button danger" data-action="archive" data-id="${escapeHTML(client.id)}">Archive</button>
+              `
           }
         </div>
       </td>
@@ -347,170 +492,138 @@ function renderTableRow(client) {
 
 function renderClientCard(client) {
   const archived = client.isArchived;
-  const name = escapeHTML(client.fullName || "Unnamed client");
 
   return `
-    <article class="client-card">
+    <article class="client-card" data-client-id="${escapeHTML(client.id)}">
       <div class="client-card-header">
-        <div class="client-identity">
-          <div class="client-avatar">${escapeHTML(getInitials(client.fullName))}</div>
-          <div>
-            <strong>${name}</strong>
-            <small>${escapeHTML(client.clientId || "No client ID")}</small>
-          </div>
+        <div>
+          <h3>${escapeHTML(client.fullName)}</h3>
+          <p>${escapeHTML(client.clientId || "ID not available")}</p>
         </div>
-        <span class="client-status ${archived ? "archived" : escapeHTML(client.status || "active")}">
-          ${archived ? "Archived" : escapeHTML(capitalize(client.status || "active"))}
+
+        <span class="client-status-badge status-${archived ? "archived" : escapeHTML(client.status)}">
+          ${escapeHTML(clientStatus(client))}
         </span>
       </div>
 
       <div class="client-card-details">
-        <p><i class="fa-solid fa-phone"></i> ${escapeHTML(client.phone || "No phone recorded")}</p>
-        <p><i class="fa-solid fa-envelope"></i> ${escapeHTML(client.email || "No email recorded")}</p>
-        <p><i class="fa-solid fa-user-tag"></i> ${escapeHTML(capitalize(client.clientType || "prospective"))}</p>
+        <p><strong>Phone:</strong> ${escapeHTML(client.phone || "Not provided")}</p>
+        <p><strong>Email:</strong> ${escapeHTML(client.email || "Not provided")}</p>
+        <p><strong>Room:</strong> Not assigned</p>
+        <p><strong>Registered:</strong> ${escapeHTML(formatDate(client.createdAt))}</p>
       </div>
 
       <div class="client-card-actions">
-        <button class="client-action-button" data-action="edit" data-id="${escapeHTML(client.id)}">
-          <i class="fa-solid fa-pen"></i> Edit
-        </button>
+        <a class="client-action-button view-profile-button"
+           href="${escapeHTML(profileUrl(client))}">
+          View Profile
+        </a>
+
         ${
           archived
-            ? `<button class="client-action-button" data-action="restore" data-id="${escapeHTML(client.id)}">
-                <i class="fa-solid fa-rotate-left"></i> Restore
-              </button>`
-            : `<button class="client-action-button" data-action="archive" data-id="${escapeHTML(client.id)}">
-                <i class="fa-solid fa-box-archive"></i> Archive
-              </button>`
+            ? `<button type="button" class="client-action-button" data-action="restore" data-id="${escapeHTML(client.id)}">Restore</button>`
+            : `
+              <button type="button" class="client-action-button" data-action="edit" data-id="${escapeHTML(client.id)}">Edit</button>
+              <button type="button" class="client-action-button danger" data-action="archive" data-id="${escapeHTML(client.id)}">Archive</button>
+            `
         }
       </div>
     </article>
   `;
 }
 
-function getInitials(name = "") {
-  return name
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
-    .join("") || "CL";
-}
-
-function capitalize(value = "") {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-// ------------------------------------------------------------
-// FILTER COUNTS AND PAGINATION
-// ------------------------------------------------------------
-
-function updateFilterCounts() {
-  const counts = {
-    all: clients.filter((client) => !client.isArchived).length,
-    active: clients.filter((client) => !client.isArchived && client.status === "active").length,
-    prospective: clients.filter((client) => !client.isArchived && client.clientType === "prospective").length,
-    archived: clients.filter((client) => client.isArchived).length
-  };
-
-  $$("[data-filter]").forEach((button) => {
-    const filter = button.dataset.filter;
-    const countElement = $("[data-filter-count]", button);
-
-    if (countElement && counts[filter] !== undefined) {
-      countElement.textContent = counts[filter];
-    }
-
-    button.classList.toggle("active", filter === currentFilter);
-    button.setAttribute("aria-pressed", String(filter === currentFilter));
-  });
-}
-
-function updatePagination() {
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredClients.length / CLIENTS_PER_PAGE)
-  );
-
-  if (currentPage > totalPages) currentPage = totalPages;
-
-  setText("clientsPageInfo", `Page ${currentPage} of ${totalPages}`);
-
-  const previous = $("#previousClientsPage");
-  const next = $("#nextClientsPage");
-
-  if (previous) previous.disabled = currentPage <= 1;
-  if (next) next.disabled = currentPage >= totalPages;
-}
-
-// ------------------------------------------------------------
-// ADD / EDIT CLIENT MODAL
-// ------------------------------------------------------------
+/* =====================================================
+   ADD / EDIT CLIENT MODAL
+   ===================================================== */
 
 function openClientModal(client = null) {
-  editingClientId = client?.id || null;
-
   const root = $("#clientModalRoot");
-  if (!root) {
-    showError("The client modal container #clientModalRoot is missing from the HTML.");
-    return;
-  }
+  if (!root) return;
 
-  const isEditing = Boolean(client);
+  editingClientId = client?.id || null;
 
   root.innerHTML = `
     <div class="modal-backdrop" data-modal-backdrop>
-      <section class="client-modal" role="dialog" aria-modal="true" aria-labelledby="clientModalTitle">
+      <section class="client-modal"
+               role="dialog"
+               aria-modal="true"
+               aria-labelledby="clientModalTitle">
+
         <header class="client-modal-header">
           <div>
-            <h2 id="clientModalTitle">${isEditing ? "Edit Client" : "Add New Client"}</h2>
-            <p>${isEditing ? "Update this client's details." : "Enter the client's contact information."}</p>
+            <p class="eyebrow">CLIENT RECORD</p>
+            <h2 id="clientModalTitle">
+              ${client ? "Edit Client" : "Add New Client"}
+            </h2>
           </div>
-          <button type="button" class="client-action-button" data-close-modal aria-label="Close form">
-            <i class="fa-solid fa-xmark"></i>
+
+          <button type="button"
+                  class="modal-close-button"
+                  data-close-modal
+                  aria-label="Close form">
+            &times;
           </button>
         </header>
 
         <form id="clientForm" novalidate>
           <div class="client-form-grid">
-            <label>First name <span>*</span>
-              <input name="firstName" required maxlength="80" value="${escapeHTML(client?.firstName || "")}" autocomplete="given-name">
+
+            <label>
+              First name *
+              <input name="firstName" required maxlength="80"
+                     value="${escapeHTML(client?.firstName || "")}">
             </label>
 
-            <label>Last name <span>*</span>
-              <input name="lastName" required maxlength="80" value="${escapeHTML(client?.lastName || "")}" autocomplete="family-name">
+            <label>
+              Last name *
+              <input name="lastName" required maxlength="80"
+                     value="${escapeHTML(client?.lastName || "")}">
             </label>
 
-            <label>Other names
-              <input name="otherNames" maxlength="100" value="${escapeHTML(client?.otherNames || "")}">
+            <label>
+              Other names
+              <input name="otherNames" maxlength="100"
+                     value="${escapeHTML(client?.otherNames || "")}">
             </label>
 
-            <label>Phone number
-              <input name="phone" type="tel" maxlength="30" value="${escapeHTML(client?.phone || "")}" autocomplete="tel">
+            <label>
+              Phone number
+              <input name="phone" type="tel" maxlength="40"
+                     value="${escapeHTML(client?.phone || "")}">
             </label>
 
-            <label>Alternative phone
-              <input name="alternativePhone" type="tel" maxlength="30" value="${escapeHTML(client?.alternativePhone || "")}">
+            <label>
+              Alternative phone
+              <input name="alternativePhone" type="tel" maxlength="40"
+                     value="${escapeHTML(client?.alternativePhone || "")}">
             </label>
 
-            <label>Email address
-              <input name="email" type="email" maxlength="150" value="${escapeHTML(client?.email || "")}" autocomplete="email">
+            <label>
+              Email address
+              <input name="email" type="email" maxlength="150"
+                     value="${escapeHTML(client?.email || "")}">
             </label>
 
-            <label>Occupation
-              <input name="occupation" maxlength="100" value="${escapeHTML(client?.occupation || "")}">
+            <label>
+              Occupation
+              <input name="occupation" maxlength="100"
+                     value="${escapeHTML(client?.occupation || "")}">
             </label>
 
-            <label>City / town
-              <input name="city" maxlength="100" value="${escapeHTML(client?.city || "")}">
+            <label>
+              City / town
+              <input name="city" maxlength="100"
+                     value="${escapeHTML(client?.city || "")}">
             </label>
 
-            <label class="client-form-full">Residential address
-              <input name="address" maxlength="250" value="${escapeHTML(client?.address || "")}" autocomplete="street-address">
+            <label class="client-form-full">
+              Residential address
+              <input name="address" maxlength="250"
+                     value="${escapeHTML(client?.address || "")}">
             </label>
 
-            <label>Client type
+            <label>
+              Client type
               <select name="clientType">
                 <option value="prospective" ${client?.clientType === "prospective" ? "selected" : ""}>Prospective</option>
                 <option value="tenant" ${client?.clientType === "tenant" ? "selected" : ""}>Tenant</option>
@@ -518,36 +631,48 @@ function openClientModal(client = null) {
               </select>
             </label>
 
-            <label>Status
+            <label>
+              Status
               <select name="status">
-                <option value="active" ${!client || client?.status === "active" ? "selected" : ""}>Active</option>
+                <option value="active" ${client?.status !== "inactive" ? "selected" : ""}>Active</option>
                 <option value="inactive" ${client?.status === "inactive" ? "selected" : ""}>Inactive</option>
               </select>
             </label>
 
-            <label>Emergency contact name
-              <input name="emergencyName" maxlength="120" value="${escapeHTML(client?.emergencyContact?.name || "")}">
+            <label>
+              Emergency contact name
+              <input name="emergencyName" maxlength="120"
+                     value="${escapeHTML(client?.emergencyContact?.name || "")}">
             </label>
 
-            <label>Emergency contact relationship
-              <input name="emergencyRelationship" maxlength="80" value="${escapeHTML(client?.emergencyContact?.relationship || "")}">
+            <label>
+              Emergency contact relationship
+              <input name="emergencyRelationship" maxlength="80"
+                     value="${escapeHTML(client?.emergencyContact?.relationship || "")}">
             </label>
 
-            <label>Emergency contact phone
-              <input name="emergencyPhone" type="tel" maxlength="30" value="${escapeHTML(client?.emergencyContact?.phone || "")}">
+            <label>
+              Emergency contact phone
+              <input name="emergencyPhone" type="tel" maxlength="40"
+                     value="${escapeHTML(client?.emergencyContact?.phone || "")}">
             </label>
 
-            <label class="client-form-full">Notes
-              <textarea name="notes" rows="3" maxlength="1500">${escapeHTML(client?.notes || "")}</textarea>
+            <label class="client-form-full">
+              Notes
+              <textarea name="notes" rows="3" maxlength="2000">${escapeHTML(client?.notes || "")}</textarea>
             </label>
+
           </div>
 
           <p class="client-form-error" id="clientFormError" role="alert" hidden></p>
 
           <footer class="client-modal-footer">
-            <button type="button" class="client-cancel-button" data-close-modal>Cancel</button>
+            <button type="button" class="client-cancel-button" data-close-modal>
+              Cancel
+            </button>
+
             <button type="submit" class="client-save-button" id="saveClientButton">
-              ${isEditing ? "Save Changes" : "Save Client"}
+              ${client ? "Save Changes" : "Save Client"}
             </button>
           </footer>
         </form>
@@ -558,23 +683,24 @@ function openClientModal(client = null) {
   root.hidden = false;
   document.body.classList.add("modal-open");
 
-  const firstInput = $('input[name="firstName"]', root);
-  firstInput?.focus();
+  $("#clientForm input[name='firstName']")?.focus();
 
-  $("#clientForm", root)?.addEventListener("submit", handleClientFormSubmit);
-  $$("[data-close-modal]", root).forEach((button) => {
+  root.querySelectorAll("[data-close-modal]").forEach((button) => {
     button.addEventListener("click", closeClientModal);
   });
 
   $("[data-modal-backdrop]", root)?.addEventListener("click", (event) => {
-    if (event.target.matches("[data-modal-backdrop]")) {
+    if (event.target === event.currentTarget) {
       closeClientModal();
     }
   });
+
+  $("#clientForm", root)?.addEventListener("submit", handleClientFormSubmit);
 }
 
 function closeClientModal() {
   const root = $("#clientModalRoot");
+
   if (root) {
     root.hidden = true;
     root.innerHTML = "";
@@ -584,61 +710,64 @@ function closeClientModal() {
   editingClientId = null;
 }
 
-// ------------------------------------------------------------
-// SAVE CLIENT
-// ------------------------------------------------------------
+/* =====================================================
+   SAVE CLIENT FORM
+   ===================================================== */
 
 async function handleClientFormSubmit(event) {
   event.preventDefault();
 
-  if (!isAdminVerified) {
-    showFormError("Your administrator session has not been verified.");
-    return;
-  }
-
   const form = event.currentTarget;
+  const saveButton = $("#saveClientButton");
+  const errorElement = $("#clientFormError");
+
   const formData = new FormData(form);
 
   const clientData = {
-    firstName: String(formData.get("firstName") || "").trim(),
-    lastName: String(formData.get("lastName") || "").trim(),
-    otherNames: String(formData.get("otherNames") || "").trim(),
-    phone: String(formData.get("phone") || "").trim(),
-    alternativePhone: String(formData.get("alternativePhone") || "").trim(),
-    email: String(formData.get("email") || "").trim(),
-    occupation: String(formData.get("occupation") || "").trim(),
-    city: String(formData.get("city") || "").trim(),
-    address: String(formData.get("address") || "").trim(),
-    clientType: String(formData.get("clientType") || "prospective"),
-    status: String(formData.get("status") || "active"),
+    firstName: formData.get("firstName"),
+    lastName: formData.get("lastName"),
+    otherNames: formData.get("otherNames"),
+    phone: formData.get("phone"),
+    alternativePhone: formData.get("alternativePhone"),
+    email: formData.get("email"),
+    occupation: formData.get("occupation"),
+    city: formData.get("city"),
+    address: formData.get("address"),
+    clientType: formData.get("clientType"),
+    status: formData.get("status"),
+
     emergencyContact: {
-      name: String(formData.get("emergencyName") || "").trim(),
-      relationship: String(formData.get("emergencyRelationship") || "").trim(),
-      phone: String(formData.get("emergencyPhone") || "").trim()
+      name: formData.get("emergencyName"),
+      relationship: formData.get("emergencyRelationship"),
+      phone: formData.get("emergencyPhone")
     },
-    notes: String(formData.get("notes") || "").trim()
+
+    notes: formData.get("notes")
   };
 
-  if (!clientData.firstName || !clientData.lastName) {
-    showFormError("Please enter the client's first name and last name.");
+  if (!clientData.firstName?.trim() || !clientData.lastName?.trim()) {
+    errorElement.textContent = "First name and last name are required.";
+    errorElement.hidden = false;
     return;
   }
 
-  if (clientData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientData.email)) {
-    showFormError("Please enter a valid email address.");
+  if (
+    clientData.email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientData.email.trim())
+  ) {
+    errorElement.textContent = "Enter a valid email address.";
+    errorElement.hidden = false;
     return;
-  }
-
-  const saveButton = $("#saveClientButton");
-  if (saveButton) {
-    saveButton.disabled = true;
-    saveButton.textContent = "Saving…";
   }
 
   try {
+    if (errorElement) errorElement.hidden = true;
+
+    setButtonLoading(saveButton, true, "Saving...");
+
     if (editingClientId) {
       await updateClient(editingClientId, clientData);
-      showToast("Client updated successfully.");
+      showToast("Client record updated successfully.");
     } else {
       await addClient(clientData);
       showToast("Client added successfully.");
@@ -648,30 +777,27 @@ async function handleClientFormSubmit(event) {
     await loadClients();
   } catch (error) {
     console.error("Unable to save client:", error);
-    showFormError(getErrorMessage(error));
 
-    if (saveButton) {
-      saveButton.disabled = false;
-      saveButton.textContent = editingClientId ? "Save Changes" : "Save Client";
+    if (errorElement) {
+      errorElement.textContent = errorMessage(error);
+      errorElement.hidden = false;
     }
+
+    setButtonLoading(saveButton, false);
   }
 }
 
-function showFormError(message) {
-  const errorElement = $("#clientFormError");
-  if (errorElement) {
-    errorElement.textContent = message;
-    errorElement.hidden = false;
+/* =====================================================
+   CLIENT ACTIONS
+   ===================================================== */
+
+async function handleClientAction(action, clientDocumentId) {
+  const client = clients.find((item) => item.id === clientDocumentId);
+
+  if (!client) {
+    showToast("That client record could not be found.", "error");
+    return;
   }
-}
-
-// ------------------------------------------------------------
-// ARCHIVE / RESTORE
-// ------------------------------------------------------------
-
-async function handleClientAction(action, clientId) {
-  const client = clients.find((item) => item.id === clientId);
-  if (!client) return;
 
   if (action === "edit") {
     openClientModal(client);
@@ -680,18 +806,17 @@ async function handleClientAction(action, clientId) {
 
   if (action === "archive") {
     const confirmed = window.confirm(
-      `Archive ${client.fullName || "this client"}? The record will be preserved.`
+      `Archive ${client.fullName}? The record will be preserved and can be restored later.`
     );
 
     if (!confirmed) return;
 
     try {
-      await archiveClient(clientId);
-      showToast("Client archived successfully.");
+      await archiveClient(clientDocumentId);
+      showToast("Client archived. The record has been preserved.");
       await loadClients();
     } catch (error) {
-      console.error("Could not archive client:", error);
-      showError(getErrorMessage(error));
+      showToast(errorMessage(error), "error");
     }
 
     return;
@@ -699,25 +824,24 @@ async function handleClientAction(action, clientId) {
 
   if (action === "restore") {
     const confirmed = window.confirm(
-      `Restore ${client.fullName || "this client"}?`
+      `Restore ${client.fullName} to the active client list?`
     );
 
     if (!confirmed) return;
 
     try {
-      await restoreClient(clientId);
+      await restoreClient(clientDocumentId);
       showToast("Client restored successfully.");
       await loadClients();
     } catch (error) {
-      console.error("Could not restore client:", error);
-      showError(getErrorMessage(error));
+      showToast(errorMessage(error), "error");
     }
   }
 }
 
-// ------------------------------------------------------------
-// EVENT HANDLERS
-// ------------------------------------------------------------
+/* =====================================================
+   PAGE CONTROL EVENTS
+   ===================================================== */
 
 function initializeControls() {
   $("#addClientButton")?.addEventListener("click", () => openClientModal());
@@ -731,24 +855,11 @@ function initializeControls() {
 
   $("#clientFilters")?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-filter]");
+
     if (!button) return;
 
-    currentFilter = button.dataset.filter || "all";
+    currentFilter = button.dataset.filter;
     applyFilters();
-  });
-
-  $("#clientsTableBody")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-action]");
-    if (!button) return;
-
-    handleClientAction(button.dataset.action, button.dataset.id);
-  });
-
-  $("#clientCardsList")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-action]");
-    if (!button) return;
-
-    handleClientAction(button.dataset.action, button.dataset.id);
   });
 
   $("#previousClientsPage")?.addEventListener("click", () => {
@@ -759,98 +870,107 @@ function initializeControls() {
   });
 
   $("#nextClientsPage")?.addEventListener("click", () => {
-    const totalPages = Math.ceil(filteredClients.length / CLIENTS_PER_PAGE);
+    const totalPages = Math.max(
+      1,
+      Math.ceil(filteredClients.length / CLIENTS_PER_PAGE)
+    );
 
     if (currentPage < totalPages) {
       currentPage++;
       renderClients();
     }
   });
+
+  $("#clientsTableBody")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+
+    if (!button) return;
+
+    handleClientAction(button.dataset.action, button.dataset.id);
+  });
+
+  $("#clientCardsList")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action]");
+
+    if (!button) return;
+
+    handleClientAction(button.dataset.action, button.dataset.id);
+  });
+
+  // Escape closes the modal while it is open.
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !$("#clientModalRoot")?.hidden) {
+      closeClientModal();
+    }
+  });
 }
 
-// ------------------------------------------------------------
-// MOBILE NAVIGATION
-// ------------------------------------------------------------
+/* =====================================================
+   MOBILE SIDEBAR
+   ===================================================== */
 
 function initializeNavigation() {
   const sidebar = $("#sidebar");
   const overlay = $("#sidebarOverlay");
   const menuButton = $("#mobileMenuButton");
 
-  const closeSidebar = () => {
-    sidebar?.classList.remove("is-open");
-    overlay?.classList.remove("is-visible");
-    menuButton?.setAttribute("aria-expanded", "false");
-  };
+  if (!sidebar || !overlay || !menuButton) return;
 
-  menuButton?.addEventListener("click", () => {
-    const isOpen = sidebar?.classList.toggle("is-open");
+  function closeSidebar() {
+    sidebar.classList.remove("is-open");
+    overlay.classList.remove("is-visible");
+    menuButton.setAttribute("aria-expanded", "false");
+    overlay.setAttribute("aria-hidden", "true");
+  }
 
-    if (isOpen) {
-      overlay?.classList.add("is-visible");
-      menuButton.setAttribute("aria-expanded", "true");
-    } else {
-      overlay?.classList.remove("is-visible");
-      menuButton.setAttribute("aria-expanded", "false");
-    }
+  menuButton.addEventListener("click", () => {
+    const opening = !sidebar.classList.contains("is-open");
+
+    sidebar.classList.toggle("is-open", opening);
+    overlay.classList.toggle("is-visible", opening);
+    menuButton.setAttribute("aria-expanded", String(opening));
+    overlay.setAttribute("aria-hidden", String(!opening));
   });
 
-  overlay?.addEventListener("click", closeSidebar);
+  overlay.addEventListener("click", closeSidebar);
 
-  sidebar?.querySelectorAll("a").forEach((link) => {
+  sidebar.querySelectorAll("a").forEach((link) => {
     link.addEventListener("click", closeSidebar);
   });
 
-  // Close the mobile drawer if the user taps outside it.
-  document.addEventListener("click", (event) => {
-    if (
-      sidebar?.classList.contains("is-open") &&
-      !sidebar.contains(event.target) &&
-      !menuButton?.contains(event.target)
-    ) {
-      closeSidebar();
-    }
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeSidebar();
   });
 }
 
-// ------------------------------------------------------------
-// LOADING / ERROR / TOAST UI
-// ------------------------------------------------------------
+/* =====================================================
+   LOADING AND ERROR STATES
+   ===================================================== */
 
 function showLoading(show) {
-  const element = $("#clientsLoading");
-  if (element) element.hidden = !show;
+  const loading = $("#clientsLoading");
+
+  if (loading) loading.hidden = !show;
 }
 
 function showError(message) {
   const error = $("#clientsError");
-  const messageElement = $("#clientsErrorMessage");
 
   if (error) error.hidden = false;
-  if (messageElement) messageElement.textContent = message;
+
+  setText("clientsErrorMessage", message);
+
+  const table = $("#clientsTableWrapper");
+  const cards = $("#clientCardsList");
+  const empty = $("#clientsEmpty");
+
+  if (table) table.hidden = true;
+  if (cards) cards.hidden = true;
+  if (empty) empty.hidden = true;
 }
 
 function hideError() {
   const error = $("#clientsError");
+
   if (error) error.hidden = true;
-}
-
-function showToast(message) {
-  let toast = $("#homeRentToast");
-
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "homeRentToast";
-    toast.className = "home-rent-toast";
-    toast.setAttribute("role", "status");
-    toast.setAttribute("aria-live", "polite");
-    document.body.appendChild(toast);
-  }
-
-  toast.textContent = message;
-  toast.classList.add("is-visible");
-
-  window.setTimeout(() => {
-    toast?.classList.remove("is-visible");
-  }, 2800);
 }

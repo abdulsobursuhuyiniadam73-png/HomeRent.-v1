@@ -1,8 +1,17 @@
-// ============================================================
-// HOMERENT — CLIENTS SERVICE
-// File: js/clients/clients-service.js
-// Purpose: All client-related Firestore operations.
-// ============================================================
+/*
+ * HomeRent — Clients Service
+ * Location: js/clients/clients-service.js
+ *
+ * Responsibilities:
+ * - Read and search client records.
+ * - Create and update clients.
+ * - Archive and restore clients without deleting records.
+ * - Prepare client data for future profile and tenancy links.
+ *
+ * IMPORTANT:
+ * - Never delete or reset existing client records.
+ * - Firestore document IDs remain the permanent record references.
+ */
 
 import { db } from "../firebase.js";
 
@@ -15,63 +24,57 @@ import {
   updateDoc,
   query,
   where,
-  orderBy,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-
-// ------------------------------------------------------------
-// COLLECTION
-// ------------------------------------------------------------
 
 const CLIENTS_COLLECTION = "clients";
 
 const clientsCollection = collection(db, CLIENTS_COLLECTION);
 
-// ------------------------------------------------------------
-// GET ALL CLIENTS
-// includeArchived = true returns archived and non-archived clients.
-// ------------------------------------------------------------
+/* =====================================================
+   READ CLIENTS
+   ===================================================== */
 
+/**
+ * Load clients.
+ * includeArchived = true includes archived and legacy records.
+ */
 export async function getClients(includeArchived = false) {
   try {
-    let clientsQuery;
+    const snapshot = await getDocs(clientsCollection);
 
-    if (includeArchived) {
-      clientsQuery = query(
-        clientsCollection,
-        orderBy("createdAt", "desc")
-      );
-    } else {
-      clientsQuery = query(
-        clientsCollection,
-        where("isArchived", "==", false),
-        orderBy("createdAt", "desc")
-      );
-    }
-
-    const snapshot = await getDocs(clientsQuery);
-
-    return snapshot.docs.map((clientDoc) => ({
-      id: clientDoc.id,
-      ...clientDoc.data()
+    const clients = snapshot.docs.map((snapshotDoc) => ({
+      id: snapshotDoc.id,
+      ...snapshotDoc.data()
     }));
+
+    const visibleClients = includeArchived
+      ? clients
+      : clients.filter((client) => client.isArchived !== true);
+
+    return visibleClients.sort((a, b) => {
+      const aDate = a.createdAt?.toMillis?.() ?? 0;
+      const bDate = b.createdAt?.toMillis?.() ?? 0;
+
+      return bDate - aDate;
+    });
   } catch (error) {
-    console.error("Error loading clients:", error);
+    console.error("HomeRent: unable to load clients.", error);
     throw error;
   }
 }
 
-// ------------------------------------------------------------
-// GET ONE CLIENT
-// ------------------------------------------------------------
-
+/**
+ * Get one client using the permanent Firestore document ID.
+ */
 export async function getClientById(clientDocumentId) {
   if (!clientDocumentId) {
     throw new Error("Client document ID is required.");
   }
 
-  const clientRef = doc(db, CLIENTS_COLLECTION, clientDocumentId);
-  const snapshot = await getDoc(clientRef);
+  const snapshot = await getDoc(
+    doc(db, CLIENTS_COLLECTION, clientDocumentId)
+  );
 
   if (!snapshot.exists()) {
     return null;
@@ -83,87 +86,112 @@ export async function getClientById(clientDocumentId) {
   };
 }
 
-// ------------------------------------------------------------
-// GENERATE CLIENT ID
-// Example: CLT/0001/26
-//
-// Note: This basic generator assumes sequential records.
-// A transaction-backed counter is safer if numbering must
-// remain unique under concurrent creation.
-// ------------------------------------------------------------
+/* =====================================================
+   CLIENT NUMBER GENERATION
+   ===================================================== */
 
+/**
+ * Generates the next display ID in the CLT/0001/26 format.
+ *
+ * Existing client IDs are preserved.
+ *
+ * NOTE:
+ * This scan-based generator is suitable for a single-admin
+ * workflow, but is not an atomic counter for simultaneous
+ * creates. A transaction-backed counter can be introduced
+ * after verifying that the current Firestore rules permit it.
+ */
 export async function generateClientId() {
   const year = String(new Date().getFullYear()).slice(-2);
-
-  const snapshot = await getDocs(
-    query(clientsCollection, orderBy("createdAt", "desc"))
-  );
+  const snapshot = await getDocs(clientsCollection);
 
   let highestNumber = 0;
 
-  snapshot.docs.forEach((clientDoc) => {
-    const existingId = clientDoc.data().clientId || "";
+  for (const clientDocument of snapshot.docs) {
+    const existingId = clientDocument.data().clientId || "";
+
     const match = existingId.match(/^CLT\/(\d+)\/\d{2}$/);
 
     if (match) {
-      highestNumber = Math.max(highestNumber, Number(match[1]));
+      highestNumber = Math.max(
+        highestNumber,
+        Number(match[1])
+      );
     }
-  });
+  }
 
   return `CLT/${String(highestNumber + 1).padStart(4, "0")}/${year}`;
 }
 
-// ------------------------------------------------------------
-// PREPARE CLIENT DATA
-// ------------------------------------------------------------
+/* =====================================================
+   VALIDATION AND DATA PREPARATION
+   ===================================================== */
 
-function prepareClientData(data) {
-  const firstName = (data.firstName || "").trim();
-  const lastName = (data.lastName || "").trim();
-  const otherNames = (data.otherNames || "").trim();
+function cleanText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function prepareClientData(data = {}) {
+  const firstName = cleanText(data.firstName);
+  const lastName = cleanText(data.lastName);
+  const otherNames = cleanText(data.otherNames);
+  const email = cleanText(data.email);
 
   if (!firstName || !lastName) {
     throw new Error("First name and last name are required.");
   }
 
-  const email = (data.email || "").trim();
-
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (
+    email &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  ) {
     throw new Error("Please enter a valid email address.");
   }
+
+  const allowedTypes = ["prospective", "tenant", "other"];
+  const allowedStatuses = ["active", "inactive"];
+
+  const clientType = allowedTypes.includes(data.clientType)
+    ? data.clientType
+    : "prospective";
+
+  const status = allowedStatuses.includes(data.status)
+    ? data.status
+    : "active";
 
   return {
     firstName,
     lastName,
     otherNames,
 
+    // Retained for compatibility with existing dashboard code.
     fullName: [firstName, otherNames, lastName]
       .filter(Boolean)
       .join(" "),
 
-    phone: (data.phone || "").trim(),
-    alternativePhone: (data.alternativePhone || "").trim(),
+    phone: cleanText(data.phone),
+    alternativePhone: cleanText(data.alternativePhone),
     email,
-    address: (data.address || "").trim(),
-    city: (data.city || "").trim(),
-    occupation: (data.occupation || "").trim(),
+    address: cleanText(data.address),
+    city: cleanText(data.city),
+    occupation: cleanText(data.occupation),
 
-    clientType: data.clientType || "prospective",
-    status: data.status || "active",
+    clientType,
+    status,
 
     emergencyContact: {
-      name: (data.emergencyContact?.name || "").trim(),
-      relationship: (data.emergencyContact?.relationship || "").trim(),
-      phone: (data.emergencyContact?.phone || "").trim()
+      name: cleanText(data.emergencyContact?.name),
+      relationship: cleanText(data.emergencyContact?.relationship),
+      phone: cleanText(data.emergencyContact?.phone)
     },
 
-    notes: (data.notes || "").trim()
+    notes: cleanText(data.notes)
   };
 }
 
-// ------------------------------------------------------------
-// ADD CLIENT
-// ------------------------------------------------------------
+/* =====================================================
+   CREATE CLIENT
+   ===================================================== */
 
 export async function addClient(clientData) {
   try {
@@ -172,14 +200,27 @@ export async function addClient(clientData) {
 
     const newClient = {
       ...cleanData,
+
       clientId,
+
+      // Future modules can link records through clientDocumentId.
+      // The actual Firestore document ID is returned after creation.
+
       isArchived: false,
+      archivedAt: null,
+
+      // Reserved for future linked-record functionality.
+      // These fields do not imply that a tenancy already exists.
+      currentTenancyId: null,
+
       createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      archivedAt: null
+      updatedAt: serverTimestamp()
     };
 
-    const result = await addDoc(clientsCollection, newClient);
+    const result = await addDoc(
+      clientsCollection,
+      newClient
+    );
 
     return {
       id: result.id,
@@ -187,75 +228,75 @@ export async function addClient(clientData) {
       clientId
     };
   } catch (error) {
-    console.error("Error adding client:", error);
+    console.error("HomeRent: unable to add client.", error);
     throw error;
   }
 }
 
-// ------------------------------------------------------------
-// UPDATE CLIENT
-// ------------------------------------------------------------
+/* =====================================================
+   UPDATE CLIENT
+   ===================================================== */
 
-export async function updateClient(clientDocumentId, clientData) {
+export async function updateClient(
+  clientDocumentId,
+  clientData
+) {
   if (!clientDocumentId) {
     throw new Error("Client document ID is required.");
   }
 
-  try {
-    const cleanData = prepareClientData(clientData);
-    const clientRef = doc(db, CLIENTS_COLLECTION, clientDocumentId);
+  const cleanData = prepareClientData(clientData);
 
-    await updateDoc(clientRef, {
+  await updateDoc(
+    doc(db, CLIENTS_COLLECTION, clientDocumentId),
+    {
       ...cleanData,
       updatedAt: serverTimestamp()
-    });
+    }
+  );
 
-    return true;
-  } catch (error) {
-    console.error("Error updating client:", error);
-    throw error;
-  }
+  return true;
 }
 
-// ------------------------------------------------------------
-// ARCHIVE CLIENT
-// Keeps the record in Firestore.
-// ------------------------------------------------------------
+/* =====================================================
+   ARCHIVE AND RESTORE
+   ===================================================== */
 
+/**
+ * Archiving preserves the document and its history.
+ * The client status is not changed to "archived"; archive state
+ * is tracked separately through isArchived.
+ */
 export async function archiveClient(clientDocumentId) {
   if (!clientDocumentId) {
     throw new Error("Client document ID is required.");
   }
 
-  const clientRef = doc(db, CLIENTS_COLLECTION, clientDocumentId);
-
-  await updateDoc(clientRef, {
-    isArchived: true,
-    status: "archived",
-    archivedAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  });
+  await updateDoc(
+    doc(db, CLIENTS_COLLECTION, clientDocumentId),
+    {
+      isArchived: true,
+      archivedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }
+  );
 
   return true;
 }
-
-// ------------------------------------------------------------
-// RESTORE CLIENT
-// ------------------------------------------------------------
 
 export async function restoreClient(clientDocumentId) {
   if (!clientDocumentId) {
     throw new Error("Client document ID is required.");
   }
 
-  const clientRef = doc(db, CLIENTS_COLLECTION, clientDocumentId);
-
-  await updateDoc(clientRef, {
-    isArchived: false,
-    status: "active",
-    archivedAt: null,
-    updatedAt: serverTimestamp()
-  });
+  await updateDoc(
+    doc(db, CLIENTS_COLLECTION, clientDocumentId),
+    {
+      isArchived: false,
+      archivedAt: null,
+      updatedAt: serverTimestamp()
+    }
+  );
 
   return true;
 }
