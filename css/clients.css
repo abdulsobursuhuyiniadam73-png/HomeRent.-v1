@@ -1,7 +1,7 @@
 /* =====================================================
    HOMERENT — CLIENTS MANAGEMENT
    File: css/clients.css
-   Purpose: Responsive styling for the Clients page
+   Purpose: Responsive Clients page and Add/Edit modal
    ===================================================== */
 
 /* ---------- 1. Theme and page defaults ---------- */
@@ -34,7 +34,8 @@
 
 .clients-page button,
 .clients-page input,
-.clients-page select {
+.clients-page select,
+.clients-page textarea {
   font: inherit;
 }
 
@@ -101,6 +102,7 @@
   z-index: 1000;
   inset: 0 auto 0 0;
   width: 260px;
+  height: 100vh;
   height: 100dvh;
   background: #ffffff;
   border-right: 1px solid var(--clients-border);
@@ -182,10 +184,7 @@
   color: #5e6d82;
   font-size: 13px;
   font-weight: 600;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .clients-page .nav-link i {
@@ -302,7 +301,7 @@
 }
 
 
-/* ---------- 6. Buttons ---------- */
+/* ---------- 6. Page buttons ---------- */
 
 .clients-page .primary-button,
 .clients-page .secondary-button,
@@ -316,11 +315,8 @@
   border-radius: 10px;
   font-size: 12px;
   font-weight: 700;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .clients-page .primary-button {
@@ -334,7 +330,6 @@
   border-color: var(--clients-primary-dark);
   background: var(--clients-primary-dark);
   box-shadow: 0 6px 15px rgba(8, 127, 223, 0.18);
-  transform: translateY(-1px);
 }
 
 .clients-page .secondary-button {
@@ -379,9 +374,7 @@
   border-radius: 15px;
   background: var(--clients-surface);
   box-shadow: 0 3px 12px rgba(27, 51, 84, 0.025);
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .clients-page .summary-card:hover {
@@ -505,9 +498,7 @@
   border-radius: 10px;
   background: #ffffff;
   color: #8290a2;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .clients-page .clients-search-box {
@@ -581,10 +572,7 @@
   font-size: 11px;
   font-weight: 650;
   white-space: nowrap;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .clients-page .filter-chip span {
@@ -599,15 +587,14 @@
   font-size: 10px;
 }
 
-.clients-page .filter-chip:hover {
+.clients-page .filter-chip:hover,
+.clients-page .filter-chip.active {
   background: #eaf3ff;
   color: var(--clients-primary);
 }
 
 .clients-page .filter-chip.active {
   border-color: #cfe3fb;
-  background: #eaf3ff;
-  color: var(--clients-primary);
 }
 
 .clients-page .filter-chip.active span {
@@ -673,10 +660,6 @@
 
 .clients-page .clients-table tbody tr:last-child td {
   border-bottom: 0;
-}
-
-.clients-page .clients-table tbody tr {
-  transition: background 0.15s ease;
 }
 
 .clients-page .clients-table tbody tr:hover {
@@ -823,16 +806,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 33px;
-  height: 33px;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 9px;
   background: transparent;
   color: #718096;
-  font-size: 12px;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
+  font-size: 13px;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .clients-page .client-action-button:hover {
@@ -1009,14 +991,381 @@
 }
 
 
-/* ---------- 19. Sidebar overlay ---------- */
+/* ---------- 19. Mobile sidebar overlay ---------- */
+
+/*
+ * The sidebar overlay is hidden by default.
+ * Only the mobile navigation JavaScript should add
+ * .is-visible when the drawer opens.
+ */
 
 .clients-page .sidebar-overlay {
   display: none;
 }
 
+.clients-page .sidebar-overlay.is-visible {
+  position: fixed;
+  z-index: 1100;
+  inset: 0;
+  display: block;
+  background: rgba(17, 31, 51, 0.45);
+  backdrop-filter: blur(2px);
+}
 
-/* ---------- 20. Medium screens ---------- */
+
+/* =====================================================
+   20. ADD / EDIT CLIENT MODAL
+   These selectors match the markup in clients.js.
+   ===================================================== */
+
+/*
+ * Important:
+ * #clientModalRoot must not intercept clicks while hidden.
+ * The JavaScript sets root.hidden = false when opening,
+ * and root.hidden = true when closing.
+ */
+
+#clientModalRoot[hidden] {
+  display: none !important;
+}
+
+#clientModalRoot:not([hidden]) {
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  display: block;
+  isolation: isolate;
+}
+
+/* Full-screen dimmed backdrop */
+
+#clientModalRoot .modal-backdrop {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(12, 27, 49, 0.62);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* Modal panel */
+
+#clientModalRoot .client-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 780px);
+  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  overflow: hidden;
+  border: 1px solid #e0e8f2;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #172b4d;
+  box-shadow: 0 24px 75px rgba(9, 24, 45, 0.3);
+  animation: clientModalAppear 180ms ease-out;
+}
+
+/* Modal header */
+
+#clientModalRoot .client-modal-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 23px 27px;
+  border-bottom: 1px solid #e8edf5;
+  background: linear-gradient(135deg, #f6faff 0%, #ffffff 100%);
+}
+
+#clientModalRoot .client-modal-header > div {
+  min-width: 0;
+}
+
+#clientModalRoot .client-modal-header h2 {
+  margin: 0;
+  color: #183153;
+  font-size: 21px;
+  font-weight: 750;
+  line-height: 1.35;
+  letter-spacing: -0.35px;
+}
+
+#clientModalRoot .client-modal-header p {
+  margin: 7px 0 0;
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* The header close button uses the existing .client-action-button class. */
+
+#clientModalRoot .client-modal-header [data-close-modal] {
+  display: inline-flex;
+  flex: 0 0 38px;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin: -3px -4px 0 0;
+  border: 1px solid #e0e8f2;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #52647b;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+#clientModalRoot .client-modal-header [data-close-modal]:hover {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #be123c;
+}
+
+/* Form area scrolls independently when the modal is tall. */
+
+#clientModalRoot #clientForm {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 23px 27px 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Form grid */
+
+#clientModalRoot .client-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 19px 20px;
+  align-items: start;
+}
+
+#clientModalRoot .client-form-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  color: #40536c;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+#clientModalRoot .client-form-grid label > span {
+  display: inline;
+  color: #dc4545;
+}
+
+/* Inputs, dropdowns and textareas */
+
+#clientModalRoot .client-form-grid input,
+#clientModalRoot .client-form-grid select,
+#clientModalRoot .client-form-grid textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid #d5deea;
+  border-radius: 9px;
+  outline: none;
+  background: #ffffff;
+  color: #243a59;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  box-shadow: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+#clientModalRoot .client-form-grid input,
+#clientModalRoot .client-form-grid select {
+  min-height: 44px;
+}
+
+#clientModalRoot .client-form-grid select {
+  cursor: pointer;
+}
+
+#clientModalRoot .client-form-grid textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+
+#clientModalRoot .client-form-grid input::placeholder,
+#clientModalRoot .client-form-grid textarea::placeholder {
+  color: #9aa7b8;
+}
+
+#clientModalRoot .client-form-grid input:hover,
+#clientModalRoot .client-form-grid select:hover,
+#clientModalRoot .client-form-grid textarea:hover {
+  border-color: #b7c8dc;
+}
+
+#clientModalRoot .client-form-grid input:focus,
+#clientModalRoot .client-form-grid select:focus,
+#clientModalRoot .client-form-grid textarea:focus {
+  border-color: #2580df;
+  box-shadow: 0 0 0 3px rgba(37, 128, 223, 0.13);
+}
+
+#clientModalRoot .client-form-grid input:disabled,
+#clientModalRoot .client-form-grid select:disabled,
+#clientModalRoot .client-form-grid textarea:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* Full-width address and notes */
+
+#clientModalRoot .client-form-full {
+  grid-column: 1 / -1;
+}
+
+/* Validation error */
+
+#clientModalRoot .client-form-error {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 9px;
+  background: #fff1f2;
+  color: #b42332;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+#clientModalRoot .client-form-error[hidden] {
+  display: none !important;
+}
+
+/* Modal footer */
+
+#clientModalRoot .client-modal-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 11px;
+  margin: 23px -27px 0;
+  padding: 17px 27px;
+  border-top: 1px solid #e6edf5;
+  background: #f8faff;
+}
+
+#clientModalRoot .client-modal-footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 115px;
+  min-height: 43px;
+  padding: 10px 17px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+#clientModalRoot .client-cancel-button {
+  border: 1px solid #d3dce8;
+  background: #ffffff;
+  color: #52647b;
+}
+
+#clientModalRoot .client-cancel-button:hover:not(:disabled) {
+  border-color: #b8c6d8;
+  background: #f1f5f9;
+}
+
+#clientModalRoot .client-save-button {
+  border: 1px solid #087fdf;
+  background: #087fdf;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(8, 127, 223, 0.15);
+}
+
+#clientModalRoot .client-save-button:hover:not(:disabled) {
+  border-color: #0768b8;
+  background: #0768b8;
+  box-shadow: 0 5px 12px rgba(8, 127, 223, 0.2);
+}
+
+#clientModalRoot .client-modal-footer button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Prevent background page scrolling only while modal is open. */
+
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Modal entry animation */
+
+@keyframes clientModalAppear {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* ---------- 21. Toast messages ---------- */
+
+.home-rent-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 7000;
+  max-width: calc(100vw - 48px);
+  padding: 14px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: #172b4d;
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.home-rent-toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* ---------- 22. Medium screens ---------- */
 
 @media (max-width: 1200px) {
   .clients-page .page-container {
@@ -1041,7 +1390,7 @@
 }
 
 
-/* ---------- 21. Mobile navigation and layout ---------- */
+/* ---------- 23. Mobile navigation and layout ---------- */
 
 @media (max-width: 768px) {
   .clients-page .main-content {
@@ -1058,15 +1407,6 @@
 
   .clients-page .sidebar.is-open {
     transform: translateX(0);
-  }
-
-  .clients-page .sidebar-overlay.is-visible {
-    position: fixed;
-    z-index: 1100;
-    inset: 0;
-    display: block;
-    background: rgba(17, 31, 51, 0.45);
-    backdrop-filter: blur(2px);
   }
 
   .clients-page .mobile-header {
@@ -1197,7 +1537,7 @@
 }
 
 
-/* ---------- 22. Small mobile screens ---------- */
+/* ---------- 24. Small mobile screens ---------- */
 
 @media (max-width: 420px) {
   .clients-page .mobile-header {
@@ -1262,281 +1602,8 @@
 }
 
 
-/* ---------- 23. Reduced motion preference ---------- */
+/* ---------- 25. Mobile modal ---------- */
 
-@media (prefers-reduced-motion: reduce) {
-  .clients-page *,
-  .clients-page *::before,
-  .clients-page *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-
-
-
-
-
-
-/* =========================================================
-   HOMERENT — ADD / EDIT CLIENT MODAL
-   Add this section at the bottom of clients.css
-   ========================================================= */
-
-#clientModalRoot[hidden] {
-  display: none !important;
-}
-
-#clientModalRoot:not([hidden]) {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-}
-
-#clientModalRoot .modal-backdrop {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  overflow-y: auto;
-  background: rgba(15, 23, 42, 0.62);
-  backdrop-filter: blur(5px);
-}
-
-#clientModalRoot .client-modal {
-  width: min(100%, 760px);
-  max-height: calc(100vh - 48px);
-  overflow-y: auto;
-  background: #ffffff;
-  color: #172033;
-  border-radius: 18px;
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
-  border: 1px solid #e5eaf2;
-  animation: clientModalEnter 0.2s ease-out;
-}
-
-#clientModalRoot .client-modal-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 24px 28px;
-  border-bottom: 1px solid #e8edf4;
-  background: #f8faff;
-}
-
-#clientModalRoot .client-modal-header h2 {
-  margin: 0;
-  font-size: 1.35rem;
-  line-height: 1.4;
-  font-weight: 750;
-  color: #172b4d;
-}
-
-#clientModalRoot .client-modal-header p {
-  margin: 6px 0 0;
-  color: #64748b;
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-#clientModalRoot .client-modal-header [data-close-modal] {
-  display: inline-flex;
-  flex: 0 0 40px;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #475569;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-}
-
-#clientModalRoot .client-modal-header [data-close-modal]:hover {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-#clientModalRoot #clientForm {
-  padding: 24px 28px 0;
-}
-
-#clientModalRoot .client-form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-}
-
-#clientModalRoot .client-form-grid label {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  color: #334155;
-  font-size: 0.88rem;
-  font-weight: 650;
-}
-
-#clientModalRoot .client-form-grid label span {
-  color: #dc2626;
-}
-
-#clientModalRoot .client-form-grid input,
-#clientModalRoot .client-form-grid select,
-#clientModalRoot .client-form-grid textarea {
-  display: block;
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  padding: 12px 13px;
-  border: 1px solid #cbd5e1;
-  border-radius: 9px;
-  outline: none;
-  background: #ffffff;
-  color: #172033;
-  font: inherit;
-  font-size: 0.92rem;
-  font-weight: 400;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-#clientModalRoot .client-form-grid input,
-#clientModalRoot .client-form-grid select {
-  min-height: 45px;
-}
-
-#clientModalRoot .client-form-grid textarea {
-  resize: vertical;
-  min-height: 90px;
-}
-
-#clientModalRoot .client-form-grid input:focus,
-#clientModalRoot .client-form-grid select:focus,
-#clientModalRoot .client-form-grid textarea:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13);
-}
-
-#clientModalRoot .client-form-grid input::placeholder,
-#clientModalRoot .client-form-grid textarea::placeholder {
-  color: #94a3b8;
-}
-
-#clientModalRoot .client-form-full {
-  grid-column: 1 / -1;
-}
-
-#clientModalRoot .client-form-error {
-  margin: 18px 0;
-  padding: 12px 14px;
-  border: 1px solid #fecaca;
-  border-radius: 9px;
-  background: #fef2f2;
-  color: #b91c1c;
-  font-size: 0.88rem;
-  line-height: 1.5;
-}
-
-#clientModalRoot .client-form-error[hidden] {
-  display: none !important;
-}
-
-#clientModalRoot .client-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  margin: 24px -28px 0;
-  padding: 18px 28px;
-  border-top: 1px solid #e8edf4;
-  background: #f8faff;
-}
-
-#clientModalRoot .client-modal-footer button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 11px 20px;
-  border-radius: 9px;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-}
-
-#clientModalRoot .client-cancel-button {
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #334155;
-}
-
-#clientModalRoot .client-cancel-button:hover {
-  background: #f1f5f9;
-}
-
-#clientModalRoot .client-save-button {
-  border: 1px solid #1d4ed8;
-  background: #2563eb;
-  color: #ffffff;
-}
-
-#clientModalRoot .client-save-button:hover {
-  background: #1d4ed8;
-}
-
-#clientModalRoot .client-modal-footer button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-body.modal-open {
-  overflow: hidden;
-}
-
-.home-rent-toast {
-  position: fixed;
-  right: 24px;
-  bottom: 24px;
-  z-index: 11000;
-  max-width: calc(100vw - 48px);
-  padding: 14px 18px;
-  border-radius: 10px;
-  background: #172b4d;
-  color: #ffffff;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(10px);
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.home-rent-toast.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@keyframes clientModalEnter {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Tablet and mobile */
 @media (max-width: 640px) {
   #clientModalRoot .modal-backdrop {
     align-items: flex-end;
@@ -1545,13 +1612,21 @@ body.modal-open {
 
   #clientModalRoot .client-modal {
     width: 100%;
+    max-height: 94vh;
     max-height: 94dvh;
-    border-radius: 18px 18px 0 0;
+    margin: auto 0 0;
+    border-right: 0;
     border-bottom: 0;
+    border-left: 0;
+    border-radius: 18px 18px 0 0;
   }
 
   #clientModalRoot .client-modal-header {
-    padding: 20px;
+    padding: 19px 20px;
+  }
+
+  #clientModalRoot .client-modal-header h2 {
+    font-size: 19px;
   }
 
   #clientModalRoot #clientForm {
@@ -1564,27 +1639,65 @@ body.modal-open {
   }
 
   #clientModalRoot .client-form-full {
-    grid-column: auto;
+    grid-column: 1 / -1;
   }
 
   #clientModalRoot .client-modal-footer {
-    margin: 22px -20px 0;
-    padding: 16px 20px;
+    margin: 21px -20px 0;
+    padding: 15px 20px;
   }
 
   #clientModalRoot .client-modal-footer button {
     flex: 1;
-    padding: 11px 12px;
+    min-width: 0;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .home-rent-toast {
+    right: 12px;
+    bottom: 12px;
+    max-width: calc(100vw - 24px);
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #clientModalRoot .client-modal {
-    animation: none;
+
+/* ---------- 26. Very small screens ---------- */
+
+@media (max-width: 360px) {
+  #clientModalRoot .client-modal-header {
+    padding: 16px;
   }
 
+  #clientModalRoot #clientForm {
+    padding: 17px 16px 0;
+  }
+
+  #clientModalRoot .client-modal-footer {
+    margin-right: -16px;
+    margin-left: -16px;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  #clientModalRoot .client-form-grid input,
+  #clientModalRoot .client-form-grid select,
+  #clientModalRoot .client-form-grid textarea {
+    font-size: 12px;
+  }
+}
+
+
+/* ---------- 27. Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .clients-page *,
+  .clients-page *::before,
+  .clients-page *::after,
   #clientModalRoot *,
   .home-rent-toast {
+    scroll-behavior: auto !important;
+    animation: none !important;
     transition: none !important;
   }
 }
