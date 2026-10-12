@@ -1,976 +1,666 @@
-/*
- * HomeRent — Clients Management Controller
- * File: js/clients/clients.js
- *
- * Uses:
- *   ../firebase.js
- *   ../core/branding.js
- *   ../core/settings.js
- *   ./clients-service.js
- *
- * Does not create a second branding system.
- * Does not delete client records.
- */
+/* ============================================================
+   HOMERENT - CLIENTS PAGE CONTROLLER
+   File: js/clients/clients.js
 
-import { auth, db } from "../firebase.js";
-
-import { onAuthStateChanged } from
-  "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+   Responsibilities:
+   1. Protect the page using the existing authentication guard.
+   2. Load global branding.
+   3. Display, search, filter and sort clients.
+   4. Add and edit clients.
+   5. Archive and restore clients.
+   6. Support mobile navigation and responsive client lists.
+   ============================================================ */
 
 import {
-  collection,
-  getDocs,
-  query,
-  orderBy
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    protectPage,
+    startInactivityProtection
+} from "../auth/auth-guard.js";
 
-import {
-  getClients,
-  addClient,
-  updateClient,
-  archiveClient,
-  restoreClient
-} from "./clients-service.js";
+import { logoutAdmin } from "../auth/auth.js";
 
 import { applyGlobalBranding } from "../core/branding.js";
-import { getSettings } from "../core/settings.js";
 
-/* =====================================================
-   CONFIGURATION — CHANGE HERE IF REQUIRED
-   ===================================================== */
+import {
+    getClients,
+    createClient,
+    updateClient,
+    archiveClient,
+    restoreClient
+} from "./clients-service.js";
 
-const CLIENTS_PER_PAGE = 8;
-const LOGIN_PAGE = "../login.html";
-const PROFILE_PAGE = "details.html";
 
-/* =====================================================
-   PAGE STATE
-   ===================================================== */
+/* ============================================================
+   PAGE INITIALIZATION
+   ============================================================ */
+
+protectPage();
+startInactivityProtection();
+
+document.addEventListener("DOMContentLoaded", initializeClientsPage);
+
+async function initializeClientsPage() {
+    bindEvents();
+    setCurrentYear();
+    await applyGlobalBranding();
+    await loadClients();
+}
+
+
+/* ============================================================
+   DOM HELPERS
+   ============================================================ */
+
+const $ = (selector) => document.querySelector(selector);
+
+const elements = {
+    search: $("#clientSearch"),
+    statusFilter: $("#statusFilter"),
+    sort: $("#sortClients"),
+    tableBody: $("#clientsTableBody"),
+    mobileList: $("#mobileClientList"),
+    tableWrap: $("#tableWrap"),
+    loading: $("#loadingState"),
+    error: $("#errorState"),
+    errorMessage: $("#errorMessage"),
+    empty: $("#emptyState"),
+    emptyTitle: $("#emptyTitle"),
+    emptyMessage: $("#emptyMessage"),
+    pageMessage: $("#pageMessage"),
+    dialog: $("#clientDialog"),
+    form: $("#clientForm"),
+    formError: $("#formError"),
+    dialogTitle: $("#dialogTitle"),
+    saveButton: $("#saveClientButton")
+};
 
 let clients = [];
-let filteredClients = [];
-let currentPage = 1;
-let currentFilter = "all";
 let editingClientId = null;
-let settings = {};
-let isInitialized = false;
+let currentView = [];
 
-/* =====================================================
-   DOM HELPERS
-   ===================================================== */
 
-const $ = (selector, parent = document) =>
-  parent.querySelector(selector);
+/* ============================================================
+   EVENT BINDING
+   ============================================================ */
 
-const $$ = (selector, parent = document) =>
-  [...parent.querySelectorAll(selector)];
+function bindEvents() {
+    elements.search?.addEventListener("input", renderClients);
+    elements.statusFilter?.addEventListener("change", renderClients);
+    elements.sort?.addEventListener("change", renderClients);
 
-function setText(id, value) {
-  const element = document.getElementById(id);
+    $("#refreshClientsButton")?.addEventListener("click", loadClients);
+    $("#retryButton")?.addEventListener("click", loadClients);
 
-  if (element) {
-    element.textContent = value ?? "";
-  }
+    $("#addClientButton")?.addEventListener("click", () => openClientDialog());
+    $("#emptyAddButton")?.addEventListener("click", () => openClientDialog());
+
+    $("#closeDialogButton")?.addEventListener("click", closeClientDialog);
+    $("#cancelDialogButton")?.addEventListener("click", closeClientDialog);
+
+    elements.form?.addEventListener("submit", handleFormSubmit);
+
+    $("#profileButton")?.addEventListener("click", handleLogout);
+
+    $("#mobileMenuButton")?.addEventListener("click", openSidebar);
+    $("#sidebarClose")?.addEventListener("click", closeSidebar);
+    $("#sidebarOverlay")?.addEventListener("click", closeSidebar);
+
+    // Close the dialog when the user clicks its backdrop.
+    elements.dialog?.addEventListener("click", (event) => {
+        if (event.target === elements.dialog) {
+            closeClientDialog();
+        }
+    });
+
+    // Delegate table and card actions to one event listener.
+    elements.tableBody?.addEventListener("click", handleClientAction);
+    elements.mobileList?.addEventListener("click", handleClientAction);
 }
 
-function escapeHTML(value = "") {
-  return String(value).replace(/[&<>"']/g, (character) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  })[character]);
-}
 
-function formatDate(value) {
-  if (!value) return "—";
-
-  let date;
-
-  if (typeof value.toDate === "function") {
-    date = value.toDate();
-  } else {
-    date = new Date(value);
-  }
-
-  if (Number.isNaN(date.getTime())) return "—";
-
-  const dateFormat = settings.dateFormat || "dd/MM/yyyy";
-
-  // Display a readable date while respecting the configured locale.
-  if (dateFormat === "MM/dd/yyyy") {
-    return new Intl.DateTimeFormat("en-US").format(date);
-  }
-
-  return new Intl.DateTimeFormat("en-GB").format(date);
-}
-
-function showToast(message, type = "success") {
-  let toast = $("#clientsToast");
-
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "clientsToast";
-    toast.className = "clients-toast";
-    toast.setAttribute("role", "status");
-    toast.setAttribute("aria-live", "polite");
-    document.body.appendChild(toast);
-  }
-
-  toast.textContent = message;
-  toast.dataset.type = type;
-  toast.hidden = false;
-
-  // No timer is required; the next message replaces this one.
-}
-
-function setButtonLoading(button, loading, loadingText = "Please wait...") {
-  if (!button) return;
-
-  if (loading) {
-    button.dataset.originalText = button.innerHTML;
-    button.disabled = true;
-    button.innerHTML = escapeHTML(loadingText);
-  } else {
-    button.disabled = false;
-
-    if (button.dataset.originalText) {
-      button.innerHTML = button.dataset.originalText;
-      delete button.dataset.originalText;
-    }
-  }
-}
-
-function errorMessage(error) {
-  if (error?.code === "permission-denied") {
-    return "Access denied. Check your administrator login and Firestore rules.";
-  }
-
-  if (error?.code === "unavailable") {
-    return "Firebase is temporarily unavailable. Check your internet connection.";
-  }
-
-  return error?.message || "An unexpected error occurred. Please try again.";
-}
-
-/* =====================================================
-   AUTHENTICATION AND INITIALIZATION
-   ===================================================== */
-
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.replace(LOGIN_PAGE);
-    return;
-  }
-
-  if (isInitialized) return;
-
-  try {
-    showLoading(true);
-    hideError();
-
-    // Existing global branding remains the single source of branding.
-    settings = (await getSettings()) || {};
-    await applyGlobalBranding();
-
-    // Verify that the current signed-in user can read client records.
-    // Firestore rules remain the actual security boundary.
-    await getDocs(
-      query(
-        collection(db, "clients"),
-        orderBy("createdAt", "desc")
-      )
-    );
-
-    initializeControls();
-    initializeNavigation();
-
-    await loadClients();
-
-    isInitialized = true;
-  } catch (error) {
-    console.error("Clients page initialization failed:", error);
-    showError(errorMessage(error));
-  } finally {
-    showLoading(false);
-  }
-});
-
-/* =====================================================
-   LOAD CLIENT RECORDS
-   ===================================================== */
+/* ============================================================
+   LOAD CLIENTS
+   ============================================================ */
 
 async function loadClients() {
-  showLoading(true);
-  hideError();
+    showLoading();
 
-  try {
-    // Includes archived and legacy records so summary counts are accurate.
-    clients = await getClients(true);
+    try {
+        // The service excludes archived clients by default.
+        clients = await getClients();
 
-    // Compatibility with older records.
-    clients = clients.map((client) => ({
-      ...client,
-      fullName:
-        client.fullName ||
-        [client.firstName, client.otherNames, client.lastName]
-          .filter(Boolean)
-          .join(" ") ||
-        "Unnamed client",
-      isArchived: client.isArchived === true,
-      clientType: client.clientType || "prospective",
-      status: client.status || "active"
-    }));
+        renderSummary();
+        renderClients();
+        showPageMessage("");
 
-    updateSummary();
-    applyFilters();
-  } catch (error) {
-    console.error("Unable to load clients:", error);
-    showError(errorMessage(error));
-  } finally {
-    showLoading(false);
-  }
+    } catch (error) {
+        console.error("HomeRent: Unable to load clients.", error);
+
+        showError(
+            error?.message ||
+            "Unable to load clients. Check your internet connection and try again."
+        );
+    }
 }
 
-/* =====================================================
+
+/* ============================================================
    SUMMARY CARDS
-   ===================================================== */
+   ============================================================ */
 
-function updateSummary() {
-  const visibleClients = clients.filter((client) => !client.isArchived);
+function renderSummary() {
+    const activeCount = clients.filter(
+        (client) => client.status === "active"
+    ).length;
 
-  setText("totalClients", clients.length);
-  setText(
-    "activeClients",
-    visibleClients.filter((client) => client.status === "active").length
-  );
-  setText(
-    "prospectiveClients",
-    visibleClients.filter((client) => client.clientType === "prospective").length
-  );
-  setText(
-    "archivedClients",
-    clients.filter((client) => client.isArchived).length
-  );
+    const inactiveCount = clients.filter(
+        (client) => client.status === "inactive"
+    ).length;
 
-  setText(
-    "allClientsCount",
-    clients.filter((client) => !client.isArchived).length
-  );
+    setText("#totalClients", clients.length);
+    setText("#activeClients", activeCount);
+    setText("#formerClients", inactiveCount);
+    setText("#recentClients", clients.filter(isRecentClient).length);
 }
 
-/* =====================================================
-   SEARCH, FILTERS, SORTING AND PAGINATION
-   ===================================================== */
+function isRecentClient(client) {
+    const createdAt = toDate(client.createdAt);
 
-function applyFilters() {
-  const search = ($("#clientSearch")?.value || "")
-    .trim()
-    .toLowerCase();
+    if (!createdAt) return false;
 
-  const sort = $("#clientSort")?.value || "name-asc";
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  filteredClients = clients.filter((client) => {
-    const archived = client.isArchived;
-    const matchesSearch = [
-      client.clientId,
-      client.fullName,
-      client.firstName,
-      client.lastName,
-      client.otherNames,
-      client.phone,
-      client.alternativePhone,
-      client.email
-    ].some((value) =>
-      String(value || "").toLowerCase().includes(search)
-    );
-
-    if (!matchesSearch) return false;
-
-    switch (currentFilter) {
-      case "active":
-        return !archived && client.status === "active";
-
-      case "prospective":
-        return !archived && client.clientType === "prospective";
-
-      case "inactive":
-        return !archived && client.status === "inactive";
-
-      case "archived":
-        return archived;
-
-      default:
-        return !archived;
-    }
-  });
-
-  filteredClients.sort((a, b) => {
-    const nameA = a.fullName.toLowerCase();
-    const nameB = b.fullName.toLowerCase();
-
-    const dateA = a.createdAt?.toMillis?.() ?? 0;
-    const dateB = b.createdAt?.toMillis?.() ?? 0;
-
-    switch (sort) {
-      case "name-desc":
-        return nameB.localeCompare(nameA);
-
-      case "recent":
-        return dateB - dateA;
-
-      case "oldest":
-        return dateA - dateB;
-
-      default:
-        return nameA.localeCompare(nameB);
-    }
-  });
-
-  currentPage = 1;
-  renderClients();
+    return createdAt >= thirtyDaysAgo;
 }
 
-function getCurrentPageClients() {
-  const start = (currentPage - 1) * CLIENTS_PER_PAGE;
 
-  return filteredClients.slice(start, start + CLIENTS_PER_PAGE);
+/* ============================================================
+   SEARCH, FILTER AND SORT
+   ============================================================ */
+
+function getVisibleClients() {
+    const query = (elements.search?.value || "")
+        .trim()
+        .toLowerCase();
+
+    const selectedStatus = elements.statusFilter?.value || "all";
+    const sortBy = elements.sort?.value || "newest";
+
+    let result = clients.filter((client) => {
+        const searchableText = [
+            client.fullName,
+            client.phone,
+            client.email,
+            client.address,
+            client.clientType
+        ].filter(Boolean).join(" ").toLowerCase();
+
+        const matchesSearch = searchableText.includes(query);
+
+        const matchesStatus =
+            selectedStatus === "all" ||
+            client.status === selectedStatus;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    result.sort((a, b) => {
+        if (sortBy === "name") {
+            return (a.fullName || "").localeCompare(b.fullName || "");
+        }
+
+        if (sortBy === "oldest") {
+            return getTimestamp(a.createdAt) - getTimestamp(b.createdAt);
+        }
+
+        return getTimestamp(b.createdAt) - getTimestamp(a.createdAt);
+    });
+
+    return result;
 }
+
+
+/* ============================================================
+   RENDER CLIENTS
+   ============================================================ */
 
 function renderClients() {
-  const pageClients = getCurrentPageClients();
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredClients.length / CLIENTS_PER_PAGE)
-  );
+    currentView = getVisibleClients();
 
-  const hasClients = pageClients.length > 0;
+    if (elements.tableBody) {
+        elements.tableBody.innerHTML = currentView
+            .map(renderTableRow)
+            .join("");
+    }
 
-  const tableWrapper = $("#clientsTableWrapper");
-  const cardsList = $("#clientCardsList");
-  const emptyState = $("#clientsEmpty");
-  const pagination = $("#clientsPagination");
+    if (elements.mobileList) {
+        elements.mobileList.innerHTML = currentView
+            .map(renderMobileCard)
+            .join("");
+    }
 
-  if (tableWrapper) tableWrapper.hidden = !hasClients;
-  if (cardsList) cardsList.hidden = !hasClients;
-  if (emptyState) emptyState.hidden = hasClients;
-  if (pagination) {
-    pagination.hidden = !hasClients || filteredClients.length <= CLIENTS_PER_PAGE;
-  }
+    const hasClients = currentView.length > 0;
 
-  const tableBody = $("#clientsTableBody");
+    if (elements.tableWrap) {
+        elements.tableWrap.hidden = !hasClients;
+    }
 
-  if (tableBody) {
-    tableBody.innerHTML = pageClients.map(renderTableRow).join("");
-  }
+    if (elements.mobileList) {
+        elements.mobileList.hidden = !hasClients;
+    }
 
-  if (cardsList) {
-    cardsList.innerHTML = pageClients.map(renderClientCard).join("");
-  }
+    if (elements.empty) {
+        elements.empty.hidden = hasClients;
+    }
 
-  setText(
-    "clientsResultsText",
-    filteredClients.length === 0
-      ? "No matching client records."
-      : `Showing ${(currentPage - 1) * CLIENTS_PER_PAGE + 1}–${Math.min(
-          currentPage * CLIENTS_PER_PAGE,
-          filteredClients.length
-        )} of ${filteredClients.length} client(s).`
-  );
+    if (!hasClients) {
+        const hasSearch = Boolean(elements.search?.value.trim());
 
-  setText("clientsPageInfo", `Page ${currentPage} of ${totalPages}`);
+        setText(
+            "#emptyTitle",
+            hasSearch ? "No matching clients" : "No clients yet"
+        );
 
-  const previousButton = $("#previousClientsPage");
-  const nextButton = $("#nextClientsPage");
+        setText(
+            "#emptyMessage",
+            hasSearch
+                ? "Try another search term or change the filters."
+                : "Add your first client to start managing your rental records."
+        );
 
-  if (previousButton) previousButton.disabled = currentPage <= 1;
-  if (nextButton) nextButton.disabled = currentPage >= totalPages;
-
-  if (!hasClients) {
-    const isSearching = Boolean($("#clientSearch")?.value.trim());
-    const isArchived = currentFilter === "archived";
-
-    setText(
-      "clientsEmptyTitle",
-      isSearching
-        ? "No matching clients"
-        : isArchived
-          ? "No archived clients"
-          : "No clients yet"
-    );
-
-    setText(
-      "clientsEmptyMessage",
-      isSearching
-        ? "Try another name, client ID, phone number or email."
-        : "Add a client to begin building your client records."
-    );
-  }
-
-  $$("#clientFilters [data-filter]").forEach((button) => {
-    const active = button.dataset.filter === currentFilter;
-
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
+        const emptyAddButton = $("#emptyAddButton");
+        if (emptyAddButton) {
+            emptyAddButton.hidden = hasSearch;
+        }
+    }
 }
 
-/* =====================================================
-   CLIENT ROW AND CARD RENDERING
-   ===================================================== */
 
-function clientStatus(client) {
-  if (client.isArchived) return "Archived";
-
-  return client.status === "inactive" ? "Inactive" : "Active";
-}
-
-function profileUrl(client) {
-  // Use the Firestore document ID, never the display client ID.
-  return `${PROFILE_PAGE}?id=${encodeURIComponent(client.id)}`;
-}
+/* ============================================================
+   CLIENT TABLE ROW
+   ============================================================ */
 
 function renderTableRow(client) {
-  const archived = client.isArchived;
+    const id = escapeAttribute(client.id);
+    const name = escapeHTML(client.fullName || "Unnamed client");
+    const initials = escapeHTML(getInitials(client.fullName));
+    const phone = escapeHTML(client.phone || "—");
+    const email = escapeHTML(client.email || "—");
+    const type = escapeHTML(formatClientType(client.clientType));
+    const status = escapeHTML(client.status || "active");
 
-  return `
-    <tr data-client-id="${escapeHTML(client.id)}">
-      <td>
-        <div class="client-table-name">
-          <strong>${escapeHTML(client.fullName)}</strong>
-          <small>${escapeHTML(client.email || "No email provided")}</small>
-        </div>
-      </td>
-
-      <td>${escapeHTML(client.clientId || "—")}</td>
-
-      <td>
-        <span>${escapeHTML(client.phone || "No phone")}</span>
-        ${
-          client.alternativePhone
-            ? `<small>${escapeHTML(client.alternativePhone)}</small>`
-            : ""
-        }
-      </td>
-
-      <td>
-        <span class="client-room-placeholder">Not assigned</span>
-      </td>
-
-      <td>
-        <span class="client-status-badge status-${archived ? "archived" : escapeHTML(client.status)}">
-          ${escapeHTML(clientStatus(client))}
-        </span>
-      </td>
-
-      <td>${escapeHTML(formatDate(client.createdAt))}</td>
-
-      <td>
-        <div class="client-row-actions">
-          <a
-            class="client-action-button view-profile-button"
-            href="${escapeHTML(profileUrl(client))}"
-            aria-label="View profile for ${escapeHTML(client.fullName)}"
-          >
-            View Profile
-          </a>
-
-          ${
-            archived
-              ? `<button type="button" class="client-action-button" data-action="restore" data-id="${escapeHTML(client.id)}">Restore</button>`
-              : `
-                <button type="button" class="client-action-button" data-action="edit" data-id="${escapeHTML(client.id)}">Edit</button>
-                <button type="button" class="client-action-button danger" data-action="archive" data-id="${escapeHTML(client.id)}">Archive</button>
-              `
-          }
-        </div>
-      </td>
-    </tr>
-  `;
+    return `
+        <tr>
+            <td>
+                <div class="client-identity">
+                    <span class="client-avatar">${initials}</span>
+                    <div>
+                        <strong>${name}</strong>
+                        <small>${email}</small>
+                    </div>
+                </div>
+            </td>
+            <td>${phone}</td>
+            <td>${type}</td>
+            <td>
+                <span class="status-badge status-${status}">
+                    ${escapeHTML(capitalize(status))}
+                </span>
+            </td>
+            <td>${escapeHTML(formatDate(client.createdAt))}</td>
+            <td>
+                <div class="client-actions">
+                    <button class="icon-action" type="button"
+                        data-action="edit" data-id="${id}"
+                        aria-label="Edit ${name}" title="Edit client">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="icon-action danger-action" type="button"
+                        data-action="archive" data-id="${id}"
+                        aria-label="Archive ${name}" title="Archive client">
+                        <i class="fa-solid fa-box-archive"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `;
 }
 
-function renderClientCard(client) {
-  const archived = client.isArchived;
 
-  return `
-    <article class="client-card" data-client-id="${escapeHTML(client.id)}">
-      <div class="client-card-header">
-        <div>
-          <h3>${escapeHTML(client.fullName)}</h3>
-          <p>${escapeHTML(client.clientId || "ID not available")}</p>
-        </div>
+/* ============================================================
+   MOBILE CLIENT CARD
+   ============================================================ */
 
-        <span class="client-status-badge status-${archived ? "archived" : escapeHTML(client.status)}">
-          ${escapeHTML(clientStatus(client))}
-        </span>
-      </div>
+function renderMobileCard(client) {
+    const id = escapeAttribute(client.id);
+    const name = escapeHTML(client.fullName || "Unnamed client");
+    const initials = escapeHTML(getInitials(client.fullName));
+    const status = escapeHTML(client.status || "active");
 
-      <div class="client-card-details">
-        <p><strong>Phone:</strong> ${escapeHTML(client.phone || "Not provided")}</p>
-        <p><strong>Email:</strong> ${escapeHTML(client.email || "Not provided")}</p>
-        <p><strong>Room:</strong> Not assigned</p>
-        <p><strong>Registered:</strong> ${escapeHTML(formatDate(client.createdAt))}</p>
-      </div>
+    return `
+        <article class="mobile-client-card">
+            <div class="mobile-client-heading">
+                <span class="client-avatar">${initials}</span>
+                <div class="mobile-client-info">
+                    <strong>${name}</strong>
+                    <span>${escapeHTML(client.phone || "No phone number")}</span>
+                </div>
+                <span class="status-badge status-${status}">
+                    ${escapeHTML(capitalize(status))}
+                </span>
+            </div>
 
-      <div class="client-card-actions">
-        <a class="client-action-button view-profile-button"
-           href="${escapeHTML(profileUrl(client))}">
-          View Profile
-        </a>
+            <div class="mobile-client-details">
+                <p>
+                    <i class="fa-regular fa-envelope"></i>
+                    ${escapeHTML(client.email || "No email provided")}
+                </p>
+                <p>
+                    <i class="fa-solid fa-user-tag"></i>
+                    ${escapeHTML(formatClientType(client.clientType))}
+                </p>
+                <p>
+                    <i class="fa-regular fa-calendar"></i>
+                    Added ${escapeHTML(formatDate(client.createdAt))}
+                </p>
+            </div>
 
-        ${
-          archived
-            ? `<button type="button" class="client-action-button" data-action="restore" data-id="${escapeHTML(client.id)}">Restore</button>`
-            : `
-              <button type="button" class="client-action-button" data-action="edit" data-id="${escapeHTML(client.id)}">Edit</button>
-              <button type="button" class="client-action-button danger" data-action="archive" data-id="${escapeHTML(client.id)}">Archive</button>
-            `
-        }
-      </div>
-    </article>
-  `;
+            <div class="mobile-client-actions">
+                <button type="button" data-action="edit" data-id="${id}">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </button>
+                <button type="button" data-action="archive" data-id="${id}">
+                    <i class="fa-solid fa-box-archive"></i> Archive
+                </button>
+            </div>
+        </article>
+    `;
 }
 
-/* =====================================================
-   ADD / EDIT CLIENT MODAL
-   ===================================================== */
 
-function openClientModal(client = null) {
-  const root = $("#clientModalRoot");
-  if (!root) return;
+/* ============================================================
+   OPEN ADD / EDIT DIALOG
+   ============================================================ */
 
-  editingClientId = client?.id || null;
+function openClientDialog(client = null) {
+    editingClientId = client?.id || null;
 
-  root.innerHTML = `
-    <div class="modal-backdrop" data-modal-backdrop>
-      <section class="client-modal"
-               role="dialog"
-               aria-modal="true"
-               aria-labelledby="clientModalTitle">
+    elements.form?.reset();
 
-        <header class="client-modal-header">
-          <div>
-            <p class="eyebrow">CLIENT RECORD</p>
-            <h2 id="clientModalTitle">
-              ${client ? "Edit Client" : "Add New Client"}
-            </h2>
-          </div>
-
-          <button type="button"
-                  class="modal-close-button"
-                  data-close-modal
-                  aria-label="Close form">
-            &times;
-          </button>
-        </header>
-
-        <form id="clientForm" novalidate>
-          <div class="client-form-grid">
-
-            <label>
-              First name *
-              <input name="firstName" required maxlength="80"
-                     value="${escapeHTML(client?.firstName || "")}">
-            </label>
-
-            <label>
-              Last name *
-              <input name="lastName" required maxlength="80"
-                     value="${escapeHTML(client?.lastName || "")}">
-            </label>
-
-            <label>
-              Other names
-              <input name="otherNames" maxlength="100"
-                     value="${escapeHTML(client?.otherNames || "")}">
-            </label>
-
-            <label>
-              Phone number
-              <input name="phone" type="tel" maxlength="40"
-                     value="${escapeHTML(client?.phone || "")}">
-            </label>
-
-            <label>
-              Alternative phone
-              <input name="alternativePhone" type="tel" maxlength="40"
-                     value="${escapeHTML(client?.alternativePhone || "")}">
-            </label>
-
-            <label>
-              Email address
-              <input name="email" type="email" maxlength="150"
-                     value="${escapeHTML(client?.email || "")}">
-            </label>
-
-            <label>
-              Occupation
-              <input name="occupation" maxlength="100"
-                     value="${escapeHTML(client?.occupation || "")}">
-            </label>
-
-            <label>
-              City / town
-              <input name="city" maxlength="100"
-                     value="${escapeHTML(client?.city || "")}">
-            </label>
-
-            <label class="client-form-full">
-              Residential address
-              <input name="address" maxlength="250"
-                     value="${escapeHTML(client?.address || "")}">
-            </label>
-
-            <label>
-              Client type
-              <select name="clientType">
-                <option value="prospective" ${client?.clientType === "prospective" ? "selected" : ""}>Prospective</option>
-                <option value="tenant" ${client?.clientType === "tenant" ? "selected" : ""}>Tenant</option>
-                <option value="other" ${client?.clientType === "other" ? "selected" : ""}>Other</option>
-              </select>
-            </label>
-
-            <label>
-              Status
-              <select name="status">
-                <option value="active" ${client?.status !== "inactive" ? "selected" : ""}>Active</option>
-                <option value="inactive" ${client?.status === "inactive" ? "selected" : ""}>Inactive</option>
-              </select>
-            </label>
-
-            <label>
-              Emergency contact name
-              <input name="emergencyName" maxlength="120"
-                     value="${escapeHTML(client?.emergencyContact?.name || "")}">
-            </label>
-
-            <label>
-              Emergency contact relationship
-              <input name="emergencyRelationship" maxlength="80"
-                     value="${escapeHTML(client?.emergencyContact?.relationship || "")}">
-            </label>
-
-            <label>
-              Emergency contact phone
-              <input name="emergencyPhone" type="tel" maxlength="40"
-                     value="${escapeHTML(client?.emergencyContact?.phone || "")}">
-            </label>
-
-            <label class="client-form-full">
-              Notes
-              <textarea name="notes" rows="3" maxlength="2000">${escapeHTML(client?.notes || "")}</textarea>
-            </label>
-
-          </div>
-
-          <p class="client-form-error" id="clientFormError" role="alert" hidden></p>
-
-          <footer class="client-modal-footer">
-            <button type="button" class="client-cancel-button" data-close-modal>
-              Cancel
-            </button>
-
-            <button type="submit" class="client-save-button" id="saveClientButton">
-              ${client ? "Save Changes" : "Save Client"}
-            </button>
-          </footer>
-        </form>
-      </section>
-    </div>
-  `;
-
-  root.hidden = false;
-  document.body.classList.add("modal-open");
-
-  $("#clientForm input[name='firstName']")?.focus();
-
-  root.querySelectorAll("[data-close-modal]").forEach((button) => {
-    button.addEventListener("click", closeClientModal);
-  });
-
-  $("[data-modal-backdrop]", root)?.addEventListener("click", (event) => {
-    if (event.target === event.currentTarget) {
-      closeClientModal();
+    if (elements.formError) {
+        elements.formError.hidden = true;
+        elements.formError.textContent = "";
     }
-  });
 
-  $("#clientForm", root)?.addEventListener("submit", handleClientFormSubmit);
+    setText(
+        "#dialogTitle",
+        client ? "Edit client" : "Add new client"
+    );
+
+    setFormValue("fullName", client?.fullName || "");
+    setFormValue("phone", client?.phone || "");
+    setFormValue("email", client?.email || "");
+    setFormValue("clientType", client?.clientType || "individual");
+    setFormValue("clientStatus", client?.status || "active");
+    setFormValue("address", client?.address || "");
+    setFormValue("notes", client?.notes || "");
+
+    if (elements.saveButton) {
+        elements.saveButton.disabled = false;
+        elements.saveButton.innerHTML = client
+            ? '<i class="fa-solid fa-floppy-disk"></i> Save changes'
+            : '<i class="fa-solid fa-user-plus"></i> Add client';
+    }
+
+    if (elements.dialog?.showModal) {
+        elements.dialog.showModal();
+    } else if (elements.dialog) {
+        elements.dialog.setAttribute("open", "");
+    }
 }
 
-function closeClientModal() {
-  const root = $("#clientModalRoot");
-
-  if (root) {
-    root.hidden = true;
-    root.innerHTML = "";
-  }
-
-  document.body.classList.remove("modal-open");
-  editingClientId = null;
-}
-
-/* =====================================================
-   SAVE CLIENT FORM
-   ===================================================== */
-
-async function handleClientFormSubmit(event) {
-  event.preventDefault();
-
-  const form = event.currentTarget;
-  const saveButton = $("#saveClientButton");
-  const errorElement = $("#clientFormError");
-
-  const formData = new FormData(form);
-
-  const clientData = {
-    firstName: formData.get("firstName"),
-    lastName: formData.get("lastName"),
-    otherNames: formData.get("otherNames"),
-    phone: formData.get("phone"),
-    alternativePhone: formData.get("alternativePhone"),
-    email: formData.get("email"),
-    occupation: formData.get("occupation"),
-    city: formData.get("city"),
-    address: formData.get("address"),
-    clientType: formData.get("clientType"),
-    status: formData.get("status"),
-
-    emergencyContact: {
-      name: formData.get("emergencyName"),
-      relationship: formData.get("emergencyRelationship"),
-      phone: formData.get("emergencyPhone")
-    },
-
-    notes: formData.get("notes")
-  };
-
-  if (!clientData.firstName?.trim() || !clientData.lastName?.trim()) {
-    errorElement.textContent = "First name and last name are required.";
-    errorElement.hidden = false;
-    return;
-  }
-
-  if (
-    clientData.email &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientData.email.trim())
-  ) {
-    errorElement.textContent = "Enter a valid email address.";
-    errorElement.hidden = false;
-    return;
-  }
-
-  try {
-    if (errorElement) errorElement.hidden = true;
-
-    setButtonLoading(saveButton, true, "Saving...");
-
-    if (editingClientId) {
-      await updateClient(editingClientId, clientData);
-      showToast("Client record updated successfully.");
+function closeClientDialog() {
+    if (elements.dialog?.open && elements.dialog.close) {
+        elements.dialog.close();
     } else {
-      await addClient(clientData);
-      showToast("Client added successfully.");
+        elements.dialog?.removeAttribute("open");
     }
 
-    closeClientModal();
-    await loadClients();
-  } catch (error) {
-    console.error("Unable to save client:", error);
-
-    if (errorElement) {
-      errorElement.textContent = errorMessage(error);
-      errorElement.hidden = false;
-    }
-
-    setButtonLoading(saveButton, false);
-  }
+    editingClientId = null;
 }
 
-/* =====================================================
-   CLIENT ACTIONS
-   ===================================================== */
 
-async function handleClientAction(action, clientDocumentId) {
-  const client = clients.find((item) => item.id === clientDocumentId);
+/* ============================================================
+   SAVE CLIENT
+   ============================================================ */
 
-  if (!client) {
-    showToast("That client record could not be found.", "error");
-    return;
-  }
+async function handleFormSubmit(event) {
+    event.preventDefault();
 
-  if (action === "edit") {
-    openClientModal(client);
-    return;
-  }
+    const clientData = {
+        fullName: getFormValue("fullName"),
+        phone: getFormValue("phone"),
+        email: getFormValue("email"),
+        clientType: getFormValue("clientType") || "individual",
+        status: getFormValue("clientStatus") || "active",
+        address: getFormValue("address"),
+        notes: getFormValue("notes")
+    };
 
-  if (action === "archive") {
+    if (!clientData.fullName || !clientData.phone) {
+        showFormError("Client name and phone number are required.");
+        return;
+    }
+
+    setSaving(true);
+
+    try {
+        if (editingClientId) {
+            await updateClient(editingClientId, clientData);
+            showPageMessage("Client details updated successfully.");
+        } else {
+            await createClient(clientData);
+            showPageMessage("Client added successfully.");
+        }
+
+        closeClientDialog();
+        await loadClients();
+
+    } catch (error) {
+        console.error("HomeRent: Unable to save client.", error);
+
+        // Display validation errors returned by the service, if any.
+        const validationMessages = error?.validationErrors
+            ? Object.values(error.validationErrors).join(" ")
+            : "";
+
+        showFormError(
+            validationMessages ||
+            error?.message ||
+            "Unable to save this client. Please try again."
+        );
+
+    } finally {
+        setSaving(false);
+    }
+}
+
+function setSaving(isSaving) {
+    if (!elements.saveButton) return;
+
+    elements.saveButton.disabled = isSaving;
+
+    if (isSaving) {
+        elements.saveButton.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    }
+}
+
+function showFormError(message) {
+    if (!elements.formError) {
+        alert(message);
+        return;
+    }
+
+    elements.formError.textContent = message;
+    elements.formError.hidden = false;
+}
+
+
+/* ============================================================
+   HANDLE EDIT / ARCHIVE / RESTORE ACTIONS
+   ============================================================ */
+
+async function handleClientAction(event) {
+    const button = event.target.closest("[data-action]");
+
+    if (!button) return;
+
+    const { action, id } = button.dataset;
+    const client = clients.find((item) => item.id === id);
+
+    if (!id) return;
+
+    if (action === "edit") {
+        if (client) openClientDialog(client);
+        return;
+    }
+
+    if (action === "archive") {
+        await handleArchive(id);
+        return;
+    }
+
+    if (action === "restore") {
+        await handleRestore(id);
+    }
+}
+
+async function handleArchive(clientId) {
+    const client = clients.find((item) => item.id === clientId);
+
+    if (!client) return;
+
     const confirmed = window.confirm(
-      `Archive ${client.fullName}? The record will be preserved and can be restored later.`
+        `Archive ${client.fullName || "this client"}?\n\n` +
+        "The client will be removed from the active directory. " +
+        "This should not be used to delete financial or tenancy history."
     );
 
     if (!confirmed) return;
 
     try {
-      await archiveClient(clientDocumentId);
-      showToast("Client archived. The record has been preserved.");
-      await loadClients();
+        await archiveClient(clientId);
+        showPageMessage("Client archived successfully.");
+        await loadClients();
     } catch (error) {
-      showToast(errorMessage(error), "error");
+        console.error("HomeRent: Unable to archive client.", error);
+        showPageMessage(
+            error?.message || "Unable to archive this client.",
+            true
+        );
     }
+}
 
-    return;
-  }
+async function handleRestore(clientId) {
+    try {
+        await restoreClient(clientId);
+        showPageMessage("Client restored successfully.");
+        await loadClients();
+    } catch (error) {
+        console.error("HomeRent: Unable to restore client.", error);
+        showPageMessage(
+            error?.message || "Unable to restore this client.",
+            true
+        );
+    }
+}
 
-  if (action === "restore") {
-    const confirmed = window.confirm(
-      `Restore ${client.fullName} to the active client list?`
-    );
+
+/* ============================================================
+   SIDEBAR / MOBILE NAVIGATION
+   ============================================================ */
+
+function openSidebar() {
+    document.body.classList.add("sidebar-open");
+    $("#sidebarOverlay")?.removeAttribute("hidden");
+}
+
+function closeSidebar() {
+    document.body.classList.remove("sidebar-open");
+
+    const overlay = $("#sidebarOverlay");
+    if (overlay) overlay.setAttribute("hidden", "");
+}
+
+
+/* ============================================================
+   SIGN OUT
+   ============================================================ */
+
+async function handleLogout() {
+    const confirmed = window.confirm("Do you want to sign out of HomeRent?");
 
     if (!confirmed) return;
 
     try {
-      await restoreClient(clientDocumentId);
-      showToast("Client restored successfully.");
-      await loadClients();
+        await logoutAdmin();
+        window.location.href = "../../pages/auth/login.html";
     } catch (error) {
-      showToast(errorMessage(error), "error");
+        console.error("HomeRent: Sign out failed.", error);
+        showPageMessage("Unable to sign out. Please try again.", true);
     }
-  }
 }
 
-/* =====================================================
-   PAGE CONTROL EVENTS
-   ===================================================== */
 
-function initializeControls() {
-  $("#addClientButton")?.addEventListener("click", () => openClientModal());
-  $("#emptyAddClientButton")?.addEventListener("click", () => openClientModal());
+/* ============================================================
+   PAGE STATES
+   ============================================================ */
 
-  $("#refreshClientsButton")?.addEventListener("click", loadClients);
-  $("#retryClientsButton")?.addEventListener("click", loadClients);
-
-  $("#clientSearch")?.addEventListener("input", applyFilters);
-  $("#clientSort")?.addEventListener("change", applyFilters);
-
-  $("#clientFilters")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-filter]");
-
-    if (!button) return;
-
-    currentFilter = button.dataset.filter;
-    applyFilters();
-  });
-
-  $("#previousClientsPage")?.addEventListener("click", () => {
-    if (currentPage > 1) {
-      currentPage--;
-      renderClients();
-    }
-  });
-
-  $("#nextClientsPage")?.addEventListener("click", () => {
-    const totalPages = Math.max(
-      1,
-      Math.ceil(filteredClients.length / CLIENTS_PER_PAGE)
-    );
-
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderClients();
-    }
-  });
-
-  $("#clientsTableBody")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-action]");
-
-    if (!button) return;
-
-    handleClientAction(button.dataset.action, button.dataset.id);
-  });
-
-  $("#clientCardsList")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-action]");
-
-    if (!button) return;
-
-    handleClientAction(button.dataset.action, button.dataset.id);
-  });
-
-  // Escape closes the modal while it is open.
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !$("#clientModalRoot")?.hidden) {
-      closeClientModal();
-    }
-  });
-}
-
-/* =====================================================
-   MOBILE SIDEBAR
-   ===================================================== */
-
-function initializeNavigation() {
-  const sidebar = $("#sidebar");
-  const overlay = $("#sidebarOverlay");
-  const menuButton = $("#mobileMenuButton");
-
-  if (!sidebar || !overlay || !menuButton) return;
-
-  function closeSidebar() {
-    sidebar.classList.remove("is-open");
-    overlay.classList.remove("is-visible");
-    menuButton.setAttribute("aria-expanded", "false");
-    overlay.setAttribute("aria-hidden", "true");
-  }
-
-  menuButton.addEventListener("click", () => {
-    const opening = !sidebar.classList.contains("is-open");
-
-    sidebar.classList.toggle("is-open", opening);
-    overlay.classList.toggle("is-visible", opening);
-    menuButton.setAttribute("aria-expanded", String(opening));
-    overlay.setAttribute("aria-hidden", String(!opening));
-  });
-
-  overlay.addEventListener("click", closeSidebar);
-
-  sidebar.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", closeSidebar);
-  });
-
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeSidebar();
-  });
-}
-
-/* =====================================================
-   LOADING AND ERROR STATES
-   ===================================================== */
-
-function showLoading(show) {
-  const loading = $("#clientsLoading");
-
-  if (loading) loading.hidden = !show;
+function showLoading() {
+    if (elements.loading) elements.loading.hidden = false;
+    if (elements.error) elements.error.hidden = true;
+    if (elements.empty) elements.empty.hidden = true;
+    if (elements.tableWrap) elements.tableWrap.hidden = true;
+    if (elements.mobileList) elements.mobileList.hidden = true;
 }
 
 function showError(message) {
-  const error = $("#clientsError");
+    if (elements.loading) elements.loading.hidden = true;
+    if (elements.error) elements.error.hidden = false;
+    if (elements.empty) elements.empty.hidden = true;
+    if (elements.tableWrap) elements.tableWrap.hidden = true;
+    if (elements.mobileList) elements.mobileList.hidden = true;
 
-  if (error) error.hidden = false;
-
-  setText("clientsErrorMessage", message);
-
-  const table = $("#clientsTableWrapper");
-  const cards = $("#clientCardsList");
-  const empty = $("#clientsEmpty");
-
-  if (table) table.hidden = true;
-  if (cards) cards.hidden = true;
-  if (empty) empty.hidden = true;
+    if (elements.errorMessage) {
+        elements.errorMessage.textContent = message;
+    }
 }
 
-function hideError() {
-  const error = $("#clientsError");
+function showPageMessage(message, isError = false) {
+    if (!elements.pageMessage) return;
 
-  if (error) error.hidden = true;
+    elements.pageMessage.textContent = message;
+    elements.pageMessage.hidden = !message;
+    elements.pageMessage.classList.toggle("message-error", isError);
+    elements.pageMessage.classList.toggle("message-success", Boolean(message) && !isError);
 }
+
+
+/* ============================================================
+   GENERAL HELPERS
+   ============================================================ */
+
+function setText(selector, value) {
+    const element = $(selector);
+    if (element) element.textContent = String(value ?? "");
+}
+
+function setFormValue(name, value) {
+    const field = elements.form?.elements.namedItem(name);
+    if (field) field.value = value;
+}
+
+function getFormValue(name) {
+    const field = elements.form?.elements.namedItem(name);
+    return String(field?.va

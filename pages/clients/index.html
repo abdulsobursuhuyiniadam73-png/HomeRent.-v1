@@ -5,17 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#087fdf">
 
-  <title>Clients | HomeRent</title>
-  <meta
-    name="description"
-    content="Manage client records, contact information and rental history in HomeRent."
-  >
+  <title>Clients</title>
 
   <!-- Shared HomeRent styles -->
   <link rel="stylesheet" href="../../css/global.css">
   <link rel="stylesheet" href="../../css/components.css">
 
-  <!-- Clients page styles -->
+  <!-- Clients module styles -->
   <link rel="stylesheet" href="../../css/clients.css">
 
   <!-- Icons -->
@@ -29,560 +25,616 @@
 
   <div class="app-shell">
 
-    <!-- Mobile sidebar overlay -->
-    <div
-      class="sidebar-overlay"
-      id="sidebarOverlay"
-      aria-hidden="true"
-    ></div>
+    <!-- Mobile navigation overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- ================================================
+    <!-- =========================================
          SIDEBAR
-         Shared navigation and dynamic business branding
-         ================================================ -->
+         ========================================= -->
     <aside class="sidebar" id="sidebar">
 
-      <div class="sidebar-inner">
+      <!-- System branding: populated by branding.js -->
+      <div class="sidebar-brand">
 
-        <!-- BUSINESS LOGO AND NAME
-             branding.js controls the logo and business name.
-             Keep these data attributes unchanged. -->
-        <div class="sidebar-brand">
-
-          <div
-            class="sidebar-logo"
-            data-logo-container
+        <div class="sidebar-logo">
+          <img
+            id="systemLogo"
+            src="../../assets/images/system-logo.jpeg"
+            alt="System logo"
+            data-default-logo
           >
-            <img
-              id="systemLogo"
-              src="../../assets/images/system-logo.jpeg"
-              alt="Business logo"
-              data-system-logo
-              data-default-logo
-            >
-          </div>
-
-          <div class="sidebar-brand-text">
-            <strong
-              id="systemName"
-              data-setting="businessName"
-            >HomeRent</strong>
-
-            <span id="systemSubtitle">
-              Property Management
-            </span>
-          </div>
-
         </div>
 
-        <!-- Main navigation -->
-        <nav class="sidebar-nav" aria-label="Main navigation">
+        <div class="sidebar-brand-text">
+          <strong id="systemName" data-setting="businessName">
+            HomeRent
+          </strong>
 
-          <a href="../dashboard/index.html" class="nav-link">
-            <i class="fa-solid fa-house" aria-hidden="true"></i>
-            <span>Dashboard</span>
-          </a>
-
-          <a href="../rooms/index.html" class="nav-link">
-            <i class="fa-solid fa-door-open" aria-hidden="true"></i>
-            <span>Rooms</span>
-          </a>
-
-          <a
-            href="index.html"
-            class="nav-link active"
-            aria-current="page"
-          >
-            <i class="fa-solid fa-users" aria-hidden="true"></i>
-            <span>Clients</span>
-          </a>
-
-          <a href="../tenancies/index.html" class="nav-link">
-            <i class="fa-solid fa-file-contract" aria-hidden="true"></i>
-            <span>Tenancies</span>
-          </a>
-
-          <a href="../inspections/index.html" class="nav-link">
-            <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>
-            <span>Inspections</span>
-          </a>
-
-          <a href="../payments/index.html" class="nav-link">
-            <i class="fa-solid fa-wallet" aria-hidden="true"></i>
-            <span>Payments</span>
-          </a>
-
-          <a href="../reports/index.html" class="nav-link">
-            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-            <span>Reports</span>
-          </a>
-
-          <a href="../settings/index.html" class="nav-link">
-            <i class="fa-solid fa-gear" aria-hidden="true"></i>
-            <span>Settings</span>
-          </a>
-
-        </nav>
-
-        <!-- Sidebar footer -->
-        <div class="sidebar-footer">
-          <span class="sidebar-footer-dot"></span>
-          <span>Secure management</span>
+          <span id="systemSubtitle">
+            Property Management
+          </span>
         </div>
-
-      </div>
-    </aside>
-
-
-    <!-- ================================================
-         MAIN CONTENT
-         ================================================ -->
-    <main class="main-content">
-
-      <!-- Mobile header -->
-      <header class="mobile-header">
 
         <button
           type="button"
-          class="icon-button mobile-menu-button"
-          id="mobileMenuButton"
-          aria-label="Open navigation menu"
-          aria-controls="sidebar"
-          aria-expanded="false"
+          class="icon-button sidebar-close"
+          id="sidebarClose"
+          aria-label="Close navigation"
         >
-          <i class="fa-solid fa-bars" aria-hidden="true"></i>
+          <i class="fa-solid fa-xmark"></i>
         </button>
 
-        <div class="mobile-header-brand">
+      </div>
 
-          <div
-            class="mobile-brand-logo"
-            data-logo-container
+      <!-- Main navigation -->
+      <nav class="sidebar-nav" aria-label="Main navigation">
+
+        <a
+          href="../dashboard/index.html"
+          class="nav-link"
+        >
+          <i class="fa-solid fa-house"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a
+          href="../rooms/index.html"
+          class="nav-link"
+        >
+          <i class="fa-solid fa-door-open"></i>
+          <span>Rooms</span>
+        </a>
+
+        <a
+          href="index.html"
+          class="nav-link active"
+          aria-current="page"
+        >
+          <i class="fa-solid fa-users"></i>
+          <span>Clients</span>
+        </a>
+
+        <a
+          href="../tenancies/index.html"
+          class="nav-link"
+        >
+          <i class="fa-solid fa-file-contract"></i>
+          <span>Tenancies</span>
+        </a>
+
+        <a
+          href="../inspections/index.html"
+          class="nav-link"
+        >
+          <i class="fa-solid fa-clipboard-check"></i>
+          <span>Inspections</span>
+        </a>
+
+        <a
+          href="../payments/index.html"
+          class="nav-link"
+        >
+          <i class="fa-solid fa-wallet"></i>
+          <span>Payments</span>
+        </a>
+
+        <a
+          href="../reports/index.html"
+          class="nav-link"
+        >
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Reports</span>
+        </a>
+
+        <a
+          href="../settings/index.html"
+          class="nav-link"
+        >
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </a>
+
+      </nav>
+
+      <!-- Sidebar footer -->
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>Secure management</span>
+      </div>
+
+    </aside>
+
+    <!-- =========================================
+         MAIN CONTENT
+         ========================================= -->
+    <main class="main-content">
+
+      <!-- Top navigation -->
+      <header class="topbar">
+
+        <div class="topbar-heading">
+
+          <button
+            type="button"
+            class="icon-button mobile-menu-button"
+            id="mobileMenuButton"
+            aria-label="Open navigation"
+            aria-expanded="false"
           >
-            <img
-              src="../../assets/images/default-logo.svg"
-              alt="Business logo"
-              data-system-logo
-              data-default-logo
-            >
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
+          <div>
+            <p class="eyebrow">PEOPLE &amp; RELATIONSHIPS</p>
+
+            <h1>Clients</h1>
+
+            <p class="page-subtitle">
+              Manage client profiles and keep their rental history connected.
+            </p>
           </div>
 
-          <strong data-setting="businessName">HomeRent</strong>
+        </div>
+
+        <div class="topbar-actions">
+
+          <button
+            type="button"
+            class="icon-button"
+            id="refreshClientsButton"
+            title="Refresh clients"
+            aria-label="Refresh clients"
+          >
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+
+          <button
+            type="button"
+            class="profile-button"
+            id="profileButton"
+            aria-label="Sign out"
+            title="Administrator account"
+          >
+            <span id="profileInitial">A</span>
+          </button>
 
         </div>
 
       </header>
 
-
-      <div class="page-container">
-
-        <!-- Page heading -->
-        <header class="topbar">
-
-          <div class="topbar-left">
-            <div>
-              <p class="eyebrow">PROPERTY MANAGEMENT</p>
-
-              <h1>Clients Management</h1>
-
-              <p class="page-subtitle">
-                Organize client records and access their rental history
-                in one place.
-              </p>
-            </div>
-          </div>
-
-          <div class="topbar-actions">
-
-            <button
-              type="button"
-              class="primary-button"
-              id="addClientButton"
-            >
-              <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
-              <span>Add New Client</span>
-            </button>
-
-          </div>
-
-        </header>
-
-
-        <!-- ============================================
-             CLIENT SUMMARY CARDS
-             Values will be supplied by clients.js
-             ============================================ -->
-        <section
-          class="client-summary-grid"
-          aria-label="Client summary"
-        >
-
-          <article class="summary-card">
-            <div class="summary-icon summary-icon-blue">
-              <i class="fa-solid fa-users" aria-hidden="true"></i>
-            </div>
-
-            <div>
-              <p>Total Clients</p>
-              <h2 id="totalClients">—</h2>
-              <small>All client records</small>
-            </div>
-          </article>
-
-
-          <article class="summary-card">
-            <div class="summary-icon summary-icon-green">
-              <i class="fa-solid fa-user-check" aria-hidden="true"></i>
-            </div>
-
-            <div>
-              <p>Active Clients</p>
-              <h2 id="activeClients">—</h2>
-              <small>Active client records</small>
-            </div>
-          </article>
-
-
-          <article class="summary-card">
-            <div class="summary-icon summary-icon-orange">
-              <i class="fa-solid fa-user-clock" aria-hidden="true"></i>
-            </div>
-
-            <div>
-              <p>Prospective Clients</p>
-              <h2 id="prospectiveClients">—</h2>
-              <small>Potential tenants</small>
-            </div>
-          </article>
-
-
-          <article class="summary-card">
-            <div class="summary-icon summary-icon-purple">
-              <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
-            </div>
-
-            <div>
-              <p>Archived Clients</p>
-              <h2 id="archivedClients">—</h2>
-              <small>Archived records</small>
-            </div>
-          </article>
-
-        </section>
-
-
-        <!-- ============================================
-             CLIENT RECORDS WORKSPACE
-             ============================================ -->
-        <section class="clients-workspace">
-
-          <div class="clients-section-heading">
-
-            <div>
-              <h2>Client Records</h2>
-              <p>
-                Search, review and manage your registered clients.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              class="text-button"
-              id="refreshClientsButton"
-              aria-label="Refresh client records"
-            >
-              <i class="fa-solid fa-rotate" aria-hidden="true"></i>
-              <span>Refresh</span>
-            </button>
-
-          </div>
-
-
-          <!-- Search and sorting -->
-          <div class="clients-search-row">
-
-            <label class="clients-search-box" for="clientSearch">
-              <i
-                class="fa-solid fa-magnifying-glass"
-                aria-hidden="true"
-              ></i>
-
-              <input
-                type="search"
-                id="clientSearch"
-                placeholder="Search name, client ID, phone or email..."
-                autocomplete="off"
-                aria-label="Search clients"
-              >
-            </label>
-
-            <label class="clients-sort-box" for="clientSort">
-              <span class="visually-hidden">Sort clients</span>
-
-              <i
-                class="fa-solid fa-arrow-down-wide-short"
-                aria-hidden="true"
-              ></i>
-
-              <select id="clientSort">
-                <option value="name-asc">Name: A–Z</option>
-                <option value="name-desc">Name: Z–A</option>
-                <option value="recent">Recently added</option>
-                <option value="oldest">Oldest first</option>
-              </select>
-            </label>
-
-          </div>
-
-
-          <!-- Client filters -->
-          <div
-            class="client-filter-list"
-            id="clientFilters"
-            role="group"
-            aria-label="Filter clients"
-          >
-
-            <button
-              type="button"
-              class="filter-chip active"
-              data-filter="all"
-              aria-pressed="true"
-            >
-              All Clients
-              <span id="allClientsCount">—</span>
-            </button>
-
-            <button
-              type="button"
-              class="filter-chip"
-              data-filter="active"
-              aria-pressed="false"
-            >
-              <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-              Active
-            </button>
-
-            <button
-              type="button"
-              class="filter-chip"
-              data-filter="prospective"
-              aria-pressed="false"
-            >
-              <i class="fa-solid fa-user-clock" aria-hidden="true"></i>
-              Prospects
-            </button>
-
-            <button
-              type="button"
-              class="filter-chip"
-              data-filter="inactive"
-              aria-pressed="false"
-            >
-              <i class="fa-solid fa-user-minus" aria-hidden="true"></i>
-              Inactive
-            </button>
-
-            <button
-              type="button"
-              class="filter-chip"
-              data-filter="archived"
-              aria-pressed="false"
-            >
-              <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
-              Archived
-            </button>
-
-          </div>
-
-
-          <!-- Results information -->
-          <div class="clients-results-bar">
-
-            <p id="clientsResultsText" aria-live="polite">
-              Client records will appear here.
-            </p>
-
-          </div>
-
-
-          <!-- Loading state -->
-          <div
-            class="clients-state"
-            id="clientsLoading"
-            role="status"
-            hidden
-          >
-            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
-            <p>Loading client records...</p>
-          </div>
-
-
-          <!-- Error state -->
-          <div
-            class="clients-state clients-error"
-            id="clientsError"
-            role="alert"
-            hidden
-          >
-            <i
-              class="fa-solid fa-circle-exclamation"
-              aria-hidden="true"
-            ></i>
-
-            <h3>Unable to load clients</h3>
-
-            <p id="clientsErrorMessage">
-              Please check your connection and try again.
-            </p>
-
-            <button
-              type="button"
-              class="secondary-button"
-              id="retryClientsButton"
-            >
-              <i class="fa-solid fa-rotate" aria-hidden="true"></i>
-              Try Again
-            </button>
-          </div>
-
-
-          <!-- Empty state -->
-          <div
-            class="clients-state clients-empty"
-            id="clientsEmpty"
-            hidden
-          >
-            <div class="clients-empty-icon">
-              <i class="fa-solid fa-users" aria-hidden="true"></i>
-            </div>
-
-            <h3 id="clientsEmptyTitle">No clients yet</h3>
-
-            <p id="clientsEmptyMessage">
-              Add your first client to begin building your client records.
-            </p>
-
-            <button
-              type="button"
-              class="primary-button"
-              id="emptyAddClientButton"
-            >
-              <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
-              Add New Client
-            </button>
-          </div>
-
-
-          <!-- Client records table -->
-          <div
-            class="clients-table-wrapper"
-            id="clientsTableWrapper"
-            hidden
-          >
-
-            <table class="clients-table">
-
-              <thead>
-                <tr>
-                  <th scope="col">Client</th>
-                  <th scope="col">Client ID</th>
-                  <th scope="col">Contact</th>
-                  <th scope="col">Current Room</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Registered</th>
-                  <th scope="col">
-                    <span class="visually-hidden">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody id="clientsTableBody">
-                <!-- Generated from the existing clients collection -->
-              </tbody>
-
-            </table>
-
-          </div>
-
-
-          <!-- Mobile client cards -->
-          <div
-            class="client-cards-list"
-            id="clientCardsList"
-            aria-label="Client records"
-            hidden
-          >
-            <!-- Responsive client cards will be generated by clients.js -->
-          </div>
-
-
-          <!-- Pagination -->
-          <nav
-            class="clients-pagination"
-            id="clientsPagination"
-            aria-label="Client list pages"
-            hidden
-          >
-
-            <button
-              type="button"
-              class="secondary-button"
-              id="previousClientsPage"
-              disabled
-            >
-              <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-              Previous
-            </button>
-
-            <span id="clientsPageInfo" aria-live="polite">
-              Page 1
-            </span>
-
-            <button
-              type="button"
-              class="secondary-button"
-              id="nextClientsPage"
-              disabled
-            >
-              Next
-              <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-            </button>
-
-          </nav>
-
-        </section>
-
-
-        <!-- Global footer -->
-        <footer class="app-footer">
+      <!-- Page introduction -->
+      <section class="welcome-row">
+
+        <div>
+          <h2>Your client directory</h2>
 
           <p>
-            © <span data-setting="copyrightYear"></span>
-            <span data-setting="businessName">HomeRent</span>.
-            All rights reserved.
+            Manage current clients, former tenants and their rental records.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="button button-primary"
+          id="addClientButton"
+        >
+          <i class="fa-solid fa-plus"></i>
+          <span>Add client</span>
+        </button>
+
+      </section>
+
+      <!-- =========================================
+           CLIENT SUMMARY CARDS
+           ========================================= -->
+      <section
+        class="stats-grid"
+        aria-label="Client statistics"
+      >
+
+        <article class="stat-card">
+          <div class="stat-icon blue">
+            <i class="fa-solid fa-users"></i>
+          </div>
+
+          <div>
+            <p>Total clients</p>
+            <strong id="totalClients">—</strong>
+            <small>All saved profiles</small>
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-icon green">
+            <i class="fa-solid fa-user-check"></i>
+          </div>
+
+          <div>
+            <p>Active clients</p>
+            <strong id="activeClients">—</strong>
+            <small>Active client records</small>
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-icon amber">
+            <i class="fa-solid fa-user-clock"></i>
+          </div>
+
+          <div>
+            <p>Inactive clients</p>
+            <strong id="formerClients">—</strong>
+            <small>Inactive or archived records</small>
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <div class="stat-icon violet">
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+
+          <div>
+            <p>Recently added</p>
+            <strong id="recentClients">—</strong>
+            <small>Added in the last 30 days</small>
+          </div>
+        </article>
+
+      </section>
+
+      <!-- =========================================
+           CLIENT DIRECTORY
+           ========================================= -->
+      <section class="directory-card">
+
+        <div class="directory-heading">
+
+          <div>
+            <h2>All clients</h2>
+
+            <p id="resultsText">
+              Loading client records...
+            </p>
+          </div>
+
+          <span class="directory-mark" aria-hidden="true">
+            <i class="fa-solid fa-address-book"></i>
+          </span>
+
+        </div>
+
+        <!-- Search, filter and sort -->
+        <div class="toolbar">
+
+          <label class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <span class="visually-hidden">
+              Search clients
+            </span>
+
+            <input
+              id="clientSearch"
+              type="search"
+              placeholder="Search name, phone, email or client ID..."
+              autocomplete="off"
+            >
+          </label>
+
+          <label class="filter-select">
+            <i class="fa-solid fa-sliders"></i>
+
+            <span class="visually-hidden">
+              Filter clients
+            </span>
+
+            <select id="statusFilter">
+              <option value="all">All clients</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="archived">Archived</option>
+            </select>
+          </label>
+
+          <label class="filter-select">
+            <i class="fa-solid fa-arrow-down-wide-short"></i>
+
+            <span class="visually-hidden">
+              Sort clients
+            </span>
+
+            <select id="sortClients">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="name">Name A–Z</option>
+            </select>
+          </label>
+
+        </div>
+
+        <!-- Feedback messages -->
+        <div
+          id="pageMessage"
+          class="message"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+
+        <!-- Loading state -->
+        <div
+          id="loadingState"
+          class="state-panel"
+          role="status"
+        >
+          <span class="spinner"></span>
+
+          <strong>Loading clients</strong>
+
+          <p>
+            Retrieving client records from your database.
+          </p>
+        </div>
+
+        <!-- Error state -->
+        <div
+          id="errorState"
+          class="state-panel"
+          hidden
+        >
+          <span class="state-icon error">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </span>
+
+          <strong>Unable to load clients</strong>
+
+          <p id="errorMessage">
+            Check your connection and try again.
           </p>
 
-          <p data-setting="footerText"></p>
+          <button
+            type="button"
+            class="button button-secondary"
+            id="retryButton"
+          >
+            Try again
+          </button>
+        </div>
 
-        </footer>
+        <!-- Empty state -->
+        <div
+          id="emptyState"
+          class="state-panel"
+          hidden
+        >
+          <span class="state-icon">
+            <i class="fa-solid fa-user-plus"></i>
+          </span>
 
-      </div>
+          <strong id="emptyTitle">No clients yet</strong>
+
+          <p id="emptyMessage">
+            Add your first client to begin building their rental history.
+          </p>
+
+          <button
+            type="button"
+            class="button button-primary"
+            id="emptyAddButton"
+          >
+            <i class="fa-solid fa-plus"></i>
+            Add first client
+          </button>
+        </div>
+
+        <!-- Desktop client table -->
+        <div
+          class="table-wrap"
+          id="tableWrap"
+          hidden
+        >
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">CLIENT</th>
+                <th scope="col">CONTACT</th>
+                <th scope="col">STATUS</th>
+                <th scope="col">DATE ADDED</th>
+                <th scope="col" class="actions-heading">ACTIONS</th>
+              </tr>
+            </thead>
+
+            <tbody id="clientsTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Mobile client cards -->
+        <div
+          class="mobile-client-list"
+          id="mobileClientList"
+          hidden
+        ></div>
+
+      </section>
+
+      <!-- Footer uses administrator branding -->
+      <footer class="app-footer">
+        ©
+        <span data-setting="copyrightYear"></span>
+
+        <span data-setting="businessName">HomeRent</span>.
+
+        All rights reserved.
+      </footer>
+
     </main>
 
   </div>
 
+  <!-- =========================================
+       ADD / EDIT CLIENT DIALOG
+       ========================================= -->
+  <dialog
+    class="client-dialog"
+    id="clientDialog"
+    aria-labelledby="dialogTitle"
+  >
 
-  <!-- ================================================
-       ADD / EDIT CLIENT MODAL ROOT
-       The form will be inserted here by clients.js
-       ================================================ -->
-  <div id="clientModalRoot"></div>
+    <form id="clientForm" novalidate>
 
+      <div class="dialog-heading">
 
-  <!-- Clients module entry point.
-       This file will handle Firebase records, page actions,
-       shared branding and mobile sidebar interactions. -->
+        <div>
+          <p class="eyebrow">CLIENT DIRECTORY</p>
+
+          <h2 id="dialogTitle">Add a client</h2>
+
+          <p>
+            Enter the client's details. Tenancies and payments
+            will be linked to this profile.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="icon-button"
+          id="closeDialogButton"
+          aria-label="Close form"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+      </div>
+
+      <div
+        id="formError"
+        class="form-error"
+        role="alert"
+        hidden
+      ></div>
+
+      <div class="form-grid">
+
+        <label class="field full-field">
+          <span>Full name <b>*</b></span>
+
+          <input
+            type="text"
+            name="fullName"
+            id="fullName"
+            maxlength="120"
+            placeholder="e.g. Ama Mensah"
+            autocomplete="name"
+            required
+          >
+
+          <small>
+            Enter the name used on tenancy records and receipts.
+          </small>
+        </label>
+
+        <label class="field">
+          <span>Phone number <b>*</b></span>
+
+          <input
+            type="tel"
+            name="phone"
+            id="phone"
+            maxlength="30"
+            placeholder="e.g. 024 000 0000"
+            autocomplete="tel"
+            required
+          >
+        </label>
+
+        <label class="field">
+          <span>Email address</span>
+
+          <input
+            type="email"
+            name="email"
+            id="email"
+            maxlength="160"
+            placeholder="name@example.com"
+            autocomplete="email"
+          >
+        </label>
+
+        <label class="field">
+          <span>Client type</span>
+
+          <select name="clientType" id="clientType">
+            <option value="individual">Individual</option>
+            <option value="business">Business / organisation</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Status</span>
+
+          <select name="status" id="clientStatus">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </label>
+
+        <label class="field full-field">
+          <span>Address</span>
+
+          <input
+            type="text"
+            name="address"
+            id="address"
+            maxlength="250"
+            placeholder="Town, area or postal address"
+            autocomplete="street-address"
+          >
+        </label>
+
+        <label class="field full-field">
+          <span>Internal notes</span>
+
+          <textarea
+            name="notes"
+            id="notes"
+            rows="3"
+            maxlength="1500"
+            placeholder="Optional notes for the administrator"
+          ></textarea>
+
+          <small>
+            Keep notes relevant to client management.
+          </small>
+        </label>
+
+      </div>
+
+      <div class="dialog-actions">
+
+        <button
+          type="button"
+          class="button button-secondary"
+          id="cancelDialogButton"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="button button-primary"
+          id="saveClientButton"
+        >
+          <i class="fa-solid fa-floppy-disk"></i>
+          Save client
+        </button>
+
+      </div>
+
+    </form>
+
+  </dialog>
+
+  <!-- Module entry point -->
   <script type="module" src="../../js/clients/clients.js"></script>
 
 </body>
