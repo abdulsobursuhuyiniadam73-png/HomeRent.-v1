@@ -1,23 +1,20 @@
 // ============================================================
-// HomeRent — Clients Service
+// HomeRent — Clients Firestore Service
 // File: js/clients/clients-service.js
 //
-// PURPOSE
-// Centralizes all client-related Firestore operations.
+// Responsibilities:
+// - Validate and normalize client information.
+// - Load client records.
+// - Generate readable client numbers.
+// - Detect likely duplicate contacts.
+// - Create, update and archive client records.
+// - Preserve client history; never permanently delete records.
 //
-// RESPONSIBILITIES
-// - Validate client data
-// - Create client records
-// - Retrieve client records
-// - Retrieve one client by ID
-// - Update existing clients
-// - Archive and restore clients
-//
-// DESIGN RULES
-// - Reuse the existing Firebase configuration
-// - Never permanently delete client records
-// - Preserve client IDs for future tenancy/payment references
-// - Keep database logic separate from UI logic
+// IMPORTANT:
+// - Reuses the existing Firebase configuration.
+// - Does not initialize Firebase a second time.
+// - Does not manage tenancies, rooms or payments directly.
+// - Firestore security rules remain the final access-control layer.
 // ============================================================
 
 import { db } from "../firebase.js";
@@ -32,12 +29,18 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-
-// ============================================================
-// 1. COLLECTION CONFIGURATION
-// ============================================================
+// ------------------------------------------------------------
+// CONFIGURATION
+// CHANGE HERE if your established client collection name differs.
+// ------------------------------------------------------------
 
 const CLIENTS_COLLECTION = "clients";
+const CLIENT_NUMBER_PREFIX = "CLT";
+const CLIENT_NUMBER_PADDING = 4;
+
+// ------------------------------------------------------------
+// FIRESTORE REFERENCES
+// ------------------------------------------------------------
 
 function clientsCollection() {
   return collection(db, CLIENTS_COLLECTION);
@@ -47,10 +50,9 @@ function clientDocument(clientId) {
   return doc(db, CLIENTS_COLLECTION, clientId);
 }
 
-
-// ============================================================
-// 2. NORMALIZATION HELPERS
-// ============================================================
+// ------------------------------------------------------------
+// NORMALIZATION HELPERS
+// ------------------------------------------------------------
 
 function cleanText(value) {
   return typeof value === "string" ? value.trim() : "";
@@ -60,140 +62,161 @@ function normalizeName(value) {
   return cleanText(value).replace(/\s+/g, " ");
 }
 
-function normalizePhone(value) {
-  return cleanText(value).replace(/\s+/g, " ");
-}
-
 function normalizeEmail(value) {
   return cleanText(value).toLowerCase();
 }
 
-function normalizeStatus(value) {
-  return cleanText(value).toLowerCase();
+function normalizePhone(value) {
+  // Preserve a leading + and remove spaces, brackets and hyphens.
+  // This is normalization, not full international number validation.
+  const phone = cleanText(value);
+  const hasLeadingPlus = phone.startsWith("+");
+  const digits = phone.replace(/\D/g, "");
+
+  return hasLeadingPlus ? `+${digits}` : digits;
+}
+
+function optionalText(value, maxLength = 500) {
+  const text = cleanText(value);
+
+  if (text.length > maxLength) {
+    throw new Error(`A text field exceeds ${maxLength} characters.`);
+  }
+
+  return text;
+}
+
+function normalizeClientStatus(value) {
+  const status = cleanText(value || "active").toLowerCase();
+
+  if (!["active", "inactive"].includes(status)) {
+    throw new Error("Choose a valid client status.");
+  }
+
+  return status;
 }
 
 function normalizeClientType(value) {
-  return cleanText(value).toLowerCase();
+  const type = cleanText(value || "individual").toLowerCase();
+
+  if (!["individual", "business"].includes(type)) {
+    throw new Error("Choose Individual or Business.");
+  }
+
+  return type;
 }
 
-function optionalText(value) {
-  return cleanText(value);
+function isValidEmail(email) {
+  if (!email) return true;
+
+  // Basic format check. Email ownership is not verified here.
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+function isValidPhone(phone) {
+  // A phone is required by this initial service contract.
+  // International numbers should include their country code.
+  return /^\+?\d{7,15}$/.test(phone);
+}
 
-// ============================================================
-// 3. CLIENT VALIDATION
+// ------------------------------------------------------------
+// CLIENT DATA VALIDATION
 //
 // Returns:
-// {
-//   valid: true | false,
-//   errors: {},
-//   data: {}
-// }
+// { valid, errors, data }
 //
-// The UI can display errors without duplicating validation.
-// ============================================================
+// Fields not recognized by this service are deliberately not
+// copied into the record.
+// ------------------------------------------------------------
 
 export function validateClientData(input = {}) {
   const errors = {};
 
   const data = {
     fullName: normalizeName(input.fullName),
+    clientType: cleanText(input.clientType || "individual").toLowerCase(),
     phone: normalizePhone(input.phone),
+    alternativePhone: normalizePhone(input.alternativePhone),
     email: normalizeEmail(input.email),
-
-    clientType: normalizeClientType(
-      input.clientType || "individual"
-    ),
-
-    status: normalizeStatus(input.status || "active"),
-
-    address: optionalText(input.address),
-    notes: optionalText(input.notes)
+    address: cleanText(input.address),
+    identificationType: cleanText(input.identificationType),
+    identificationNumber: cleanText(input.identificationNumber),
+    emergencyContactName: cleanText(input.emergencyContactName),
+    emergencyContactPhone: normalizePhone(input.emergencyContactPhone),
+    notes: cleanText(input.notes),
+    status: cleanText(input.status || "active").toLowerCase()
   };
 
-
-  // ----------------------------------------------------------
   // Full name
-  // ----------------------------------------------------------
-
   if (!data.fullName) {
     errors.fullName = "Enter the client's full name.";
-  } else if (data.fullName.length > 120) {
-    errors.fullName =
-      "The client's name must not exceed 120 characters.";
+  } else if (data.fullName.length > 150) {
+    errors.fullName = "Full name must not exceed 150 characters.";
   }
 
-
-  // ----------------------------------------------------------
-  // Phone number
-  // ----------------------------------------------------------
-
-  if (!data.phone) {
-    errors.phone = "Enter a phone number.";
-  } else if (data.phone.length > 30) {
-    errors.phone =
-      "The phone number must not exceed 30 characters.";
-  }
-
-
-  // ----------------------------------------------------------
-  // Email address
-  // ----------------------------------------------------------
-
-  if (data.email && data.email.length > 160) {
-    errors.email =
-      "The email address must not exceed 160 characters.";
-  } else if (
-    data.email &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)
-  ) {
-    errors.email = "Enter a valid email address.";
-  }
-
-
-  // ----------------------------------------------------------
   // Client type
-  // ----------------------------------------------------------
-
-  const allowedTypes = [
-    "individual",
-    "business"
-  ];
-
-  if (!allowedTypes.includes(data.clientType)) {
-    errors.clientType = "Choose a valid client type.";
+  if (!["individual", "business"].includes(data.clientType)) {
+    errors.clientType = "Choose Individual or Business.";
   }
 
-
-  // ----------------------------------------------------------
-  // Client status
-  // ----------------------------------------------------------
-
-  const allowedStatuses = [
-    "active",
-    "inactive"
-  ];
-
-  if (!allowedStatuses.includes(data.status)) {
-    errors.status = "Choose a valid client status.";
+  // Primary phone
+  if (!data.phone) {
+    errors.phone = "Enter a primary phone number.";
+  } else if (!isValidPhone(data.phone)) {
+    errors.phone =
+      "Enter a valid phone number, including country code when needed.";
   }
 
-
-  // ----------------------------------------------------------
-  // Optional fields
-  // ----------------------------------------------------------
-
-  if (data.address.length > 250) {
-    errors.address =
-      "The address must not exceed 250 characters.";
+  // Optional phone numbers
+  if (
+    data.alternativePhone &&
+    !isValidPhone(data.alternativePhone)
+  ) {
+    errors.alternativePhone = "Enter a valid alternative phone number.";
   }
 
-  if (data.notes.length > 1500) {
-    errors.notes =
-      "Notes must not exceed 1,500 characters.";
+  if (
+    data.emergencyContactPhone &&
+    !isValidPhone(data.emergencyContactPhone)
+  ) {
+    errors.emergencyContactPhone =
+      "Enter a valid emergency contact phone number.";
   }
 
+  // Email
+  if (!isValidEmail(data.email)) {
+    errors.email = "Enter a valid email address.";
+  } else if (data.email.length > 254) {
+    errors.email = "Email address is too long.";
+  }
+
+  // Length limits
+  if (data.address.length > 500) {
+    errors.address = "Address must not exceed 500 characters.";
+  }
+
+  if (data.identificationType.length > 60) {
+    errors.identificationType =
+      "Identification type must not exceed 60 characters.";
+  }
+
+  if (data.identificationNumber.length > 100) {
+    errors.identificationNumber =
+      "Identification number must not exceed 100 characters.";
+  }
+
+  if (data.emergencyContactName.length > 150) {
+    errors.emergencyContactName =
+      "Emergency contact name must not exceed 150 characters.";
+  }
+
+  if (data.notes.length > 2000) {
+    errors.notes = "Notes must not exceed 2,000 characters.";
+  }
+
+  if (!["active", "inactive"].includes(data.status)) {
+    errors.status = "Choose Active or Inactive.";
+  }
 
   return {
     valid: Object.keys(errors).length === 0,
@@ -202,48 +225,70 @@ export function validateClientData(input = {}) {
   };
 }
 
+// ------------------------------------------------------------
+// CLIENT NUMBER GENERATION
+//
+// Readable examples:
+// CLT-0001
+// CLT-0002
+//
+// This scans existing records and chooses the next number.
+// It is suitable for a single-admin workflow, but it is not an
+// atomic sequence generator. If concurrent creation is ever
+// introduced, use a Firestore transaction/counter instead.
+// ------------------------------------------------------------
 
-// ============================================================
-// 4. CONVERT FIRESTORE DOCUMENTS TO CLIENT OBJECTS
-// ============================================================
-
-function mapClient(documentSnapshot) {
-  return {
-    id: documentSnapshot.id,
-    ...documentSnapshot.data()
-  };
+function formatClientNumber(number) {
+  return `${CLIENT_NUMBER_PREFIX}-${String(number).padStart(
+    CLIENT_NUMBER_PADDING,
+    "0"
+  )}`;
 }
 
+function clientNumberToInteger(clientNumber) {
+  const match = cleanText(clientNumber).match(/^CLT-(\d+)$/i);
 
-// ============================================================
-// 5. LOAD CLIENTS
+  return match ? Number(match[1]) : 0;
+}
+
+async function generateClientNumber() {
+  const snapshot = await getDocs(clientsCollection());
+
+  let highestNumber = 0;
+
+  for (const clientSnapshot of snapshot.docs) {
+    const client = clientSnapshot.data();
+    const number = clientNumberToInteger(client.clientNumber);
+
+    if (number > highestNumber) {
+      highestNumber = number;
+    }
+  }
+
+  return formatClientNumber(highestNumber + 1);
+}
+
+// ------------------------------------------------------------
+// LOAD CLIENTS
 //
-// Default:
-// - Includes active and inactive clients
-// - Excludes archived clients
-//
-// Options:
-// getClients()
-// getClients({ includeArchived: true })
-// ============================================================
+// Archived clients are excluded unless explicitly requested.
+// ------------------------------------------------------------
 
 export async function getClients(options = {}) {
-  const includeArchived =
-    options.includeArchived === true;
+  const includeArchived = options.includeArchived === true;
 
   try {
     const snapshot = await getDocs(clientsCollection());
 
     const clients = snapshot.docs
-      .map(mapClient)
+      .map((clientSnapshot) => ({
+        id: clientSnapshot.id,
+        ...clientSnapshot.data()
+      }))
       .filter((client) => {
-        return (
-          includeArchived ||
-          client.isArchived !== true
-        );
+        return includeArchived || client.isArchived !== true;
       });
 
-    // Newest clients first.
     clients.sort((a, b) => {
       const aTime = a.createdAt?.toMillis?.() ?? 0;
       const bTime = b.createdAt?.toMillis?.() ?? 0;
@@ -252,25 +297,18 @@ export async function getClients(options = {}) {
     });
 
     return clients;
-
   } catch (error) {
-    console.error(
-      "HomeRent: Failed to load clients.",
-      error
-    );
+    console.error("HomeRent: Could not load clients.", error);
 
     throw new Error(
-      "Unable to load clients. Check your connection and database permissions."
+      "Unable to load clients. Check your connection and access permissions."
     );
   }
 }
 
-
-// ============================================================
-// 6. LOAD ONE CLIENT
-//
-// Used by the future clients-details.html page.
-// ============================================================
+// ------------------------------------------------------------
+// LOAD ONE CLIENT
+// ------------------------------------------------------------
 
 export async function getClientById(clientId) {
   const id = cleanText(clientId);
@@ -280,23 +318,20 @@ export async function getClientById(clientId) {
   }
 
   try {
-    const snapshot = await getDoc(
-      clientDocument(id)
-    );
+    const snapshot = await getDoc(clientDocument(id));
 
     if (!snapshot.exists()) {
-      throw new Error("Client not found.");
+      throw new Error("This client could not be found.");
     }
 
-    return mapClient(snapshot);
-
+    return {
+      id: snapshot.id,
+      ...snapshot.data()
+    };
   } catch (error) {
-    console.error(
-      "HomeRent: Failed to load client.",
-      error
-    );
+    console.error("HomeRent: Could not load client.", error);
 
-    if (error.message === "Client not found.") {
+    if (error.message === "This client could not be found.") {
       throw error;
     }
 
@@ -306,85 +341,80 @@ export async function getClientById(clientId) {
   }
 }
 
-
-// ============================================================
-// 7. CHECK FOR DUPLICATE PHONE NUMBERS
+// ------------------------------------------------------------
+// DUPLICATE CONTACT CHECK
 //
-// Phone matching ignores letter case and extra spaces.
-// This is a basic duplicate check, not a unique database
-// constraint. Firestore Security Rules must protect access.
-// ============================================================
+// This checks active, non-archived records for matching primary
+// phone or email. It is a warning/prevention measure, not proof
+// that two records belong to the same person.
+// ------------------------------------------------------------
 
-async function ensureUniquePhone(
-  phone,
+async function ensureUniqueClientContact(
+  clientData,
   excludeClientId = null
 ) {
   const snapshot = await getDocs(clientsCollection());
 
-  const targetPhone = normalizePhone(phone);
-
-  const duplicate = snapshot.docs.some((item) => {
-    if (item.id === excludeClientId) {
+  const duplicate = snapshot.docs.find((clientSnapshot) => {
+    if (clientSnapshot.id === excludeClientId) {
       return false;
     }
 
-    const client = item.data();
+    const existing = clientSnapshot.data();
 
-    // Archived records do not block a new client.
-    if (client.isArchived === true) {
+    if (existing.isArchived === true) {
       return false;
     }
 
-    return normalizePhone(client.phone) === targetPhone;
+    const samePhone =
+      clientData.phone &&
+      normalizePhone(existing.phone) === clientData.phone;
+
+    const sameEmail =
+      clientData.email &&
+      normalizeEmail(existing.email) === clientData.email;
+
+    return samePhone || sameEmail;
   });
 
   if (duplicate) {
+    const existing = duplicate.data();
+
+    if (normalizePhone(existing.phone) === clientData.phone) {
+      throw new Error(
+        "A client with this phone number already exists. Check the existing record before continuing."
+      );
+    }
+
     throw new Error(
-      "This phone number already belongs to another client."
+      "A client with this email address already exists. Check the existing record before continuing."
     );
   }
 }
 
+// ------------------------------------------------------------
+// CREATE CLIENT
+// ------------------------------------------------------------
 
-// ============================================================
-// 8. CREATE CLIENT
-//
-// Creates a new client record with timestamps.
-// The generated Firestore document ID becomes the client ID.
-// ============================================================
-
-export async function createClient(input) {
+export async function createClient(input = {}) {
   const result = validateClientData(input);
 
   if (!result.valid) {
-    const error = new Error(
-      "Please correct the client details."
-    );
-
+    const error = new Error("Please correct the client details.");
     error.validationErrors = result.errors;
-
     throw error;
   }
 
   try {
-    await ensureUniquePhone(result.data.phone);
+    await ensureUniqueClientContact(result.data);
 
+    const clientNumber = await generateClientNumber();
     const now = serverTimestamp();
 
     const clientData = {
       ...result.data,
-
-      // Reserved for a future avatar upload feature.
-      avatarUrl: "",
-
-      // Reserved for future tenancy/payment integration.
-      // These are references, not duplicated financial data.
-      currentTenancyId: null,
-
-      // Record lifecycle.
+      clientNumber,
       isArchived: false,
-
-      // Firestore timestamps.
       createdAt: now,
       updatedAt: now
     };
@@ -397,140 +427,118 @@ export async function createClient(input) {
     return {
       id: newClient.id,
       ...result.data,
-      avatarUrl: "",
-      currentTenancyId: null,
+      clientNumber,
       isArchived: false
     };
-
   } catch (error) {
-    console.error(
-      "HomeRent: Failed to create client.",
-      error
-    );
+    console.error("HomeRent: Could not create client.", error);
 
     if (
       error.validationErrors ||
-      error.message.includes("already belongs")
+      error.message.includes("already exists")
     ) {
       throw error;
     }
 
     throw new Error(
-      "Unable to save the client. Check your connection and database permissions."
+      "Unable to save the client. Check your connection and access permissions."
     );
   }
 }
 
-
-// ============================================================
-// 9. UPDATE CLIENT
+// ------------------------------------------------------------
+// UPDATE CLIENT
 //
-// Existing IDs and creation timestamps are preserved.
-// Archived clients cannot be edited through this operation.
-// ============================================================
+// The client number and creation timestamp are preserved.
+// Archived records cannot be edited through this operation.
+// ------------------------------------------------------------
 
-export async function updateClient(clientId, input) {
+export async function updateClient(clientId, input = {}) {
   const id = cleanText(clientId);
 
   if (!id) {
-    throw new Error("A client ID is required.");
+    throw new Error("A client ID is required for updating.");
   }
 
   const result = validateClientData(input);
 
   if (!result.valid) {
-    const error = new Error(
-      "Please correct the client details."
-    );
-
+    const error = new Error("Please correct the client details.");
     error.validationErrors = result.errors;
-
     throw error;
   }
 
   try {
-    const existing = await getDoc(
-      clientDocument(id)
-    );
+    const existingSnapshot = await getDoc(clientDocument(id));
 
-    if (!existing.exists()) {
-      throw new Error("Client not found.");
+    if (!existingSnapshot.exists()) {
+      throw new Error("This client no longer exists.");
     }
 
-    if (existing.data().isArchived === true) {
-      throw new Error(
-        "Restore this client before editing their details."
-      );
+    const existingClient = existingSnapshot.data();
+
+    if (existingClient.isArchived === true) {
+      throw new Error("Archived clients cannot be edited.");
     }
 
-    await ensureUniquePhone(
-      result.data.phone,
-      id
-    );
+    await ensureUniqueClientContact(result.data, id);
 
-    await updateDoc(
-      clientDocument(id),
-      {
-        ...result.data,
-        updatedAt: serverTimestamp()
-      }
-    );
+    await updateDoc(clientDocument(id), {
+      ...result.data,
+      updatedAt: serverTimestamp()
+    });
 
     return {
       id,
-      ...existing.data(),
+      ...existingClient,
       ...result.data
     };
-
   } catch (error) {
-    console.error(
-      "HomeRent: Failed to update client.",
-      error
-    );
+    console.error("HomeRent: Could not update client.", error);
 
     if (
       error.validationErrors ||
-      error.message === "Client not found." ||
-      error.message.includes("already belongs") ||
-      error.message.includes("Restore this client")
+      error.message.includes("already exists") ||
+      error.message === "This client no longer exists." ||
+      error.message === "Archived clients cannot be edited."
     ) {
       throw error;
     }
 
     throw new Error(
-      "Unable to update this client. Check your connection and database permissions."
+      "Unable to update the client. Check your connection and access permissions."
     );
   }
 }
 
-
-// ============================================================
-// 10. ARCHIVE CLIENT
+// ------------------------------------------------------------
+// ARCHIVE CLIENT
 //
-// Archiving does not delete the client or their history.
-// Tenancy and payment records will remain available.
-// ============================================================
+// Keeps the client record for historical reference.
+// This function does not delete tenancy/payment history.
+// A later integration step should block archiving when active
+// tenancies or unresolved financial obligations exist.
+// ------------------------------------------------------------
 
 export async function archiveClient(clientId) {
   const id = cleanText(clientId);
 
   if (!id) {
-    throw new Error("A client ID is required.");
+    throw new Error("A client ID is required for archiving.");
   }
 
   try {
-    const reference = clientDocument(id);
-    const snapshot = await getDoc(reference);
+    const existingSnapshot = await getDoc(clientDocument(id));
 
-    if (!snapshot.exists()) {
-      throw new Error("Client not found.");
+    if (!existingSnapshot.exists()) {
+      throw new Error("This client no longer exists.");
     }
 
-    if (snapshot.data().isArchived === true) {
+    if (existingSnapshot.data().isArchived === true) {
       throw new Error("This client is already archived.");
     }
 
-    await updateDoc(reference, {
+    await updateDoc(clientDocument(id), {
       isArchived: true,
       archivedAt: serverTimestamp(),
       updatedAt: serverTimestamp()
@@ -540,79 +548,18 @@ export async function archiveClient(clientId) {
       id,
       isArchived: true
     };
-
   } catch (error) {
-    console.error(
-      "HomeRent: Failed to archive client.",
-      error
-    );
+    console.error("HomeRent: Could not archive client.", error);
 
     if (
-      error.message === "Client not found." ||
+      error.message === "This client no longer exists." ||
       error.message === "This client is already archived."
     ) {
       throw error;
     }
 
     throw new Error(
-      "Unable to archive this client. Check your connection and database permissions."
-    );
-  }
-}
-
-
-// ============================================================
-// 11. RESTORE ARCHIVED CLIENT
-//
-// Restores a previously archived record without creating
-// a new client or changing its original ID.
-// ============================================================
-
-export async function restoreClient(clientId) {
-  const id = cleanText(clientId);
-
-  if (!id) {
-    throw new Error("A client ID is required.");
-  }
-
-  try {
-    const reference = clientDocument(id);
-    const snapshot = await getDoc(reference);
-
-    if (!snapshot.exists()) {
-      throw new Error("Client not found.");
-    }
-
-    if (snapshot.data().isArchived !== true) {
-      throw new Error("This client is not archived.");
-    }
-
-    await updateDoc(reference, {
-      isArchived: false,
-      archivedAt: null,
-      updatedAt: serverTimestamp()
-    });
-
-    return {
-      id,
-      isArchived: false
-    };
-
-  } catch (error) {
-    console.error(
-      "HomeRent: Failed to restore client.",
-      error
-    );
-
-    if (
-      error.message === "Client not found." ||
-      error.message === "This client is not archived."
-    ) {
-      throw error;
-    }
-
-    throw new Error(
-      "Unable to restore this client. Check your connection and database permissions."
+      "Unable to archive the client. Check your connection and access permissions."
     );
   }
 }

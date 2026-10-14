@@ -9,6 +9,7 @@
 
   <!-- Shared HomeRent styles -->
   <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
   <link rel="stylesheet" href="../../css/components.css">
 
   <!-- Clients module styles -->
@@ -25,135 +26,136 @@
 
   <div class="app-shell">
 
-    <!-- Mobile navigation overlay -->
+    <!-- Mobile sidebar overlay -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- =========================================
-         SIDEBAR
-         ========================================= -->
+    <!-- ==================================================
+         DESKTOP SIDEBAR
+         Logo and business name are controlled by branding.js
+         ================================================== -->
     <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
 
-      <!-- System branding: populated by branding.js -->
-      <div class="sidebar-brand">
+        <div class="sidebar-brand">
+          <div class="sidebar-logo">
+            <img
+              id="systemLogo"
+              src="../../assets/images/system-logo.jpeg"
+              alt="System logo"
+              data-default-logo
+            >
+          </div>
 
-        <div class="sidebar-logo">
-          <img
-            id="systemLogo"
-            src="../../assets/images/system-logo.jpeg"
-            alt="System logo"
-            data-default-logo
+          <div class="sidebar-brand-text">
+            <strong id="systemName" data-setting="businessName">
+              HomeRent
+            </strong>
+            <span id="systemSubtitle">Property Management</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Main navigation">
+
+           <!----Dashboard---->
+
+          <a
+            href="../dashboard/index.html"
+            class="nav-link"
           >
+            <i class="fa-solid fa-house"></i>
+            <span>Dashboard</span>
+          </a>
+
+           <!----Rooms---->
+
+          <a
+            href="../rooms/index.html"
+            class="nav-link"
+          >
+            <i class="fa-solid fa-door-open"></i>
+            <span>Rooms</span>
+          </a>
+
+          <!----Clients---->
+
+          <a
+            href="index.html"
+            class="nav-link active"
+            aria-current="page"
+          >
+            <i class="fa-solid fa-users"></i>
+            <span>Clients</span>
+          </a>
+
+           <!----Tenancies---->
+
+          <a
+            href="../tenancies/index.html"
+            class="nav-link"
+          >
+            <i class="fa-solid fa-file-contract"></i>
+            <span>Tenancies</span>
+          </a>
+
+           <!----Inspections---->
+
+          <a
+            href="../inspections/index.html"
+            class="nav-link"
+          >
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Inspections</span>
+          </a>
+
+           <!----Payments---->
+
+          <a
+            href="../payments/index.html"
+            class="nav-link"
+          >
+            <i class="fa-solid fa-wallet"></i>
+            <span>Payments</span>
+          </a>
+
+           <!----Reports---->
+
+          <a
+            href="../reports/index.html"
+            class="nav-link"
+          >
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Reports</span>
+          </a>
+
+           <!----Settings---->
+
+          <a
+            href="../settings/index.html"
+            class="nav-link"
+          >
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+         <!---Footer---->
+
+        <div class="sidebar-footer">
+          <span class="sidebar-footer-dot"></span>
+          <span>Secure management</span>
         </div>
 
-        <div class="sidebar-brand-text">
-          <strong id="systemName" data-setting="businessName">
-            HomeRent
-          </strong>
-
-          <span id="systemSubtitle">
-            Property Management
-          </span>
-        </div>
-
-        <button
-          type="button"
-          class="icon-button sidebar-close"
-          id="sidebarClose"
-          aria-label="Close navigation"
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-
       </div>
-
-      <!-- Main navigation -->
-      <nav class="sidebar-nav" aria-label="Main navigation">
-
-        <a
-          href="../dashboard/index.html"
-          class="nav-link"
-        >
-          <i class="fa-solid fa-house"></i>
-          <span>Dashboard</span>
-        </a>
-
-        <a
-          href="../rooms/index.html"
-          class="nav-link"
-        >
-          <i class="fa-solid fa-door-open"></i>
-          <span>Rooms</span>
-        </a>
-
-        <a
-          href="index.html"
-          class="nav-link active"
-          aria-current="page"
-        >
-          <i class="fa-solid fa-users"></i>
-          <span>Clients</span>
-        </a>
-
-        <a
-          href="../tenancies/index.html"
-          class="nav-link"
-        >
-          <i class="fa-solid fa-file-contract"></i>
-          <span>Tenancies</span>
-        </a>
-
-        <a
-          href="../inspections/index.html"
-          class="nav-link"
-        >
-          <i class="fa-solid fa-clipboard-check"></i>
-          <span>Inspections</span>
-        </a>
-
-        <a
-          href="../payments/index.html"
-          class="nav-link"
-        >
-          <i class="fa-solid fa-wallet"></i>
-          <span>Payments</span>
-        </a>
-
-        <a
-          href="../reports/index.html"
-          class="nav-link"
-        >
-          <i class="fa-solid fa-chart-line"></i>
-          <span>Reports</span>
-        </a>
-
-        <a
-          href="../settings/index.html"
-          class="nav-link"
-        >
-          <i class="fa-solid fa-gear"></i>
-          <span>Settings</span>
-        </a>
-
-      </nav>
-
-      <!-- Sidebar footer -->
-      <div class="sidebar-footer">
-        <span class="status-dot"></span>
-        <span>Secure management</span>
-      </div>
-
     </aside>
 
-    <!-- =========================================
+    <!-- ==================================================
          MAIN CONTENT
-         ========================================= -->
+         ================================================== -->
     <main class="main-content">
 
-      <!-- Top navigation -->
       <header class="topbar">
 
-        <div class="topbar-heading">
-
+        <div class="topbar-left">
           <button
             type="button"
             class="icon-button mobile-menu-button"
@@ -164,477 +166,359 @@
             <i class="fa-solid fa-bars"></i>
           </button>
 
-          <div>
-            <p class="eyebrow">PEOPLE &amp; RELATIONSHIPS</p>
-
-            <h1>Clients</h1>
-
-            <p class="page-subtitle">
-              Manage client profiles and keep their rental history connected.
-            </p>
+          <div class="topbar-page-heading">
+            <span class="topbar-eyebrow">PROPERTY MANAGEMENT</span>
+            <h1 class="topbar-title">Clients</h1>
           </div>
-
         </div>
 
         <div class="topbar-actions">
-
           <button
             type="button"
             class="icon-button"
             id="refreshClientsButton"
-            title="Refresh clients"
             aria-label="Refresh clients"
+            title="Refresh clients"
           >
             <i class="fa-solid fa-rotate"></i>
           </button>
 
           <button
             type="button"
-            class="profile-button"
-            id="profileButton"
-            aria-label="Sign out"
-            title="Administrator account"
+            class="icon-button"
+            id="logoutButton"
+            aria-label="Log out"
+            title="Log out"
           >
-            <span id="profileInitial">A</span>
+            <i class="fa-solid fa-right-from-bracket"></i>
           </button>
-
         </div>
 
       </header>
 
-      <!-- Page introduction -->
-      <section class="welcome-row">
+      <section class="page-content clients-content">
 
-        <div>
-          <h2>Your client directory</h2>
-
-          <p>
-            Manage current clients, former tenants and their rental records.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          class="button button-primary"
-          id="addClientButton"
-        >
-          <i class="fa-solid fa-plus"></i>
-          <span>Add client</span>
-        </button>
-
-      </section>
-
-      <!-- =========================================
-           CLIENT SUMMARY CARDS
-           ========================================= -->
-      <section
-        class="stats-grid"
-        aria-label="Client statistics"
-      >
-
-        <article class="stat-card">
-          <div class="stat-icon blue">
-            <i class="fa-solid fa-users"></i>
-          </div>
-
+        <!-- PAGE INTRODUCTION -->
+        <section class="clients-page-intro">
           <div>
-            <p>Total clients</p>
-            <strong id="totalClients">—</strong>
-            <small>All saved profiles</small>
-          </div>
-        </article>
-
-        <article class="stat-card">
-          <div class="stat-icon green">
-            <i class="fa-solid fa-user-check"></i>
-          </div>
-
-          <div>
-            <p>Active clients</p>
-            <strong id="activeClients">—</strong>
-            <small>Active client records</small>
-          </div>
-        </article>
-
-        <article class="stat-card">
-          <div class="stat-icon amber">
-            <i class="fa-solid fa-user-clock"></i>
-          </div>
-
-          <div>
-            <p>Inactive clients</p>
-            <strong id="formerClients">—</strong>
-            <small>Inactive or archived records</small>
-          </div>
-        </article>
-
-        <article class="stat-card">
-          <div class="stat-icon violet">
-            <i class="fa-solid fa-user-plus"></i>
-          </div>
-
-          <div>
-            <p>Recently added</p>
-            <strong id="recentClients">—</strong>
-            <small>Added in the last 30 days</small>
-          </div>
-        </article>
-
-      </section>
-
-      <!-- =========================================
-           CLIENT DIRECTORY
-           ========================================= -->
-      <section class="directory-card">
-
-        <div class="directory-heading">
-
-          <div>
-            <h2>All clients</h2>
-
-            <p id="resultsText">
-              Loading client records...
+            <p class="page-eyebrow">CLIENT DIRECTORY</p>
+            <h2>Manage your clients</h2>
+            <p>
+              Keep client details, rental relationships and records
+              organized in one place.
             </p>
           </div>
 
-          <span class="directory-mark" aria-hidden="true">
-            <i class="fa-solid fa-address-book"></i>
-          </span>
-
-        </div>
-
-        <!-- Search, filter and sort -->
-        <div class="toolbar">
-
-          <label class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-
-            <span class="visually-hidden">
-              Search clients
-            </span>
-
-            <input
-              id="clientSearch"
-              type="search"
-              placeholder="Search name, phone, email or client ID..."
-              autocomplete="off"
-            >
-          </label>
-
-          <label class="filter-select">
-            <i class="fa-solid fa-sliders"></i>
-
-            <span class="visually-hidden">
-              Filter clients
-            </span>
-
-            <select id="statusFilter">
-              <option value="all">All clients</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="archived">Archived</option>
-            </select>
-          </label>
-
-          <label class="filter-select">
-            <i class="fa-solid fa-arrow-down-wide-short"></i>
-
-            <span class="visually-hidden">
-              Sort clients
-            </span>
-
-            <select id="sortClients">
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-              <option value="name">Name A–Z</option>
-            </select>
-          </label>
-
-        </div>
-
-        <!-- Feedback messages -->
-        <div
-          id="pageMessage"
-          class="message"
-          role="status"
-          aria-live="polite"
-          hidden
-        ></div>
-
-        <!-- Loading state -->
-        <div
-          id="loadingState"
-          class="state-panel"
-          role="status"
-        >
-          <span class="spinner"></span>
-
-          <strong>Loading clients</strong>
-
-          <p>
-            Retrieving client records from your database.
-          </p>
-        </div>
-
-        <!-- Error state -->
-        <div
-          id="errorState"
-          class="state-panel"
-          hidden
-        >
-          <span class="state-icon error">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-          </span>
-
-          <strong>Unable to load clients</strong>
-
-          <p id="errorMessage">
-            Check your connection and try again.
-          </p>
-
           <button
             type="button"
-            class="button button-secondary"
-            id="retryButton"
+            class="btn btn-primary"
+            id="addClientButton"
           >
-            Try again
-          </button>
-        </div>
-
-        <!-- Empty state -->
-        <div
-          id="emptyState"
-          class="state-panel"
-          hidden
-        >
-          <span class="state-icon">
             <i class="fa-solid fa-user-plus"></i>
-          </span>
-
-          <strong id="emptyTitle">No clients yet</strong>
-
-          <p id="emptyMessage">
-            Add your first client to begin building their rental history.
-          </p>
-
-          <button
-            type="button"
-            class="button button-primary"
-            id="emptyAddButton"
-          >
-            <i class="fa-solid fa-plus"></i>
-            Add first client
+            <span>Add client</span>
           </button>
-        </div>
+        </section>
 
-        <!-- Desktop client table -->
-        <div
-          class="table-wrap"
-          id="tableWrap"
-          hidden
+        <!-- ==================================================
+             SUMMARY CARDS
+             Values will be calculated from Firestore records.
+             ================================================== -->
+        <section
+          class="clients-stat-grid"
+          aria-label="Client statistics"
         >
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">CLIENT</th>
-                <th scope="col">CONTACT</th>
-                <th scope="col">STATUS</th>
-                <th scope="col">DATE ADDED</th>
-                <th scope="col" class="actions-heading">ACTIONS</th>
-              </tr>
-            </thead>
 
-            <tbody id="clientsTableBody"></tbody>
-          </table>
-        </div>
+          <article class="client-stat-card">
+            <div class="client-stat-icon stat-icon-blue">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+              <p>Total clients</p>
+              <h3 id="totalClientsCount">—</h3>
+              <span>Registered client records</span>
+            </div>
+          </article>
 
-        <!-- Mobile client cards -->
-        <div
-          class="mobile-client-list"
-          id="mobileClientList"
-          hidden
-        ></div>
+          <article class="client-stat-card">
+            <div class="client-stat-icon stat-icon-green">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div>
+              <p>Active clients</p>
+              <h3 id="activeClientsCount">—</h3>
+              <span>With an active rental relationship</span>
+            </div>
+          </article>
+
+          <article class="client-stat-card">
+            <div class="client-stat-icon stat-icon-orange">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+            <div>
+              <p>Needs attention</p>
+              <h3 id="attentionClientsCount">—</h3>
+              <span>Records requiring review</span>
+            </div>
+          </article>
+
+          <article class="client-stat-card">
+            <div class="client-stat-icon stat-icon-purple">
+              <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <div>
+              <p>Added this month</p>
+              <h3 id="newClientsCount">—</h3>
+              <span>New client registrations</span>
+            </div>
+          </article>
+
+        </section>
+
+        <!-- ==================================================
+             CLIENT DIRECTORY
+             ================================================== -->
+        <section class="clients-directory-panel">
+
+          <div class="clients-directory-heading">
+            <div>
+              <h2>All clients</h2>
+              <p id="clientsResultSummary">
+                Loading client records…
+              </p>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="exportClientsButton"
+            >
+              <i class="fa-solid fa-download"></i>
+              <span>Export</span>
+            </button>
+          </div>
+
+          <!-- SEARCH -->
+          <div class="clients-toolbar">
+
+            <label class="clients-search" for="clientSearch">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input
+                type="search"
+                id="clientSearch"
+                placeholder="Search name, phone, email or client ID…"
+                autocomplete="off"
+              >
+            </label>
+
+            <!-- STATUS FILTER -->
+            <label class="clients-filter">
+              <span>Status</span>
+              <select id="clientStatusFilter">
+                <option value="all">All statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="attention">Needs attention</option>
+              </select>
+            </label>
+
+            <!-- SORTING -->
+            <label class="clients-filter">
+              <span>Sort by</span>
+              <select id="clientSort">
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="name-asc">Name A–Z</option>
+                <option value="name-desc">Name Z–A</option>
+              </select>
+            </label>
+
+            <button
+              type="button"
+              class="btn btn-secondary clients-reset-button"
+              id="resetClientFiltersButton"
+            >
+              Reset
+            </button>
+
+          </div>
+
+          <!-- FEEDBACK / LOADING -->
+          <div
+            class="clients-feedback"
+            id="clientsFeedback"
+            role="status"
+            aria-live="polite"
+            hidden
+          ></div>
+
+          <!-- DESKTOP TABLE -->
+          <div class="clients-table-wrap" id="clientsTableWrap">
+
+            <table class="clients-table">
+              <thead>
+                <tr>
+                  <th scope="col">Client</th>
+                  <th scope="col">Contact</th>
+                  <th scope="col">Rental status</th>
+                  <th scope="col">Registered</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody id="clientsTableBody">
+                <tr>
+                  <td colspan="5" class="clients-table-placeholder">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    Loading clients…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+          </div>
+
+          <!-- MOBILE CLIENT CARDS -->
+          <div
+            class="clients-mobile-list"
+            id="clientsMobileList"
+            aria-label="Client records"
+          ></div>
+
+          <!-- EMPTY STATE -->
+          <div class="clients-empty-state" id="clientsEmptyState" hidden>
+            <div class="clients-empty-icon">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <h3 id="clientsEmptyTitle">No clients found</h3>
+            <p id="clientsEmptyMessage">
+              Add a client or adjust your search and filters.
+            </p>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="emptyStateAddClientButton"
+            >
+              <i class="fa-solid fa-user-plus"></i>
+              Add your first client
+            </button>
+          </div>
+
+          <!-- PAGINATION -->
+          <div class="clients-pagination" id="clientsPagination" hidden>
+            <span id="clientsPaginationSummary"></span>
+
+            <div class="clients-pagination-actions">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                id="previousClientsPageButton"
+                disabled
+              >
+                <i class="fa-solid fa-chevron-left"></i>
+                Previous
+              </button>
+
+              <span id="clientsPageNumber">1</span>
+
+              <button
+                type="button"
+                class="btn btn-secondary"
+                id="nextClientsPageButton"
+                disabled
+              >
+                Next
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- Global footer: branding.js supplies configured values -->
+        <footer class="app-footer">
+          <span data-setting="footerText"></span>
+          <span data-setting="copyrightText"></span>
+        </footer>
 
       </section>
-
-      <!-- Footer uses administrator branding -->
-      <footer class="app-footer">
-        ©
-        <span data-setting="copyrightYear"></span>
-
-        <span data-setting="businessName">HomeRent</span>.
-
-        All rights reserved.
-      </footer>
-
     </main>
-
   </div>
 
-  <!-- =========================================
-       ADD / EDIT CLIENT DIALOG
-       ========================================= -->
-  <dialog
-    class="client-dialog"
-    id="clientDialog"
-    aria-labelledby="dialogTitle"
-  >
+  <!-- ==================================================
+       MOBILE BOTTOM NAVIGATION
+       Five items: Home, Rooms, +, Clients, Payments
+       The central + opens the existing Add Room modal.
+       ================================================== -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
 
-    <form id="clientForm" novalidate>
+    <a
+      href="../dashboard/index.html"
+      class="mobile-nav-item"
+      aria-label="Home"
+    >
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
 
-      <div class="dialog-heading">
+    <a
+      href="../rooms/index.html"
+      class="mobile-nav-item"
+      aria-label="Rooms"
+    >
+      <i class="fa-solid fa-door-open"></i>
+      <span>Rooms</span>
+    </a>
 
-        <div>
-          <p class="eyebrow">CLIENT DIRECTORY</p>
+    <button
+      type="button"
+      class="mobile-nav-add-button"
+      id="mobileAddRoomButton"
+      aria-label="Add a room"
+      title="Add a room"
+    >
+      <i class="fa-solid fa-plus"></i>
+    </button>
 
-          <h2 id="dialogTitle">Add a client</h2>
+    <a
+      href="index.html"
+      class="mobile-nav-item active"
+      aria-current="page"
+      aria-label="Clients"
+    >
+      <i class="fa-solid fa-users"></i>
+      <span>Clients</span>
+    </a>
 
-          <p>
-            Enter the client's details. Tenancies and payments
-            will be linked to this profile.
-          </p>
-        </div>
+    <a
+      href="../payments/index.html"
+      class="mobile-nav-item"
+      aria-label="Payments"
+    >
+      <i class="fa-solid fa-wallet"></i>
+      <span>Payments</span>
+    </a>
 
-        <button
-          type="button"
-          class="icon-button"
-          id="closeDialogButton"
-          aria-label="Close form"
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+  </nav>
 
-      </div>
+  <!-- ==================================================
+       SHARED APPLICATION SERVICES
+       ================================================== -->
+  <script type="module">
+    import { protectPage, startInactivityProtection }
+      from "../../js/auth/auth-guard.js";
 
-      <div
-        id="formError"
-        class="form-error"
-        role="alert"
-        hidden
-      ></div>
+    import { applyGlobalBranding }
+      from "../../js/core/branding.js";
 
-      <div class="form-grid">
+    protectPage();
+    startInactivityProtection();
+    applyGlobalBranding();
+  </script>
 
-        <label class="field full-field">
-          <span>Full name <b>*</b></span>
+  <!-- Existing Add Room modal component -->
+  <script type="module" src="../../components/add-room/add-room.js"></script>
 
-          <input
-            type="text"
-            name="fullName"
-            id="fullName"
-            maxlength="120"
-            placeholder="e.g. Ama Mensah"
-            autocomplete="name"
-            required
-          >
-
-          <small>
-            Enter the name used on tenancy records and receipts.
-          </small>
-        </label>
-
-        <label class="field">
-          <span>Phone number <b>*</b></span>
-
-          <input
-            type="tel"
-            name="phone"
-            id="phone"
-            maxlength="30"
-            placeholder="e.g. 024 000 0000"
-            autocomplete="tel"
-            required
-          >
-        </label>
-
-        <label class="field">
-          <span>Email address</span>
-
-          <input
-            type="email"
-            name="email"
-            id="email"
-            maxlength="160"
-            placeholder="name@example.com"
-            autocomplete="email"
-          >
-        </label>
-
-        <label class="field">
-          <span>Client type</span>
-
-          <select name="clientType" id="clientType">
-            <option value="individual">Individual</option>
-            <option value="business">Business / organisation</option>
-          </select>
-        </label>
-
-        <label class="field">
-          <span>Status</span>
-
-          <select name="status" id="clientStatus">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </label>
-
-        <label class="field full-field">
-          <span>Address</span>
-
-          <input
-            type="text"
-            name="address"
-            id="address"
-            maxlength="250"
-            placeholder="Town, area or postal address"
-            autocomplete="street-address"
-          >
-        </label>
-
-        <label class="field full-field">
-          <span>Internal notes</span>
-
-          <textarea
-            name="notes"
-            id="notes"
-            rows="3"
-            maxlength="1500"
-            placeholder="Optional notes for the administrator"
-          ></textarea>
-
-          <small>
-            Keep notes relevant to client management.
-          </small>
-        </label>
-
-      </div>
-
-      <div class="dialog-actions">
-
-        <button
-          type="button"
-          class="button button-secondary"
-          id="cancelDialogButton"
-        >
-          Cancel
-        </button>
-
-        <button
-          type="submit"
-          class="button button-primary"
-          id="saveClientButton"
-        >
-          <i class="fa-solid fa-floppy-disk"></i>
-          Save client
-        </button>
-
-      </div>
-
-    </form>
-
-  </dialog>
-
-  <!-- Module entry point -->
+  <!-- Clients controller (created in the next build step) -->
   <script type="module" src="../../js/clients/clients.js"></script>
 
 </body>

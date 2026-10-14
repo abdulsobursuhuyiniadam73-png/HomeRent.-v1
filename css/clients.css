@@ -1,52 +1,63 @@
-/* =====================================================
-   HOMERENT — CLIENTS MODULE
+/* ============================================================
+   HOMERENT — CLIENT DIRECTORY
    File: css/clients.css
 
-   Design goals:
-   - Clean, modern administrative interface
-   - Responsive desktop, tablet and mobile layouts
-   - Branding-aware colors
-   - Reusable component styles
-   ===================================================== */
+   Designed to work with the supplied Clients.html.
+   - Desktop: sidebar, topbar, statistics and client table
+   - Mobile: responsive cards, stacked filters and bottom nav
+   - Tablet: balanced two-column statistics
+   - Modals: responsive add/edit forms created by clients.js
+   - Branding: inherits colors from branding.js
+   ============================================================ */
 
-/* ---------- 1. Design tokens ---------- */
+/* ============================================================
+   1. DESIGN TOKENS
+   ============================================================ */
 
-.clients-page {
-  --clients-primary: var(--primary-color, #087fdf);
-  --clients-primary-dark: var(--primary-dark, #0668b8);
-  --clients-accent: var(--accent-color, #14b8a6);
+:root {
+  --client-primary: var(--primary-color, #087fdf);
+  --client-accent: var(--accent-color, #13a8e8);
 
-  --clients-bg: #f5f7fb;
-  --clients-surface: #ffffff;
-  --clients-text: #172033;
-  --clients-muted: #748096;
-  --clients-border: #e6eaf1;
+  --client-text: #172b4d;
+  --client-muted: #64748b;
+  --client-border: #e5ebf3;
+  --client-background: #f5f8fc;
+  --client-white: #ffffff;
 
-  --clients-success: #15803d;
-  --clients-success-bg: #dcfce7;
-  --clients-warning: #a16207;
-  --clients-warning-bg: #fef3c7;
-  --clients-danger: #b91c1c;
-  --clients-danger-bg: #fee2e2;
+  --client-blue-light: #eaf4ff;
+  --client-green: #15803d;
+  --client-green-light: #dcfce7;
+  --client-orange: #b45309;
+  --client-orange-light: #fef3c7;
+  --client-purple: #7c3aed;
+  --client-purple-light: #ede9fe;
+  --client-red: #b91c1c;
+  --client-red-light: #fee2e2;
 
-  --clients-sidebar-width: 258px;
-  --clients-radius: 14px;
-  --clients-radius-sm: 9px;
+  --client-radius-sm: 9px;
+  --client-radius-md: 14px;
+  --client-radius-lg: 20px;
 
-  --clients-shadow:
-    0 4px 18px rgba(20, 35, 65, 0.045);
+  --client-shadow:
+    0 3px 14px rgba(15, 23, 42, 0.045);
 
-  margin: 0;
+  --client-shadow-hover:
+    0 10px 25px rgba(15, 23, 42, 0.075);
+
+  --client-mobile-nav-height: 72px;
+}
+
+/* ============================================================
+   2. PAGE FOUNDATION
+   ============================================================ */
+
+body.clients-page {
   min-height: 100vh;
-  color: var(--clients-text);
-  background: var(--clients-bg);
-
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  margin: 0;
+  color: var(--client-text);
+  background: var(--client-background);
+  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 .clients-page *,
@@ -62,96 +73,66 @@
   font: inherit;
 }
 
-.clients-page button {
-  cursor: pointer;
-}
-
-.clients-page button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
+.clients-page button,
 .clients-page a {
-  color: inherit;
-  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.clients-page button:focus-visible,
+.clients-page a:focus-visible,
+.clients-page input:focus-visible,
+.clients-page select:focus-visible,
+.clients-page textarea:focus-visible {
+  outline: 3px solid rgba(8, 127, 223, 0.25);
+  outline-offset: 3px;
 }
 
 .clients-page [hidden] {
   display: none !important;
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* ---------- 2. Main application layout ---------- */
-
 .clients-page .app-shell {
-  display: flex;
   min-height: 100vh;
 }
 
 .clients-page .main-content {
-  flex: 1;
   min-width: 0;
-  margin-left: var(--clients-sidebar-width);
-  padding: 0 32px 20px;
 }
 
-.clients-page .sidebar {
-  position: fixed;
-  inset: 0 auto 0 0;
-  z-index: 100;
-
-  display: flex;
-  flex-direction: column;
-
-  width: var(--clients-sidebar-width);
-  height: 100vh;
-
-  padding: 24px 16px 18px;
-
-  background: var(--sidebar-bg, #fff);
-  border-right: 1px solid var(--clients-border);
-  overflow-y: auto;
+.clients-page .page-content {
+  min-width: 0;
+  width: 100%;
 }
 
-/* ---------- 3. Sidebar branding ---------- */
+/* ============================================================
+   3. EXISTING SIDEBAR
+   Preserve the shared HomeRent structure.
+   ============================================================ */
 
 .clients-page .sidebar-brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 
-  min-height: 58px;
-  padding: 0 8px 24px;
-
-  border-bottom: 1px solid var(--clients-border);
+ 
 }
 
 .clients-page .sidebar-logo {
   display: flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   align-items: center;
   justify-content: center;
-
-  width: 43px;
-  height: 43px;
-  flex-shrink: 0;
-
   overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 12px;
-  background: #eef5ff;
 }
 
 .clients-page .sidebar-logo img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -159,981 +140,2169 @@
 
 .clients-page .sidebar-brand-text {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: 4px;
-  min-width: 0;
 }
 
 .clients-page .sidebar-brand-text strong {
-  font-size: 15px;
-  font-weight: 750;
-  line-height: 1.3;
   overflow-wrap: anywhere;
+  font-size: 0.98rem;
+  font-weight: 800;
 }
 
 .clients-page .sidebar-brand-text span {
-  color: var(--clients-muted);
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: 0.74rem;
+  opacity: 0.75;
 }
-
-.clients-page .sidebar-close {
-  display: none !important;
-  margin-left: auto;
-}
-
-/* ---------- 4. Sidebar navigation ---------- */
 
 .clients-page .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-
-  padding-top: 26px;
+  gap: 5px;
 }
 
-.clients-page .nav-link {
+.clients-page .sidebar-nav .nav-link {
   display: flex;
+  min-height: 45px;
   align-items: center;
-  gap: 13px;
-
-  min-height: 46px;
-  padding: 0 14px;
-
-  color: #69758a;
-  border-radius: 10px;
-
-  font-size: 13px;
-  font-weight: 550;
-
+  gap: 12px;
+  padding: 11px 13px;
+  border-radius: 11px;
+  text-decoration: none;
   transition:
-    color 0.18s ease,
-    background 0.18s ease;
+    color 160ms ease,
+    background 160ms ease;
 }
 
-.clients-page .nav-link i {
+.clients-page .sidebar-nav .nav-link i {
   width: 19px;
+  flex: 0 0 19px;
   text-align: center;
-  font-size: 15px;
 }
 
-.clients-page .nav-link:hover {
-  color: var(--clients-primary);
-  background: #f1f6ff;
+.clients-page .sidebar-nav .nav-link.active {
+  color: var(--client-primary);
+  background: var(--client-blue-light);
+  font-weight: 750;
 }
 
-.clients-page .nav-link.active {
-  color: var(--clients-primary);
-  background: color-mix(
-    in srgb,
-    var(--clients-primary) 10%,
-    white
-  );
-  font-weight: 700;
+.clients-page .sidebar-nav .nav-link:hover:not(.active) {
+  background: rgba(148, 163, 184, 0.1);
 }
 
 .clients-page .sidebar-footer {
   display: flex;
   align-items: center;
   gap: 9px;
-
   margin-top: auto;
-  padding: 18px 10px 0;
-
-  color: var(--clients-muted);
-  font-size: 11px;
+  padding-top: 20px;
+  color: var(--client-muted);
+  font-size: 0.78rem;
 }
 
-.clients-page .status-dot {
+.clients-page .sidebar-footer-dot {
   width: 8px;
   height: 8px;
-  flex-shrink: 0;
+  flex: 0 0 8px;
+  background: #22c55e;
   border-radius: 50%;
-  background: #16a34a;
 }
 
-/* ---------- 5. Top navigation ---------- */
+
+/* ============================================================
+   FIX: HOMERENT DESKTOP SIDEBAR LAYOUT
+   File: css/clients.css
+   ============================================================ */
+
+/* Desktop: sidebar on the left, page content on the right */
+.clients-page .app-shell {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  min-height: 100vh;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* Keep the sidebar in the left column */
+.clients-page .app-shell > .sidebar {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  width: 250px;
+  height: 100vh;
+  min-height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+/* Allow the sidebar's inner content to fill its height */
+.clients-page .sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 100%;
+  padding: 22px 16px;
+  box-sizing: border-box;
+}
+
+/* Main page must occupy the column beside the sidebar */
+.clients-page .app-shell > .main-content {
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+/* Prevent page content from exceeding the viewport */
+.clients-page .clients-content {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* Keep the mobile navigation hidden on desktop */
+.clients-page .mobile-bottom-nav {
+  display: none;
+}
+
+/* ============================================================
+   MOBILE: sidebar becomes a slide-out drawer
+   ============================================================ */
+@media (max-width: 760px) {
+  .clients-page .app-shell {
+    display: block;
+    min-height: 100vh;
+  }
+
+  .clients-page .app-shell > .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(285px, 86vw);
+    height: 100dvh;
+    min-height: 0;
+    transform: translateX(-105%);
+    transition: transform 220ms ease;
+    z-index: 1001;
+    background: var(--surface, #fff);
+  }
+
+  .clients-page .app-shell > .sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .clients-page .sidebar-inner {
+    min-height: 100%;
+    overflow-y: auto;
+  }
+
+  .clients-page .app-shell > .main-content {
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .clients-page .mobile-bottom-nav {
+    display: flex;
+  }
+
+  .clients-page .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.48);
+    z-index: 1000;
+  }
+
+  .clients-page .sidebar-overlay.is-visible {
+    display: block;
+  }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .clients-page .sidebar {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   4. TOPBAR
+   ============================================================ */
 
 .clients-page .topbar {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-
-  min-height: 112px;
-  padding: 20px 0;
-
-  border-bottom: 1px solid var(--clients-border);
+  gap: 18px;
+  padding: 20px 30px;
+  background: #fff;
+  border-bottom: 1px solid var(--client-border);
 }
 
-.clients-page .topbar-heading {
+.clients-page .topbar-left {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 14px;
+}
+
+.clients-page .topbar-page-heading {
   min-width: 0;
 }
 
-.clients-page .topbar h1 {
+.clients-page .topbar-eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--client-primary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.clients-page .topbar-title {
   margin: 0;
-  font-size: clamp(23px, 2vw, 29px);
-  font-weight: 750;
-  letter-spacing: -0.8px;
-}
-
-.clients-page .eyebrow {
-  margin: 0 0 7px;
-  color: var(--clients-primary);
-  font-size: 10px;
-  font-weight: 750;
-  letter-spacing: 1.5px;
-}
-
-.clients-page .page-subtitle {
-  margin: 7px 0 0;
-  color: var(--clients-muted);
-  font-size: 12px;
-  line-height: 1.6;
+  color: var(--client-text);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.035em;
 }
 
 .clients-page .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 9px;
 }
 
 .clients-page .icon-button {
   display: inline-flex;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-
-  color: #59657a;
+  color: #52637a;
   background: #fff;
-  border: 1px solid var(--clients-border);
-  border-radius: 11px;
-
+  border: 1px solid var(--client-border);
+  border-radius: 12px;
+  cursor: pointer;
   transition:
-    color 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease;
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
 }
 
 .clients-page .icon-button:hover {
-  color: var(--clients-primary);
-  border-color: var(--clients-primary);
-}
-
-.clients-page .profile-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 41px;
-  height: 41px;
-  flex-shrink: 0;
-
-  color: #fff;
-  background: var(--clients-primary);
-  border: 0;
-  border-radius: 50%;
-
-  font-size: 15px;
-  font-weight: 750;
+  color: var(--client-primary);
+  background: var(--client-blue-light);
+  border-color: #c9e2fb;
 }
 
 .clients-page .mobile-menu-button {
   display: none;
 }
 
-/* ---------- 6. Page introduction ---------- */
+/* ============================================================
+   5. MAIN PAGE CONTENT
+   ============================================================ */
 
-.clients-page .welcome-row {
+.clients-page .clients-content {
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+  padding: 28px 30px 22px;
+  animation: client-page-enter 220ms ease-out;
+}
+
+@keyframes client-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   6. PAGE INTRODUCTION
+   Matches .clients-page-intro in your HTML.
+   ============================================================ */
+
+.clients-page-intro {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-
-  padding: 30px 0 24px;
+  gap: 24px;
 }
 
-.clients-page .welcome-row h2 {
+.clients-page-intro > div {
+  min-width: 0;
+}
+
+.clients-page .page-eyebrow {
+  margin: 0 0 8px;
+  color: var(--client-primary);
+  font-size: 0.73rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.clients-page-intro h2 {
   margin: 0;
-  font-size: 19px;
-  font-weight: 750;
-  letter-spacing: -0.35px;
+  color: var(--client-text);
+  font-size: clamp(1.5rem, 2.3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.2;
 }
 
-.clients-page .welcome-row p {
-  margin: 7px 0 0;
-  color: var(--clients-muted);
-  font-size: 12px;
-  line-height: 1.6;
+.clients-page-intro p:not(.page-eyebrow) {
+  max-width: 600px;
+  margin: 10px 0 0;
+  color: var(--client-muted);
+  font-size: 0.91rem;
+  line-height: 1.65;
 }
 
-/* ---------- 7. Buttons ---------- */
+/* ============================================================
+   7. BUTTONS
+   ============================================================ */
 
-.clients-page .button {
+.clients-page .btn {
   display: inline-flex;
+  min-height: 42px;
   align-items: center;
   justify-content: center;
   gap: 9px;
-
-  min-height: 42px;
-  padding: 0 17px;
-
+  padding: 10px 15px;
   border: 1px solid transparent;
-  border-radius: 10px;
-
-  font-size: 12px;
-  font-weight: 700;
-
+  border-radius: 11px;
+  cursor: pointer;
+  font-size: 0.84rem;
+  font-weight: 750;
+  line-height: 1.35;
+  text-align: center;
+  text-decoration: none;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
+    background 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
 }
 
-.clients-page .button:active {
-  transform: translateY(1px);
+.clients-page .btn:hover:not(:disabled) {
+  transform: translateY(-1px);
 }
 
-.clients-page .button-primary {
+.clients-page .btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.clients-page .btn-primary {
   color: #fff;
-  background: var(--clients-primary);
-  border-color: var(--clients-primary);
+  background: var(--client-primary);
+  box-shadow: 0 5px 13px rgba(8, 127, 223, 0.17);
 }
 
-.clients-page .button-primary:hover {
-  color: #fff;
-  background: var(--clients-primary-dark);
-  border-color: var(--clients-primary-dark);
+.clients-page .btn-primary:hover:not(:disabled) {
+  filter: brightness(0.95);
+  box-shadow: 0 7px 17px rgba(8, 127, 223, 0.23);
 }
 
-.clients-page .button-secondary {
-  color: var(--clients-text);
+.clients-page .btn-secondary {
+  color: #475569;
   background: #fff;
-  border-color: var(--clients-border);
+  border-color: #dce5ef;
 }
 
-.clients-page .button-secondary:hover {
-  background: #f7f9fc;
-  border-color: #cbd5e1;
+.clients-page .btn-secondary:hover:not(:disabled) {
+  color: var(--client-primary);
+  background: #f4f9ff;
+  border-color: #b8d9f7;
 }
 
-/* ---------- 8. Summary cards ---------- */
+.clients-page .btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
 
-.clients-page .stats-grid {
+/* ============================================================
+   8. STATISTICS GRID
+   Matches .clients-stat-grid and .client-stat-card.
+   ============================================================ */
+
+.clients-page .clients-stat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 17px;
-
-  margin-bottom: 25px;
+  gap: 16px;
 }
 
-.clients-page .stat-card {
+.clients-page .client-stat-card {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 14px;
-
   min-width: 0;
-  min-height: 112px;
-  padding: 20px;
-
-  background: var(--clients-surface);
-  border: 1px solid var(--clients-border);
-  border-radius: var(--clients-radius);
-
-  box-shadow: var(--clients-shadow);
+  min-height: 128px;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 21px 18px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e9eef5;
+  border-radius: var(--client-radius-md);
+  box-shadow: var(--client-shadow);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
-.clients-page .stat-icon {
+.clients-page .client-stat-card:hover {
+  border-color: #d4e5f7;
+  box-shadow: var(--client-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.clients-page .client-stat-card > div:last-child {
+  min-width: 0;
+}
+
+.clients-page .client-stat-icon {
   display: flex;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
   align-items: center;
   justify-content: center;
-
-  width: 45px;
-  height: 45px;
-  flex-shrink: 0;
-
   border-radius: 13px;
-  font-size: 17px;
+  font-size: 1.05rem;
 }
 
-.clients-page .stat-icon.blue {
-  color: #2563eb;
-  background: #eaf2ff;
+.clients-page .stat-icon-blue {
+  color: #087fdf;
+  background: #e5f2ff;
 }
 
-.clients-page .stat-icon.green {
+.clients-page .stat-icon-green {
   color: #15803d;
-  background: #e6f8ed;
+  background: #dcfce7;
 }
 
-.clients-page .stat-icon.amber {
-  color: #b7791f;
-  background: #fff5dc;
+.clients-page .stat-icon-orange {
+  color: #b45309;
+  background: #fef3c7;
 }
 
-.clients-page .stat-icon.violet {
+.clients-page .stat-icon-purple {
   color: #7c3aed;
-  background: #f1eaff;
+  background: #ede9fe;
 }
 
-.clients-page .stat-card > div:last-child {
-  min-width: 0;
+.clients-page .client-stat-card p {
+  margin: 1px 0 9px;
+  color: var(--client-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 1.4;
 }
 
-.clients-page .stat-card p {
-  margin: 0 0 6px;
-  color: var(--clients-muted);
-  font-size: 11px;
-  font-weight: 550;
+.clients-page .client-stat-card h3 {
+  margin: 0;
+  color: var(--client-text);
+  font-size: clamp(1.55rem, 2.2vw, 1.9rem);
+  font-weight: 850;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
 }
 
-.clients-page .stat-card strong {
+.clients-page .client-stat-card span {
   display: block;
-  font-size: 25px;
-  font-weight: 800;
-  letter-spacing: -0.8px;
-}
-
-.clients-page .stat-card small {
-  display: block;
-  margin-top: 6px;
-  color: var(--clients-muted);
-  font-size: 10px;
+  margin-top: 9px;
+  color: #94a3b8;
+  font-size: 0.72rem;
   line-height: 1.5;
 }
 
-/* ---------- 9. Directory container ---------- */
+/* ============================================================
+   9. CLIENT DIRECTORY PANEL
+   ============================================================ */
 
-.clients-page .directory-card {
+.clients-page .clients-directory-panel {
   min-width: 0;
-  padding: 24px;
-
-  background: var(--clients-surface);
-  border: 1px solid var(--clients-border);
-  border-radius: var(--clients-radius);
-
-  box-shadow: var(--clients-shadow);
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e7edf5;
+  border-radius: var(--client-radius-lg);
+  box-shadow: var(--client-shadow);
 }
 
-.clients-page .directory-heading {
+.clients-page .clients-directory-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 15px;
+  gap: 16px;
+  padding: 22px 24px;
+  border-bottom: 1px solid #edf1f6;
 }
 
-.clients-page .directory-heading h2 {
+.clients-page .clients-directory-heading > div {
+  min-width: 0;
+}
+
+.clients-page .clients-directory-heading h2 {
   margin: 0;
-  font-size: 16px;
+  color: var(--client-text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.clients-page .clients-directory-heading p {
+  margin: 7px 0 0;
+  color: var(--client-muted);
+  font-size: 0.81rem;
+  line-height: 1.5;
+}
+
+.clients-page #exportClientsButton {
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   10. SEARCH AND FILTER TOOLBAR
+   Matches .clients-search and .clients-filter.
+   ============================================================ */
+
+.clients-page .clients-toolbar {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1.7fr)
+    minmax(145px, 0.8fr)
+    minmax(145px, 0.8fr)
+    auto;
+  align-items: end;
+  gap: 13px;
+  padding: 19px 24px;
+  background: #fbfcfe;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.clients-page .clients-search {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.clients-page .clients-search > i {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+  font-size: 0.88rem;
+  pointer-events: none;
+}
+
+.clients-page .clients-search input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 45px;
+  padding: 11px 13px 11px 40px;
+  color: var(--client-text);
+  background: #fff;
+  border: 1px solid #dce5ef;
+  border-radius: 11px;
+  font-size: 0.83rem;
+  outline: none;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.clients-page .clients-search input::placeholder {
+  color: #9aa8b9;
+}
+
+.clients-page .clients-search input:focus {
+  border-color: var(--client-primary);
+  box-shadow: 0 0 0 3px rgba(8, 127, 223, 0.1);
+}
+
+.clients-page .clients-filter {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.clients-page .clients-filter > span {
+  color: #52637a;
+  font-size: 0.74rem;
   font-weight: 750;
 }
 
-.clients-page .directory-heading p {
-  margin: 7px 0 0;
-  color: var(--clients-muted);
-  font-size: 11px;
-}
-
-.clients-page .directory-mark {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 43px;
-  height: 43px;
-
-  color: var(--clients-primary);
-  background: #eef5ff;
-  border-radius: 12px;
-  font-size: 17px;
-}
-
-/* ---------- 10. Search and filters ---------- */
-
-.clients-page .toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-
-  margin: 24px 0;
-}
-
-.clients-page .search-box,
-.clients-page .filter-select {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  min-height: 43px;
-  padding: 0 13px;
-
-  color: #8490a4;
-  background: #fff;
-  border: 1px solid var(--clients-border);
-  border-radius: 10px;
-}
-
-.clients-page .search-box {
-  flex: 1 1 260px;
-  min-width: 0;
-}
-
-.clients-page .search-box input {
+.clients-page .clients-filter select {
   width: 100%;
   min-width: 0;
-  height: 41px;
-
-  color: var(--clients-text);
-  background: transparent;
-  border: 0;
-  outline: none;
-
-  font-size: 11px;
-}
-
-.clients-page .search-box:focus-within,
-.clients-page .filter-select:focus-within {
-  border-color: var(--clients-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--clients-primary) 12%, transparent);
-}
-
-.clients-page .filter-select {
-  flex: 0 1 auto;
-}
-
-.clients-page .filter-select select {
-  min-width: 100px;
-  max-width: 180px;
-  height: 41px;
-
-  color: #566176;
-  background: transparent;
-  border: 0;
-  outline: none;
-
-  font-size: 11px;
+  min-height: 45px;
+  padding: 10px 32px 10px 12px;
+  color: #334155;
+  background-color: #fff;
+  border: 1px solid #dce5ef;
+  border-radius: 11px;
+  font-size: 0.82rem;
   cursor: pointer;
+  outline: none;
 }
 
-/* ---------- 11. Feedback messages ---------- */
+.clients-page .clients-filter select:focus {
+  border-color: var(--client-primary);
+  box-shadow: 0 0 0 3px rgba(8, 127, 223, 0.1);
+}
 
-.clients-page .message {
-  margin: 0 0 16px;
+.clients-page .clients-reset-button {
+  min-height: 45px;
+  padding-right: 17px;
+  padding-left: 17px;
+}
+
+/* ============================================================
+   11. FEEDBACK MESSAGE
+   ============================================================ */
+
+.clients-page .clients-feedback {
+  margin: 16px 24px 0;
   padding: 12px 14px;
-  border-radius: 9px;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.clients-page .message.success {
-  color: #166534;
-  background: #dcfce7;
+  color: #14532d;
+  background: #f0fdf4;
   border: 1px solid #bbf7d0;
+  border-radius: 11px;
+  font-size: 0.82rem;
+  line-height: 1.55;
 }
 
-.clients-page .message.error {
+.clients-page .clients-feedback[data-type="error"] {
   color: #991b1b;
-  background: #fee2e2;
-  border: 1px solid #fecaca;
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
-.clients-page .message.info {
-  color: #1d4ed8;
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
+.clients-page .clients-feedback[data-type="warning"] {
+  color: #92400e;
+  background: #fffbeb;
+  border-color: #fde68a;
 }
 
-/* ---------- 12. Loading and empty states ---------- */
+/* ============================================================
+   12. DESKTOP CLIENT TABLE
+   ============================================================ */
 
-.clients-page .state-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
+.clients-page .clients-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
 
-  min-height: 270px;
-  padding: 30px 20px;
+.clients-page .clients-table {
+  width: 100%;
+  min-width: 740px;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.clients-page .clients-table thead th {
+  padding: 15px 18px;
+  color: #64748b;
+  background: #f8fafc;
+  border-bottom: 1px solid #e8edf4;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.clients-page .clients-table tbody td {
+  padding: 17px 18px;
+  color: #475569;
+  background: #fff;
+  border-bottom: 1px solid #edf1f6;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  vertical-align: middle;
+}
+
+.clients-page .clients-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.clients-page .clients-table tbody tr:hover td {
+  background: #fbfdff;
+}
+
+.clients-page .clients-table-placeholder {
+  padding: 42px 18px !important;
+  color: #94a3b8 !important;
   text-align: center;
 }
 
-.clients-page .state-panel strong {
-  font-size: 14px;
+.clients-page .clients-table-placeholder i {
+  margin-right: 8px;
+  color: var(--client-primary);
 }
 
-.clients-page .state-panel p {
-  max-width: 340px;
-  margin: 0;
-  color: var(--clients-muted);
-  font-size: 12px;
-  line-height: 1.7;
+/* Client identity */
+.clients-page .client-name-cell {
+  min-width: 200px;
 }
 
-.clients-page .state-icon {
-  display: flex;
+.clients-page .client-identity-button {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 11px;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.clients-page .client-identity-button:hover .client-name {
+  color: var(--client-primary);
+}
+
+.clients-page .client-avatar {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   align-items: center;
   justify-content: center;
-
-  width: 55px;
-  height: 55px;
-
-  color: var(--clients-primary);
-  background: #eef5ff;
-  border-radius: 16px;
-  font-size: 21px;
+  color: #0759a6;
+  background: #e0efff;
+  border: 1px solid #d4e7fc;
+  border-radius: 13px;
+  font-size: 0.87rem;
+  font-weight: 850;
+  text-transform: uppercase;
 }
 
-.clients-page .state-icon.error {
+.clients-page .client-identity-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.clients-page .client-name {
+  color: #172b4d;
+  font-size: 0.85rem;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.clients-page .client-number {
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+/* Contact information */
+.clients-page .client-contact {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.clients-page .client-contact-primary {
+  color: #334155;
+  overflow-wrap: anywhere;
+}
+
+.clients-page .client-contact-secondary {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+/* Status and type labels */
+.clients-page .client-type-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  color: #475569;
+  background: #f1f5f9;
+  border-radius: 7px;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.clients-page .client-status {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.clients-page .client-status::before {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  background: currentColor;
+  border-radius: 50%;
+  content: "";
+}
+
+.clients-page .client-status-active {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.clients-page .client-status-inactive {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.clients-page .client-status-archived {
   color: #b91c1c;
   background: #fee2e2;
 }
 
-.clients-page .spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid #e5edf7;
-  border-top-color: var(--clients-primary);
-  border-radius: 50%;
-  animation: clients-spin 0.8s linear infinite;
-}
-
-@keyframes clients-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ---------- 13. Desktop table ---------- */
-
-.clients-page .table-wrap {
-  width: 100%;
-  overflow-x: auto;
-  border-top: 1px solid var(--clients-border);
-}
-
-.clients-page table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.clients-page thead th {
-  padding: 17px 14px;
-
-  color: #8490a4;
-  background: #fafbfd;
-  border-bottom: 1px solid var(--clients-border);
-
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.8px;
-  white-space: nowrap;
-}
-
-.clients-page tbody td {
-  padding: 17px 14px;
-  border-bottom: 1px solid #edf0f5;
-  vertical-align: middle;
-}
-
-.clients-page tbody tr:last-child td {
-  border-bottom: 0;
-}
-
-.clients-page tbody tr:hover {
-  background: #fbfcff;
-}
-
-.clients-page .client-identity {
+/* Row actions */
+.clients-page .client-row-actions {
   display: flex;
   align-items: center;
-  gap: 11px;
-  min-width: 175px;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
-.clients-page .client-avatar {
-  display: flex;
+.clients-page .client-action-button {
+  display: inline-flex;
+  min-width: 35px;
+  min-height: 35px;
   align-items: center;
   justify-content: center;
-
-  width: 43px;
-  height: 43px;
-  flex-shrink: 0;
-
-  overflow: hidden;
-  color: #fff;
-  background: var(--clients-primary);
-  border-radius: 50%;
-
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.clients-page .client-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.clients-page .client-identity > div:last-child {
-  min-width: 0;
-}
-
-.clients-page .client-name {
-  display: block;
-  color: var(--clients-text);
-  font-size: 12px;
-  font-weight: 750;
-  overflow-wrap: anywhere;
-}
-
-.clients-page .client-id {
-  display: block;
-  margin-top: 5px;
-  color: var(--clients-muted);
-  font-size: 10px;
-}
-
-.clients-page .contact-primary {
-  display: block;
-  color: #39465b;
-  font-size: 11px;
-  overflow-wrap: anywhere;
-}
-
-.clients-page .contact-secondary {
-  display: block;
-  margin-top: 5px;
-  color: var(--clients-muted);
-  font-size: 10px;
-  overflow-wrap: anywhere;
-}
-
-.clients-page .status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  padding: 6px 9px;
-  border-radius: 20px;
-
-  font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.clients-page .status-badge::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.clients-page .status-badge.active {
-  color: var(--clients-success);
-  background: var(--clients-success-bg);
-}
-
-.clients-page .status-badge.inactive {
-  color: var(--clients-warning);
-  background: var(--clients-warning-bg);
-}
-
-.clients-page .status-badge.archived {
+  padding: 7px;
   color: #64748b;
-  background: #edf0f4;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 700;
+  transition:
+    color 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
 }
 
-.clients-page .date-cell {
-  color: #59657a;
-  font-size: 11px;
+.clients-page .client-action-button:hover {
+  color: var(--client-primary);
+  background: #eff6ff;
+  border-color: #cfe4fa;
+}
+
+.clients-page .client-action-button[data-action="archive"]:hover {
+  color: var(--client-red);
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+/* ============================================================
+   13. MOBILE CLIENT CARDS
+   ============================================================ */
+
+.clients-page .clients-mobile-list {
+  display: none;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.clients-page .client-mobile-card {
+  min-width: 0;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e7edf5;
+  border-radius: 16px;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.035);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.clients-page .client-mobile-card:active {
+  border-color: #c8dff7;
+}
+
+.clients-page .client-mobile-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.clients-page .client-mobile-card .client-identity-button {
+  min-width: 0;
+  gap: 10px;
+}
+
+.clients-page .client-mobile-card .client-avatar {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+  border-radius: 13px;
+}
+
+.clients-page .client-mobile-card .client-identity-text {
+  gap: 5px;
+}
+
+.clients-page .client-mobile-card .client-name {
+  font-size: 0.88rem;
+}
+
+.clients-page .client-mobile-card .client-number {
+  font-size: 0.71rem;
+}
+
+.clients-page .client-mobile-card .client-status {
+  flex-shrink: 0;
+  margin-top: 2px;
+  padding: 5px 8px;
+  font-size: 0.66rem;
+}
+
+/* If the generated card contains contact details */
+.clients-page .client-mobile-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+  padding: 13px 0;
+  border-top: 1px solid #edf1f6;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.clients-page .client-mobile-contact-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #475569;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.clients-page .client-mobile-contact-row i,
+.clients-page .client-mobile-contact-row svg {
+  width: 16px;
+  flex: 0 0 16px;
+  margin-top: 3px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.clients-page .client-mobile-contact-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.clients-page .client-mobile-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 13px;
+}
+
+.clients-page .client-mobile-card-footer .client-type-label {
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.clients-page .actions-heading {
-  text-align: right;
-}
-
-.clients-page .row-actions {
+.clients-page .client-mobile-card-actions {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 7px;
 }
 
-.clients-page .action-button {
-  display: inline-flex;
+.clients-page .client-mobile-card-actions .client-action-button {
+  min-width: 38px;
+  min-height: 38px;
+}
+
+/* ============================================================
+   14. EMPTY STATE
+   ============================================================ */
+
+.clients-page .clients-empty-state {
+  padding: 52px 24px;
+  text-align: center;
+}
+
+.clients-page .clients-empty-icon {
+  display: flex;
+  width: 66px;
+  height: 66px;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-
-  min-height: 33px;
-  padding: 0 10px;
-
-  color: var(--clients-primary);
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
-  border-radius: 8px;
-
-  font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
+  margin: 0 auto 17px;
+  color: var(--client-primary);
+  background: #eaf4ff;
+  border: 1px solid #d8eaff;
+  border-radius: 20px;
+  font-size: 1.5rem;
 }
 
-.clients-page .action-button:hover {
-  background: #dbeafe;
-}
-
-.clients-page .action-button.neutral {
-  color: #475569;
-  background: #fff;
-  border-color: var(--clients-border);
-}
-
-.clients-page .action-button.danger {
-  color: var(--clients-danger);
-  background: #fff5f5;
-  border-color: #fecaca;
-}
-
-/* ---------- 14. Mobile client cards ---------- */
-
-.clients-page .mobile-client-list {
-  display: grid;
-  gap: 12px;
-}
-
-.clients-page .mobile-client-card {
-  padding: 16px;
-  border: 1px solid var(--clients-border);
-  border-radius: 12px;
-  background: #fff;
-}
-
-.clients-page .mobile-client-top {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.clients-page .mobile-client-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.clients-page .mobile-client-info .client-name {
-  font-size: 13px;
-}
-
-.clients-page .mobile-client-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-
-  margin-top: 17px;
-  padding-top: 15px;
-  border-top: 1px solid var(--clients-border);
-}
-
-.clients-page .mobile-client-meta span {
-  display: block;
-  margin-bottom: 5px;
-  color: var(--clients-muted);
-  font-size: 10px;
-}
-
-.clients-page .mobile-client-meta strong {
-  display: block;
-  font-size: 11px;
-  overflow-wrap: anywhere;
-}
-
-.clients-page .mobile-client-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 15px;
-}
-
-/* ---------- 15. Add / edit client dialog ---------- */
-
-.clients-page .client-dialog {
-  width: min(640px, calc(100% - 28px));
-  max-width: 640px;
-  max-height: calc(100vh - 32px);
-
-  padding: 0;
-  overflow-y: auto;
-
-  color: var(--clients-text);
-  background: #fff;
-  border: 1px solid var(--clients-border);
-  border-radius: 18px;
-
-  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.2);
-}
-
-.clients-page .client-dialog::backdrop {
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(3px);
-}
-
-.clients-page .client-dialog form {
-  padding: 27px;
-}
-
-.clients-page .dialog-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-
-  margin-bottom: 25px;
-}
-
-.clients-page .dialog-heading h2 {
+.clients-page .clients-empty-state h3 {
   margin: 0;
-  font-size: 21px;
+  color: var(--client-text);
+  font-size: 1.05rem;
   font-weight: 800;
 }
 
-.clients-page .dialog-heading p:last-child {
-  margin: 8px 0 0;
-  color: var(--clients-muted);
-  font-size: 11px;
+.clients-page .clients-empty-state p {
+  max-width: 400px;
+  margin: 10px auto 20px;
+  color: var(--client-muted);
+  font-size: 0.84rem;
   line-height: 1.7;
 }
 
-.clients-page .form-grid {
+/* ============================================================
+   15. PAGINATION
+   Matches the supplied HTML exactly.
+   ============================================================ */
+
+.clients-page .clients-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 24px;
+  border-top: 1px solid #edf1f6;
+}
+
+.clients-page #clientsPaginationSummary {
+  color: var(--client-muted);
+  font-size: 0.79rem;
+  line-height: 1.5;
+}
+
+.clients-page .clients-pagination-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.clients-page #clientsPageNumber {
+  display: inline-flex;
+  min-width: 34px;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  color: var(--client-primary);
+  background: #eaf4ff;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+/* ============================================================
+   16. FOOTER
+   ============================================================ */
+
+.clients-page .app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 6px 2px 12px;
+  color: #94a3b8;
+  font-size: 0.73rem;
+  line-height: 1.6;
+}
+
+.clients-page .app-footer span {
+  overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   17. ADD / EDIT CLIENT MODAL
+   Supports the classes generated by clients.js.
+   ============================================================ */
+
+.clients-page .client-form-modal {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.clients-page .client-form-dialog {
+  display: flex;
+  width: min(720px, 100%);
+  max-height: min(88vh, 900px);
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 21px;
+  box-shadow: 0 25px 80px rgba(15, 23, 42, 0.25);
+  animation: client-modal-enter 180ms ease-out;
+}
+
+@keyframes client-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.clients-page .client-form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 22px 24px;
+  background: linear-gradient(135deg, #eff6ff, #fff);
+  border-bottom: 1px solid #e8eef6;
+}
+
+.clients-page .client-form-header h2 {
+  margin: 0;
+  color: var(--client-text);
+  font-size: 1.2rem;
+  font-weight: 850;
+}
+
+.clients-page .client-form-header p {
+  margin: 7px 0 0;
+  color: var(--client-muted);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.clients-page .client-form-body {
+  min-height: 0;
+  padding: 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.clients-page .client-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 19px;
+  gap: 17px;
 }
 
-.clients-page .field {
+.clients-page .client-form-field {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
   min-width: 0;
+  flex-direction: column;
+  gap: 7px;
 }
 
-.clients-page .field > span {
-  color: #3e4a60;
-  font-size: 11px;
-  font-weight: 700;
+.clients-page .client-form-field.full-width {
+  grid-column: 1 / -1;
 }
 
-.clients-page .field > span b {
-  color: #dc2626;
+.clients-page .client-form-field label {
+  color: #334155;
+  font-size: 0.81rem;
+  font-weight: 750;
+  line-height: 1.5;
 }
 
-.clients-page .field input,
-.clients-page .field select,
-.clients-page .field textarea {
+.clients-page .client-form-field input,
+.clients-page .client-form-field select,
+.clients-page .client-form-field textarea {
   width: 100%;
   min-width: 0;
-  padding: 12px;
-
-  color: var(--clients-text);
+  min-height: 44px;
+  padding: 11px 12px;
+  color: #1e293b;
   background: #fff;
-  border: 1px solid #dfe5ee;
-  border-radius: 9px;
+  border: 1px solid #d8e1ed;
+  border-radius: 10px;
+  font-size: 0.87rem;
   outline: none;
-
-  font-size: 12px;
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
-.clients-page .field input,
-.clients-page .field select {
-  min-height: 43px;
+.clients-page .client-form-field input:focus,
+.clients-page .client-form-field select:focus,
+.clients-page .client-form-field textarea:focus {
+  border-color: var(--client-primary);
+  box-shadow: 0 0 0 3px rgba(8, 127, 223, 0.1);
 }
 
-.clients-page .field textarea {
+.clients-page .client-form-field input::placeholder,
+.clients-page .client-form-field textarea::placeholder {
+  color: #9aa8b9;
+}
+
+.clients-page .client-form-field textarea {
+  min-height: 95px;
   resize: vertical;
   line-height: 1.6;
 }
 
-.clients-page .field input:focus,
-.clients-page .field select:focus,
-.clients-page .field textarea:focus {
-  border-color: var(--clients-primary);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--clients-primary) 12%, transparent);
-}
-
-.clients-page .field small {
-  color: var(--clients-muted);
-  font-size: 10px;
-  line-height: 1.6;
-}
-
-.clients-page .full-field {
-  grid-column: 1 / -1;
-}
-
-.clients-page .form-error {
-  margin-bottom: 18px;
-  padding: 12px;
-
+.clients-page .client-form-error {
+  margin: 14px 0 0;
+  padding: 11px 13px;
   color: #991b1b;
-  background: #fee2e2;
+  background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 9px;
-
-  font-size: 12px;
-  line-height: 1.6;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  line-height: 1.55;
 }
 
-.clients-page .dialog-actions {
+.clients-page .client-form-footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 10px;
-
-  margin-top: 27px;
-  padding-top: 20px;
-  border-top: 1px solid var(--clients-border);
+  padding: 16px 24px;
+  background: #fbfcfe;
+  border-top: 1px solid #e8eef6;
 }
 
-/* ---------- 16. Application footer ---------- */
+/* ============================================================
+   18. MOBILE BOTTOM NAVIGATION
+   Matches .mobile-bottom-nav and .mobile-nav-item.
+   ============================================================ */
 
-.clients-page .app-footer {
-  padding: 24px 0 10px;
-  color: var(--clients-muted);
-  font-size: 10px;
-  text-align: center;
+.clients-page .mobile-bottom-nav {
+  display: none;
 }
 
-/* ---------- 17. Tablet layout ---------- */
+@media (max-width: 760px) {
+  .clients-page .mobile-bottom-nav {
+    position: fixed;
+    z-index: 900;
+    right: 0;
+    bottom: 0;
+    left: 0;
 
-@media (max-width: 1200px) {
-  .clients-page {
-    --clients-sidebar-width: 230px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-items: center;
+    gap: 2px;
+
+    min-height: var(--client-mobile-nav-height);
+    padding: 7px 5px calc(7px + env(safe-area-inset-bottom, 0px));
+
+    background: rgba(255, 255, 255, 0.97);
+    border-top: 1px solid #e3eaf3;
+    box-shadow: 0 -7px 25px rgba(15, 23, 42, 0.07);
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
   }
 
-  .clients-page .main-content {
+  .clients-page .mobile-nav-item {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    min-height: 50px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px 1px;
+
+    color: #8390a3;
+    background: transparent;
+    border: 0;
+    border-radius: 11px;
+
+    font-size: 0.66rem;
+    font-weight: 750;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .clients-page .mobile-nav-item i {
+    font-size: 1.13rem;
+    line-height: 1;
+  }
+
+  .clients-page .mobile-nav-item.active,
+  .clients-page .mobile-nav-item[aria-current="page"] {
+    color: var(--client-primary);
+    background: #eff6ff;
+  }
+
+  .clients-page .mobile-nav-item.active::before {
+    position: absolute;
+    top: -7px;
+    width: 25px;
+    height: 3px;
+    background: var(--client-primary);
+    border-radius: 0 0 5px 5px;
+    content: "";
+  }
+
+  /* Central Add Room button */
+  .clients-page .mobile-nav-add-button {
+    display: inline-flex;
+    width: 49px;
+    height: 49px;
+    min-width: 49px;
+    align-items: center;
+    justify-content: center;
+    justify-self: center;
+
+    margin-top: -17px;
+    padding: 0;
+
+    color: #fff;
+    background: var(--client-primary);
+    border: 4px solid #fff;
+    border-radius: 17px;
+    box-shadow: 0 5px 14px rgba(8, 127, 223, 0.28);
+
+    cursor: pointer;
+    font-size: 1.15rem;
+    transition:
+      background 150ms ease,
+      transform 150ms ease;
+  }
+
+  .clients-page .mobile-nav-add-button:hover {
+    background: #066cc0;
+  }
+
+  .clients-page .mobile-nav-add-button:active {
+    transform: scale(0.96);
+  }
+
+  /* Keep content clear of the fixed bottom navigation. */
+  .clients-page .clients-content {
+    padding: 20px 14px calc(var(--client-mobile-nav-height) + 28px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ============================================================
+   19. TABLET
+   ============================================================ */
+
+@media (max-width: 1100px) {
+  .clients-page .clients-content {
     padding-right: 22px;
     padding-left: 22px;
   }
 
-  .clients-page .stats-grid {
+  .clients-page .clients-stat-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .clients-page .directory-card {
-    padding: 19px;
+  .clients-page .clients-toolbar {
+    grid-template-columns:
+      minmax(200px, 1.5fr)
+      minmax(135px, 1fr)
+      minmax(135px, 1fr);
+  }
+
+  .clients-page .clients-reset-button {
+    grid-column: 1 / -1;
+    justify-self: end;
+    min-width: 100px;
   }
 }
 
-/* ---------- 18. Mo
+/* ============================================================
+   20. MOBILE
+   ============================================================ */
+
+@media (max-width: 760px) {
+  .clients-page .topbar {
+    min-height: 74px;
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .clients-page .topbar-left {
+    gap: 10px;
+  }
+
+  .clients-page .mobile-menu-button {
+    display: inline-flex;
+    width: 39px;
+    height: 39px;
+  }
+
+  .clients-page .topbar-eyebrow {
+    margin-bottom: 4px;
+    font-size: 0.6rem;
+  }
+
+  .clients-page .topbar-title {
+    font-size: 1.17rem;
+  }
+
+  .clients-page .topbar-actions {
+    gap: 7px;
+  }
+
+  .clients-page .topbar-actions .icon-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .clients-page .clients-content {
+    gap: 18px;
+  }
+
+  .clients-page .clients-page-intro {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .clients-page-intro h2 {
+    font-size: 1.55rem;
+  }
+
+  .clients-page-intro p:not(.page-eyebrow) {
+    margin-top: 8px;
+    font-size: 0.86rem;
+  }
+
+  .clients-page-intro > .btn {
+    width: 100%;
+    min-height: 47px;
+  }
+
+  /* Two balanced columns on phones. */
+  .clients-page .clients-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .clients-page .client-stat-card {
+    min-height: 113px;
+    gap: 9px;
+    padding: 14px 11px;
+    border-radius: 15px;
+  }
+
+  .clients-page .client-stat-icon {
+    width: 35px;
+    height: 35px;
+    flex-basis: 35px;
+    border-radius: 11px;
+    font-size: 0.9rem;
+  }
+
+  .clients-page .client-stat-card p {
+    margin-bottom: 7px;
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+
+  .clients-page .client-stat-card h3 {
+    font-size: 1.45rem;
+  }
+
+  .clients-page .client-stat-card span {
+    margin-top: 7px;
+    font-size: 0.66rem;
+    line-height: 1.45;
+  }
+
+  .clients-page .clients-directory-panel {
+    border-radius: 17px;
+  }
+
+  .clients-page .clients-directory-heading {
+    align-items: center;
+    gap: 10px;
+    padding: 17px 14px;
+  }
+
+  .clients-page .clients-directory-heading h2 {
+    font-size: 0.98rem;
+  }
+
+  .clients-page .clients-directory-heading p {
+    font-size: 0.75rem;
+  }
+
+  .clients-page .clients-directory-heading #exportClientsButton {
+    min-height: 40px;
+    gap: 7px;
+    padding: 9px 11px;
+    font-size: 0.76rem;
+  }
+
+  .clients-page .clients-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .clients-page .clients-search,
+  .clients-page .clients-filter {
+    width: 100%;
+  }
+
+  .clients-page .clients-search input,
+  .clients-page .clients-filter select {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .clients-page .clients-filter > span {
+    font-size: 0.74rem;
+  }
+
+  .clients-page .clients-reset-button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .clients-page .clients-feedback {
+    margin: 12px 14px 0;
+  }
+
+  /*
+    The desktop table is hidden on phones.
+    JavaScript supplies the client cards in clientsMobileList.
+  */
+  .clients-page .clients-table-wrap {
+    display: none;
+  }
+
+  .clients-page .clients-mobile-list {
+    display: flex;
+    padding: 12px;
+  }
+
+  .clients-page .clients-mobile-list:empty {
+    display: none;
+  }
+
+  .clients-page .clients-mobile-list[hidden],
+  .clients-page .clients-table-wrap[hidden] {
+    display: none !important;
+  }
+
+  .clients-page .clients-empty-state {
+    padding: 35px 16px;
+  }
+
+  .clients-page .clients-empty-icon {
+    width: 57px;
+    height: 57px;
+    margin-bottom: 14px;
+    border-radius: 17px;
+    font-size: 1.3rem;
+  }
+
+  .clients-page .clients-empty-state h3 {
+    font-size: 0.98rem;
+  }
+
+  .clients-page .clients-empty-state p {
+    font-size: 0.81rem;
+  }
+
+  .clients-page .clients-pagination {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .clients-page #clientsPaginationSummary {
+    font-size: 0.75rem;
+  }
+
+  .clients-page .clients-pagination-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 7px;
+  }
+
+  .clients-page .clients-pagination-actions .btn {
+    min-width: 0;
+    min-height: 41px;
+    gap: 6px;
+    padding: 8px;
+    font-size: 0.76rem;
+  }
+
+  .clients-page #clientsPageNumber {
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .clients-page .app-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 2px 12px;
+    font-size: 0.7rem;
+  }
+
+  /* Add/edit form becomes a bottom sheet on mobile. */
+  .clients-page .client-form-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .clients-page .client-form-dialog {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 22px 22px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .clients-page .client-form-header {
+    padding: 18px 17px 15px;
+  }
+
+  .clients-page .client-form-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .clients-page .client-form-body {
+    padding: 18px 17px;
+  }
+
+  .clients-page .client-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 15px;
+  }
+
+  .clients-page .client-form-field.full-width {
+    grid-column: auto;
+  }
+
+  .clients-page .client-form-field input,
+  .clients-page .client-form-field select,
+  .clients-page .client-form-field textarea {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .clients-page .client-form-footer {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    padding: 13px 17px;
+  }
+
+  .clients-page .client-form-footer .btn {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 7px;
+  }
+}
+
+/* ============================================================
+   21. VERY SMALL PHONES
+   ============================================================ */
+
+@media (max-width: 380px) {
+  .clients-page .topbar {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .clients-page .topbar-left {
+    gap: 7px;
+  }
+
+  .clients-page .topbar-actions {
+    gap: 5px;
+  }
+
+  .clients-page .topbar-actions .icon-button {
+    width: 35px;
+    height: 35px;
+  }
+
+  .clients-page .clients-content {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .clients-page-intro h2 {
+    font-size: 1.4rem;
+  }
+
+  .clients-page .client-stat-card {
+    gap: 7px;
+    padding: 12px 9px;
+  }
+
+  .clients-page .client-stat-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    font-size: 0.82rem;
+  }
+
+  .clients-page .client-stat-card p {
+    font-size: 0.66rem;
+  }
+
+  .clients-page .client-stat-card h3 {
+    font-size: 1.28rem;
+  }
+
+  .clients-page .client-stat-card span {
+    font-size: 0.62rem;
+  }
+
+  .clients-page .clients-directory-heading {
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .clients-page .clients-directory-heading #exportClientsButton {
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+
+  .clients-page .client-mobile-card {
+    padding: 13px;
+  }
+
+  .clients-page .client-mobile-card .client-avatar {
+    width: 39px;
+    height: 39px;
+    flex-basis: 39px;
+  }
+
+  .clients-page .client-mobile-card .client-name {
+    font-size: 0.81rem;
+  }
+
+  .clients-page .client-mobile-card .client-status {
+    padding: 4px 6px;
+    font-size: 0.61rem;
+  }
+
+  .clients-page .client-mobile-card-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .clients-page .client-mobile-card-footer .client-type-label {
+    max-width: 100%;
+  }
+
+  .clients-page .client-mobile-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .clients-page .mobile-bottom-nav {
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+
+  .clients-page .mobile-nav-item {
+    font-size: 0.61rem;
+  }
+}
+
+/* ============================================================
+   22. MOBILE SIDEBAR OVERLAY
+   Your JavaScript controls .is-visible and .is-open.
+   ============================================================ */
+
+.clients-page .sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .clients-page .sidebar-overlay.is-visible {
+    position: fixed;
+    z-index: 950;
+    inset: 0;
+    display: block;
+    background: rgba(15, 23, 42, 0.5);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .clients-page .sidebar.is-open {
+    z-index: 1000;
+  }
+}
+
+/* ============================================================
+   23. DARK THEME COMPATIBILITY
+   Only activates if the shared application sets data-theme.
+   ============================================================ */
+
+[data-theme="dark"] .clients-page,
+.dark .clients-page {
+  --client-text: #e5edf8;
+  --client-muted: #a5b4c8;
+  --client-border: #334155;
+  --client-background: #0f172a;
+
+  color: var(--client-text);
+  background: var(--client-background);
+}
+
+[data-theme="dark"] .clients-page .topbar,
+[data-theme="dark"] .clients-page .client-stat-card,
+[data-theme="dark"] .clients-page .clients-directory-panel,
+[data-theme="dark"] .clients-page .client-mobile-card,
+.dark .clients-page .topbar,
+.dark .clients-page .client-stat-card,
+.dark .clients-page .clients-directory-panel,
+.dark .clients-page .client-mobile-card {
+  background: #172235;
+  border-color: #2b3a50;
+}
+
+[data-theme="dark"] .clients-page .topbar-title,
+[data-theme="dark"] .clients-page-intro h2,
+[data-theme="dark"] .clients-page .client-stat-card h3,
+[data-theme="dark"] .clients-page .clients-directory-heading h2,
+[data-theme="dark"] .clients-page .clients-empty-state h3,
+[data-theme="dark"] .clients-page .client-name,
+.dark .clients-page .topbar-title,
+.dark .clients-page-intro h2,
+.dark .clients-page .client-stat-card h3,
+.dark .clients-page .clients-directory-heading h2,
+.dark .clients-page .clients-empty-state h3,
+.dark .clients-page .client-name {
+  color: #e5edf8;
+}
+
+[data-theme="dark"] .clients-page .clients-toolbar,
+[data-theme="dark"] .clients-page .clients-table thead th,
+.dark .clients-page .clients-toolbar,
+.dark .clients-page .clients-table thead th {
+  background: #111c2e;
+  border-color: #2b3a50;
+}
+
+[data-theme="dark"] .clients-page .clients-table tbody td,
+.dark .clients-page .clients-table tbody td {
+  color: #cbd5e1;
+  background: #172235;
+  border-color: #2b3a50;
+}
+
+[data-theme="dark"] .clients-page .clients-search input,
+[data-theme="dark"] .clients-page .clients-filter select,
+[data-theme="dark"] .clients-page .client-form-field input,
+[data-theme="dark"] .clients-page .client-form-field select,
+[data-theme="dark"] .clients-page .client-form-field textarea,
+.dark .clients-page .clients-search input,
+.dark .clients-page .clients-filter select,
+.dark .clients-page .client-form-field input,
+.dark .clients-page .client-form-field select,
+.dark .clients-page .client-form-field textarea {
+  color: #e5edf8;
+  background: #111c2e;
+  border-color: #3a4a61;
+}
+
+[data-theme="dark"] .clients-page .client-form-dialog,
+.dark .clients-page .client-form-dialog {
+  background: #172235;
+}
+
+[data-theme="dark"] .clients-page .client-form-header,
+[data-theme="dark"] .clients-page .client-form-footer,
+.dark .clients-page .client-form-header,
+.dark .clients-page .client-form-footer {
+  background: #111c2e;
+  border-color: #2b3a50;
+}
+
+[data-theme="dark"] .clients-page .client-form-header h2,
+[data-theme="dark"] .clients-page .client-form-field label,
+.dark .clients-page .client-form-header h2,
+.dark .clients-page .client-form-field label {
+  color: #e5edf8;
+}
+
+@media (max-width: 760px) {
+  [data-theme="dark"] .clients-page .mobile-bottom-nav,
+  .dark .clients-page .mobile-bottom-nav {
+    background: rgba(15, 23, 42, 0.97);
+    border-color: #334155;
+  }
+
+  [data-theme="dark"] .clients-page .mobile-nav-add-button,
+  .dark .clients-page .mobile-nav-add-button {
+    border-color: #0f172a;
+  }
+}
+
+/* ============================================================
+   24. REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .clients-page *,
+  .clients-page *::before,
+  .clients-page *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+
+/* ============================================================
+   HOMERENT CLIENTS — UI FIXES
+   Sidebar colour, sticky header, and scrollable modal
+   ============================================================ */
+
+.clients-page {
+  --client-sidebar-bg: #102a56;
+  --client-sidebar-text: #dbe7f7;
+  --client-sidebar-muted: #9eb5d5;
+  --client-sidebar-active: #1e477f;
+  --client-sidebar-hover: rgba(255, 255, 255, 0.09);
+}
+
+/* 1. SIDEBAR COLOURS */
+.clients-page .app-shell > .sidebar {
+  background: var(--client-sidebar-bg);
+  color: var(--client-sidebar-text);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.clients-page .sidebar-brand-text strong {
+  color: #ffffff;
+}
+
+.clients-page .sidebar-brand-text span,
+.clients-page .sidebar-footer {
+  color: var(--client-sidebar-muted);
+}
+
+.clients-page .sidebar-logo {
+  background: #ffffff;
+}
+
+.clients-page .sidebar-nav .nav-link {
+  color: var(--client-sidebar-text);
+}
+
+.clients-page .sidebar-nav .nav-link i {
+  color: #a9c8f5;
+}
+
+.clients-page .sidebar-nav .nav-link.active {
+  color: #ffffff;
+  background: var(--client-sidebar-active);
+  box-shadow: inset 3px 0 0 #60a5fa;
+}
+
+.clients-page .sidebar-nav .nav-link.active i {
+  color: #ffffff;
+}
+
+.clients-page .sidebar-nav .nav-link:hover:not(.active) {
+  color: #ffffff;
+  background: var(--client-sidebar-hover);
+}
+
+/* 2. KEEP THE TOPBAR VISIBLE WHILE SCROLLING */
+.clients-page .app-shell > .main-content {
+  min-width: 0;
+  overflow: visible;
+}
+
+.clients-page .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: var(--surface, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
+}
+
+/* ============================================================
+   CLIENT FORM MODAL — STRUCTURE-SPECIFIC FIX
+   ============================================================ */
+
+body.client-form-open {
+  overflow: hidden;
+}
+
+.clients-page .client-form-modal,
+body > .client-form-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  background: rgba(15, 23, 42, 0.58);
+  -webkit-overflow-scrolling: touch;
+}
+
+.client-form-modal .client-form-dialog {
+  display: flex;
+  flex-direction: column;
+
+  width: min(680px, 100%);
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  min-height: 0;
+
+  margin: auto;
+  overflow: hidden;
+
+  background: var(--surface, #fff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.25);
+}
+
+.client-form-dialog .client-form-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  background: var(--surface, #fff);
+}
+
+.client-form-dialog #clientForm {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-height: 0;
+  overflow: hidden;
+}
+
+.client-form-dialog .client-form-body {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  padding: 22px 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.client-form-dialog .client-form-footer {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  background: var(--surface, #fff);
+}
+
+/* Keep fields and validation messages inside the scrolling body */
+.client-form-dialog .client-form-field {
+  min-width: 0;
+  margin-bottom: 16px;
+}
+
+.client-form-dialog input,
+.client-form-dialog select,
+.client-form-dialog textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* Phone-sized screens */
+@media (max-width: 760px) {
+  body > .client-form-modal,
+  .clients-page .client-form-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .client-form-modal .client-form-dialog {
+    width: 100%;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .client-form-dialog .client-form-header {
+    padding: 18px;
+  }
+
+  .client-form-dialog .client-form-body {
+    padding: 18px;
+  }
+
+  .client-form-dialog .client-form-footer {
+    padding: 14px 18px calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .client-form-dialog .client-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
