@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="description"
+    content="HomeRent client profile, tenancy history, payments and receipts."
+  >
+
+  <title>Client Profile | HomeRent</title>
+
+  <!-- Shared HomeRent styles -->
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/clients-details.css">
+
+  <!-- Font Awesome icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+  >
+</head>
+
+<body class="client-details-page">
+
+  <div class="app-shell">
+
+    <!-- Sidebar overlay for mobile -->
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      aria-hidden="true"
+    ></div>
+
+    <!-- EXISTING HOMERENT SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+
+        <a class="sidebar-brand" href="../dashboard/index.html">
+          <div class="sidebar-logo">
+            <img
+              id="systemLogo"
+              src="../../assets/images/system-logo.jpeg"
+              data-default-logo
+              alt="HomeRent logo"
+            >
+          </div>
+
+          <div class="sidebar-brand-text">
+            <strong id="systemName" data-setting="businessName">
+              HomeRent
+            </strong>
+            <span id="systemSubtitle">Property Management</span>
+          </div>
+        </a>
+
+        <nav class="sidebar-nav" aria-label="Main navigation">
+          <a class="nav-link" href="../dashboard/index.html">
+            <i class="fa-solid fa-house"></i>
+            <span>Dashboard</span>
+          </a>
+
+          <a class="nav-link" href="../rooms/index.html">
+            <i class="fa-solid fa-door-open"></i>
+            <span>Rooms</span>
+          </a>
+
+          <a
+            class="nav-link active"
+            href="clients.html"
+            aria-current="page"
+          >
+            <i class="fa-solid fa-users"></i>
+            <span>Clients</span>
+          </a>
+
+          <a class="nav-link" href="../tenancies/index.html">
+            <i class="fa-solid fa-file-contract"></i>
+            <span>Tenancies</span>
+          </a>
+
+          <a class="nav-link" href="../inspections/index.html">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Inspections</span>
+          </a>
+
+          <a class="nav-link" href="../payments/index.html">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Payments</span>
+          </a>
+
+          <a class="nav-link" href="../reports/index.html">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Reports</span>
+          </a>
+
+          <a class="nav-link" href="../settings/index.html">
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <span class="sidebar-footer-dot"></span>
+          <span>Secure management</span>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- Sticky topbar -->
+      <header class="topbar">
+
+        <div class="topbar-left">
+          <button
+            type="button"
+            class="icon-button mobile-menu-button"
+            id="mobileMenuButton"
+            aria-label="Open navigation"
+            aria-controls="sidebar"
+            aria-expanded="false"
+          >
+            <i class="fa-solid fa-bars"></i>
+          </button>
+
+          <div class="topbar-page-heading">
+            <span class="topbar-eyebrow">CLIENT MANAGEMENT</span>
+            <h1 class="topbar-title">Client profile</h1>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <button
+            type="button"
+            class="icon-button"
+            id="refreshClientProfileButton"
+            aria-label="Refresh client profile"
+            title="Refresh"
+          >
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+
+          <button
+            type="button"
+            class="icon-button"
+            id="logoutButton"
+            aria-label="Log out"
+            title="Log out"
+          >
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+
+      </header>
+
+      <!-- CLIENT PROFILE CONTENT -->
+      <section class="page-content client-profile-content">
+
+        <!-- Back navigation -->
+        <a class="client-back-link" href="index.html">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span> Back </span>
+        </a>
+
+        <!-- Loading and error feedback -->
+        <div
+          class="client-profile-feedback"
+          id="clientProfileFeedback"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+
+        <!-- CLIENT IDENTITY CARD -->
+        <section
+          class="client-identity-card"
+          id="clientIdentityCard"
+          aria-labelledby="profileClientName"
+        >
+
+          <div class="client-profile-identity">
+
+            <div class="client-profile-avatar" id="profileAvatar">
+              <i class="fa-solid fa-user" aria-hidden="true"></i>
+            </div>
+
+            <div class="client-profile-main">
+              <div class="client-profile-name-row">
+                <h2 id="profileClientName">Loading client...</h2>
+
+                <span
+                  class="client-profile-status"
+                  id="profileClientStatus"
+                >
+                  Loading
+                </span>
+              </div>
+
+              <p class="client-profile-number">
+                Client ID:
+                <strong id="profileClientNumber">—</strong>
+              </p>
+
+              <p class="client-profile-room">
+                <i class="fa-solid fa-house" aria-hidden="true"></i>
+                <span id="profileRoomDetails">
+                  No room information available
+                </span>
+              </p>
+            </div>
+
+          </div>
+
+          <div class="client-profile-contact-actions">
+
+            <a
+              class="client-contact-action client-call-action"
+              id="profileCallButton"
+              href="#"
+              aria-label="Call client"
+              hidden
+            >
+              <i class="fa-solid fa-phone"></i>
+              <span>Call</span>
+            </a>
+
+            <a
+              class="client-contact-action client-whatsapp-action"
+              id="profileWhatsAppButton"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Message client on WhatsApp"
+              hidden
+            >
+              <i class="fa-brands fa-whatsapp"></i>
+              <span>WhatsApp</span>
+            </a>
+
+          </div>
+
+          <div class="client-profile-contact-details">
+            <div class="client-contact-detail">
+              <span class="client-contact-label">Phone</span>
+              <strong id="profilePhone">—</strong>
+            </div>
+
+            <div class="client-contact-detail">
+              <span class="client-contact-label">Email address</span>
+              <strong id="profileEmail">—</strong>
+            </div>
+
+            <div class="client-contact-detail">
+              <span class="client-contact-label">Registered on</span>
+              <strong id="profileRegistrationDate">—</strong>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- FINANCIAL SUMMARY -->
+        <section
+          class="client-financial-grid"
+          aria-label="Client financial summary"
+        >
+
+          <article class="client-financial-card rent-paid-card">
+            <div class="client-financial-heading">
+              <span class="client-financial-icon">
+                <i class="fa-solid fa-money-bill-wave"></i>
+              </span>
+
+              <span class="client-financial-label">
+                Rent paid to date
+              </span>
+            </div>
+
+            <strong
+              class="client-financial-amount"
+              id="profileRentPaid"
+            >
+              —
+            </strong>
+
+            <p id="profileRentPaidCaption">
+              Calculating recorded rent payments...
+            </p>
+          </article>
+
+          <article class="client-financial-card outstanding-card">
+            <div class="client-financial-heading">
+              <span class="client-financial-icon">
+                <i class="fa-solid fa-scale-balanced"></i>
+              </span>
+
+              <span class="client-financial-label">
+                Outstanding balance
+              </span>
+            </div>
+
+            <strong
+              class="client-financial-amount"
+              id="profileOutstandingBalance"
+            >
+              —
+            </strong>
+
+            <p
+              class="client-balance-status"
+              id="profileBalanceStatus"
+            >
+              Awaiting verified rental records
+            </p>
+          </article>
+
+        </section>
+
+        <!-- PROFILE ACTIONS -->
+        <section class="client-profile-section">
+
+          <div class="client-section-heading">
+            <div>
+              <p class="page-eyebrow">CLIENT ACCOUNT</p>
+              <h2>Manage client records</h2>
+              <p>
+                View rental details, payment records and related documents.
+              </p>
+            </div>
+          </div>
+
+          <div class="client-profile-actions-grid">
+
+            <button
+              type="button"
+              class="client-profile-action-card"
+              data-profile-action="overview"
+              id="openClientOverviewButton"
+            >
+              <span class="client-profile-action-icon overview-icon">
+                <i class="fa-solid fa-user"></i>
+              </span>
+
+              <span class="client-profile-action-text">
+                <strong>Overview</strong>
+                <small>Personal details and current tenancy</small>
+              </span>
+
+              <i class="fa-solid fa-chevron-right client-action-chevron"></i>
+            </button>
+
+            <button
+              type="button"
+              class="client-profile-action-card"
+              data-profile-action="rent-history"
+              id="openRentHistoryButton"
+            >
+              <span class="client-profile-action-icon history-icon">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+              </span>
+
+              <span class="client-profile-action-text">
+                <strong>Rent history</strong>
+                <small>Rental periods and rent records</small>
+              </span>
+
+              <i class="fa-solid fa-chevron-right client-action-chevron"></i>
+            </button>
+
+            <button
+              type="button"
+              class="client-profile-action-card"
+              data-profile-action="payments"
+              id="openClientPaymentsButton"
+            >
+              <span class="client-profile-action-icon payments-icon">
+                <i class="fa-solid fa-receipt"></i>
+              </span>
+
+              <span class="client-profile-action-text">
+                <strong>Payments</strong>
+                <small>Transactions and printable receipts</small>
+              </span>
+
+              <i class="fa-solid fa-chevron-right client-action-chevron"></i>
+            </button>
+
+            <button
+              type="button"
+              class="client-profile-action-card"
+              data-profile-action="documents"
+              id="openClientDocumentsButton"
+            >
+              <span class="client-profile-action-icon documents-icon">
+                <i class="fa-solid fa-folder-open"></i>
+              </span>
+
+              <span class="client-profile-action-text">
+                <strong>Documents</strong>
+                <small>Client files and available exports</small>
+              </span>
+
+              <i class="fa-solid fa-chevron-right client-action-chevron"></i>
+            </button>
+
+          </div>
+        </section>
+
+        <!-- CURRENT TENANCY SUMMARY -->
+        <section
+          class="client-current-tenancy-card"
+          id="clientCurrentTenancyCard"
+          aria-labelledby="currentTenancyHeading"
+        >
+          <div class="client-section-heading">
+            <div>
+              <p class="page-eyebrow">RENTAL STATUS</p>
+              <h2 id="currentTenancyHeading">Current tenancy</h2>
+            </div>
+
+            <span id="currentTenancyStatus" class="client-tenancy-status">
+              Not loaded
+            </span>
+          </div>
+
+          <div class="client-tenancy-summary-grid">
+            <div>
+              <span>Room</span>
+              <strong id="currentTenancyRoom">—</strong>
+            </div>
+
+            <div>
+              <span>Start date</span>
+              <strong id="currentTenancyStartDate">—</strong>
+            </div>
+
+            <div>
+              <span>End date</span>
+              <strong id="currentTenancyEndDate">—</strong>
+            </div>
+
+            <div>
+              <span>Agreed rent</span>
+              <strong id="currentTenancyRate">—</strong>
+            </div>
+          </div>
+
+          <div class="client-tenancy-progress">
+            <div class="client-tenancy-progress-heading">
+              <strong id="tenancyProgressTitle">Rental period</strong>
+              <span id="tenancyProgressCaption">—</span>
+            </div>
+
+            <div
+              class="client-progress-track"
+              id="tenancyProgressTrack"
+              role="progressbar"
+              aria-label="Tenancy duration elapsed"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <span
+                class="client-progress-fill"
+                id="tenancyProgressFill"
+              ></span>
+            </div>
+
+            <p id="tenancyProgressNote">
+              Tenancy progress will appear when dates are available.
+            </p>
+          </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="app-footer">
+          <span data-setting="footerText"></span>
+          <span data-setting="copyrightText"></span>
+        </footer>
+
+      </section>
+    </main>
+  </div>
+
+  <!-- MOBILE BOTTOM NAVIGATION -->
+  <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+
+    <a href="../dashboard/index.html" class="mobile-nav-item">
+      <i class="fa-solid fa-house"></i>
+      <span>Home</span>
+    </a>
+
+    <a href="../rooms/index.html" class="mobile-nav-item">
+      <i class="fa-solid fa-door-open"></i>
+      <span>Rooms</span>
+    </a>
+
+    <button
+      type="button"
+      class="mobile-nav-add-button"
+      id="mobileAddRoomButton"
+      aria-label="Add a room"
+    >
+      <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <a href="clients.html" class="mobile-nav-item active" aria-current="page">
+      <i class="fa-solid fa-users"></i>
+      <span>Clients</span>
+    </a>
+
+    <a href="../payments/index.html" class="mobile-nav-item">
+      <i class="fa-solid fa-wallet"></i>
+      <span>Payments</span>
+    </a>
+
+  </nav>
+
+  <!-- Shared security and branding -->
+  <script type="module">
+    import {
+      protectPage,
+      startInactivityProtection
+    } from "../../js/auth/auth-guard.js";
+
+    import {
+      applyGlobalBranding
+    } from "../../js/core/branding.js";
+
+    protectPage();
+    startInactivityProtection();
+    applyGlobalBranding();
+  </script>
+
+  <!-- Existing Add Room feature -->
+  <script type="module" src="../../components/add-room/add-room.js"></script>
+
+  <!-- Client profile controller will be added in Step 3 -->
+  <script type="module" src="../../js/clients/clients-details.js"></script>
+
+</body>
+</html>
