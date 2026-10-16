@@ -159,6 +159,12 @@
    02. APPLICATION SHELL
 ========================================================= */
 
+/*keep the mobile overlay out of the desktop grid.*/
+
+
+.cleints-details-page.sidebar-overlay {display:none;}
+
+
 .client-details-page .app-shell {
   display: grid;
   grid-template-columns: var(--cp-sidebar-width) minmax(0, 1fr);
@@ -1552,7 +1558,9 @@
 
 @media (max-width: 850px) {
   .client-details-page {
+
     --cp-sidebar-width: 250px;
+
   }
 
   .client-details-page .app-shell {
@@ -2195,4 +2203,69 @@
     break-inside: avoid;
     box-shadow: none;
   }
+}
+
+
+
+
+/* =========================================================
+HOMERENT CLIENT PROFILE — FINAL DESKTOP LAYOUT FIX
+Keep this block at the VERY BOTTOM of the stylesheet.
+========================================================= */
+
+@media (min-width: 851px) {
+.client-details-page .app-shell {
+display: grid !important;
+grid-template-columns: var(--cp-sidebar-width, 250px) minmax(0, 1fr) !important;
+grid-template-rows: minmax(100vh, auto);
+align-items: stretch;
+width: 100%;
+min-width: 0;
+min-height: 100vh;
+margin: 0;
+padding: 0;
+}
+
+/* The overlay must never occupy a desktop grid cell. */
+.client-details-page .sidebar-overlay {
+display: none !important;
+}
+
+/* Explicitly anchor the sidebar in the first column. */
+.client-details-page .sidebar {
+grid-column: 1 !important;
+grid-row: 1 !important;
+position: sticky;
+top: 0;
+align-self: start;
+width: var(--cp-sidebar-width, 250px) !important;
+min-width: 0;
+height: 100vh;
+margin: 0;
+}
+
+/* Explicitly anchor the page content in the second column. */
+.client-details-page .main-content {
+grid-column: 2 !important;
+grid-row: 1 !important;
+display: flex;
+flex-direction: column;
+width: 100%;
+min-width: 0;
+max-width: none;
+margin: 0;
+padding: 0;
+}
+
+.client-details-page .page-content {
+width: 100%;
+min-width: 0;
+max-width: 1540px;
+margin-inline: auto;
+box-sizing: border-box;
+}
+
+.client-details-page #mobileMenuButton {
+display: none !important;
+}
 }
