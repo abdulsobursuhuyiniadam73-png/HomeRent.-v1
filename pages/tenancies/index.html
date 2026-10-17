@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087fdf">
+  <title>Tenancies | HomeRent</title>
+  <link rel="stylesheet" href="../../css/global.css">
+  <link rel="stylesheet" href="../../css/tenancies.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="tenancies-page">
+<div class="app-shell">
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand"><div class="sidebar-logo"><img id="systemLogo" src="../../assets/images/system-logo.jpeg" alt="System logo" data-default-logo></div><div class="sidebar-brand-text"><strong id="systemName">HomeRent</strong><span id="systemSubtitle">Property Management</span></div></div>
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <a href="../dashboard/index.html" class="nav-link"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+      <a href="../rooms/index.html" class="nav-link"><i class="fa-solid fa-door-open"></i><span>Rooms</span></a>
+      <a href="../clients/index.html" class="nav-link"><i class="fa-solid fa-users"></i><span>Clients</span></a>
+      <a href="index.html" class="nav-link active" aria-current="page"><i class="fa-solid fa-file-contract"></i><span>Tenancies</span></a>
+      <a href="../inspections/index.html" class="nav-link"><i class="fa-solid fa-clipboard-check"></i><span>Inspections</span></a>
+      <a href="../payments/index.html" class="nav-link"><i class="fa-solid fa-wallet"></i><span>Payments</span></a>
+      <a href="../reports/index.html" class="nav-link"><i class="fa-solid fa-chart-line"></i><span>Reports</span></a>
+      <a href="../settings/index.html" class="nav-link"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+    </nav>
+    <div class="sidebar-footer"><span class="sidebar-footer-dot"></span><span>Secure management</span></div>
+  </aside>
+  <main class="main-content">
+    <header class="topbar"><div class="topbar-left"><button type="button" class="icon-button mobile-menu-button" id="mobileMenuButton" aria-label="Open navigation" aria-expanded="false"><i class="fa-solid fa-bars"></i></button><div><p class="eyebrow">PROPERTY MANAGEMENT</p><h1>Tenancies</h1><p class="page-subtitle">Manage rental agreements, room occupancy and tenancy history.</p></div></div><div class="topbar-actions"><button class="primary-button" type="button" id="newTenancyButton"><i class="fa-solid fa-plus"></i> New tenancy</button></div></header>
+    <section class="tenancy-summary" aria-label="Tenancy summary">
+      <article class="tenancy-summary-card"><span class="summary-icon blue"><i class="fa-solid fa-file-signature"></i></span><div><p>Total records</p><strong id="totalTenancies">—</strong></div></article>
+      <article class="tenancy-summary-card"><span class="summary-icon green"><i class="fa-solid fa-circle-check"></i></span><div><p>Active</p><strong id="activeTenancies">—</strong></div></article>
+      <article class="tenancy-summary-card"><span class="summary-icon amber"><i class="fa-solid fa-calendar-xmark"></i></span><div><p>Ending soon</p><strong id="endingSoonTenancies">—</strong></div></article>
+    </section>
+    <section class="tenancy-panel">
+      <div class="tenancy-toolbar"><label class="tenancy-search"><i class="fa-solid fa-magnifying-glass"></i><input type="search" id="tenancySearch" placeholder="Search client, room or tenancy ID…" autocomplete="off"></label><label class="tenancy-filter"><span class="visually-hidden">Filter tenancy status</span><select id="tenancyStatusFilter"><option value="all">All statuses</option><option value="active">Active</option><option value="upcoming">Upcoming</option><option value="expired">Expired</option><option value="ended">Ended</option></select></label><button type="button" class="secondary-button" id="refreshTenanciesButton"><i class="fa-solid fa-rotate"></i> Refresh</button></div>
+      <div id="tenancyFeedback" class="tenancy-feedback" role="status" aria-live="polite" hidden></div>
+      <div id="tenancyLoading" class="tenancy-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading tenancy records…</div>
+      <div class="tenancy-table-wrap"><table class="tenancy-table"><thead><tr><th>Tenancy / Client</th><th>Room</th><th>Period</th><th>Agreed rent</th><th>Status</th><th>Actions</th></tr></thead><tbody id="tenanciesTableBody"></tbody></table></div>
+      <div id="tenanciesMobileList" class="tenancies-mobile-list"></div>
+      <div id="tenanciesEmptyState" class="tenancies-empty" hidden><span><i class="fa-solid fa-file-circle-plus"></i></span><h2 id="tenanciesEmptyTitle">No tenancy records yet</h2><p id="tenanciesEmptyMessage">Create a tenancy using an existing client and an available room.</p><button type="button" class="primary-button" id="emptyNewTenancyButton">Create first tenancy</button></div>
+    </section>
+    <footer class="page-footer"><p data-footer-text>Secure Property &amp; Storeroom Management</p><p><span data-business-name>HomeRent</span> · <span data-system-version>1.0.0</span></p></footer>
+  </main>
+</div>
+<nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+  <a href="../dashboard/index.html" class="mobile-nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+  <a href="../rooms/index.html" class="mobile-nav-item"><i class="fa-solid fa-door-open"></i><span>Rooms</span></a>
+  <button type="button" class="mobile-nav-add-button" id="mobileAddRoomButton" aria-label="Add a room" title="Add a room"><i class="fa-solid fa-plus"></i></button>
+  <a href="../clients/index.html" class="mobile-nav-item"><i class="fa-solid fa-users"></i><span>Clients</span></a>
+  <a href="../payments/index.html" class="mobile-nav-item"><i class="fa-solid fa-wallet"></i><span>Money</span></a>
+</nav>
+<div class="tenancy-modal-backdrop" id="tenancyModalBackdrop" hidden><section class="tenancy-modal" role="dialog" aria-modal="true" aria-labelledby="tenancyModalTitle"><div class="modal-heading"><div><p class="eyebrow">RENTAL AGREEMENT</p><h2 id="tenancyModalTitle">Create tenancy</h2><p>Choose a client, an available room and the agreed terms.</p></div><button type="button" class="icon-button" id="closeTenancyModal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></div><form id="tenancyForm" novalidate><div class="form-grid"><label class="form-field full"><span>Client <b>*</b></span><select id="tenancyClient" required><option value="">Load clients…</option></select></label><label class="form-field full"><span>Available room / storeroom <b>*</b></span><select id="tenancyRoom" required><option value="">Choose an available room</option></select><small>Only rooms marked available can be selected.</small></label><label class="form-field"><span>Start date <b>*</b></span><input type="date" id="tenancyStartDate" required></label><label class="form-field"><span>Duration <b>*</b></span><div class="duration-input"><input type="number" id="tenancyDuration" min="1" step="1" value="1" required><select id="tenancyDurationUnit" aria-label="Duration unit"><option value="weeks">Weeks</option><option value="months" selected>Months</option><option value="years">Years</option></select></div></label><label class="form-field"><span>End date (calculated)</span><input type="date" id="tenancyEndDate" readonly></label><label class="form-field"><span>Agreed rental amount (GHS) <b>*</b></span><input type="number" id="tenancyRentAmount" min="0" step="0.01" required placeholder="0.00"><small>Confirm the agreed total for this tenancy period.</small></label></div><div class="optional-payment"><label class="check-row"><input type="checkbox" id="recordInitialPayment"><span><strong>Record an initial payment</strong><small>Optional. Only record money actually received.</small></span></label><div class="form-field" id="initialPaymentField" hidden><label for="initialPaymentAmount">Amount received (GHS)</label><input type="number" id="initialPaymentAmount" min="0.01" step="0.01" placeholder="0.00"><label for="initialPaymentDate">Payment date</label><input type="date" id="initialPaymentDate"><label for="initialPaymentMethod">Payment method</label><select id="initialPaymentMethod"><option value="cash">Cash</option><option value="mobile_money">Mobile Money</option><option value="bank_transfer">Bank transfer</option><option value="other">Other</option></select><label for="initialPaymentReference">Reference / note (optional)</label><input type="text" id="initialPaymentReference" maxlength="120" placeholder="Receipt or transaction reference"></div></div><div id="tenancyFormError" class="form-error" role="alert" hidden></div><div class="modal-actions"><button type="button" class="secondary-button" id="cancelTenancyButton">Cancel</button><button type="submit" class="primary-button" id="saveTenancyButton"><i class="fa-solid fa-check"></i> Save tenancy</button></div></form></section></div>
+<script type="module" src="../../js/tenancies/tenancies.js"></script>
+</body></html>

@@ -5,17 +5,14 @@
  * Responsibilities:
  * 1. Load the selected client from Firestore.
  * 2. Display identity and contact details.
- * 3. Provide call and WhatsApp links.
- * 4. Connect profile action buttons.
- * 5. Display safe empty states until tenancy/payment/document
- *    records are connected to their real data services.
- *
- * CHANGE HERE:
- * If your clients-service.js exports different function names,
- * update the import and loadClient() function below.
+ * 3. Provide Call and WhatsApp links.
+ * 4. Display real tenancy information from Firestore.
+ * 5. Show recorded initial payments without inventing balances.
+ * 6. Preserve profile actions, branding and mobile navigation.
  */
 
 import { getClientById } from "./clients-service.js";
+import { getTenancies } from "../tenancies/tenancies-service.js";
 import { applyGlobalBranding } from "../core/branding.js";
 import { initAddRoom } from "../../components/add-room/add-room.js";
 
@@ -28,7 +25,7 @@ let currentClientId = "";
 let addRoomController = null;
 
 /* ---------------------------------------------------------
-   2. SMALL HELPERS
+   2. GENERAL HELPERS
 --------------------------------------------------------- */
 
 const $ = (selector) => document.querySelector(selector);
@@ -38,9 +35,7 @@ function setText(selector, value, fallback = "Not provided") {
   if (!element) return;
 
   const cleaned =
-    value === null || value === undefined
-      ? ""
-      : String(value).trim();
+    value === null || value === undefined ? "" : String(value).trim();
 
   element.textContent = cleaned || fallback;
 }
@@ -66,7 +61,6 @@ function formatDate(value) {
 
   let date;
 
-  // Firestore Timestamp support.
   if (typeof value?.toDate === "function") {
     date = value.toDate();
   } else if (value instanceof Date) {
@@ -75,9 +69,7 @@ function formatDate(value) {
     date = new Date(value);
   }
 
-  if (Number.isNaN(date.getTime())) {
-    return "Not recorded";
-  }
+  if (Number.isNaN(date.getTime())) return "Not recorded";
 
   return new Intl.DateTimeFormat("en-GB", {
     day: "2-digit",
@@ -86,42 +78,49 @@ function formatDate(value) {
   }).format(date);
 }
 
+function toDate(value) {
+  if (!value) return null;
+
+  if (typeof value?.toDate === "function") {
+    return value.toDate();
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : new Date(value);
+  }
+
+  const text = String(value);
+  const date = new Date(
+    /^\d{4}-\d{2}-\d{2}$/.test(text) ? `${text}T12:00:00` : text
+  );
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 function getBusinessName() {
   const element = $("[data-setting='businessName']");
   return element?.textContent?.trim() || "our property office";
 }
 
-/* =========================================================
-   CLIENT CONTACT HELPERS
-   Supports Ghanaian numbers:
-   0241234567, 233241234567, +233241234567
-========================================================= */
-
-function normalisePhone(phone) {
-  // Keep digits only for consistent validation.
-  let number = String(phone || "").replace(/\D/g, "");
-
-  // Convert a Ghanaian local number to international format.
-  if (number.length === 10 && number.startsWith("0")) {
-    number = `233${number.slice(1)}`;
-  }
-
-  // Accept only a valid 9-digit Ghana subscriber number
-  // following country code 233.
-  if (!/^233\d{9}$/.test(number)) {
-    return "";
-  }
-
-  return `+${number}`;
+function getCurrencyCode() {
+  return window.homeRentSettings?.currency || "GHS";
 }
 
-function makeWhatsAppNumber(phone) {
-  // WhatsApp requires digits only, including country code.
-  return normalisePhone(phone).replace(/\D/g, "");
+function formatMoney(value) {
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) return "Not linked";
+
+  try {
+    return new Intl.NumberFormat("en-GH", {
+      style: "currency",
+      currency: getCurrencyCode(),
+      maximumFractionDigits: 2
+    }).format(amount);
+  } catch {
+    return `${getCurrencyCode()} ${amount.toFixed(2)}`;
+  }
 }
-
-
-
 
 function showFeedback(message, type = "info") {
   const element = $("#clientProfileFeedback");
@@ -148,7 +147,75 @@ function isArchived(client) {
 }
 
 /* ---------------------------------------------------------
-   3. CLIENT ID FROM URL
+   3. CALL AND WHATSAPP
+   Ghanaian number examples:
+   0241234567, 233241234567, +233241234567
+--------------------------------------------------------- */
+
+function normalisePhone(phone) {
+  let number = String(phone || "").replace(/\D/g, "");
+
+  if (number.length === 10 && number.startsWith("0")) {
+    number = `233${number.slice(1)}`;
+  }
+
+  if (!/^233\d{9}$/.test(number)) {
+    return "";
+  }
+
+  return `+${number}`;
+}
+
+function makeWhatsAppNumber(phone) {
+  return normalisePhone(phone).replace(/\D/g, "");
+}
+
+function configureContactActions(phone, fullName) {
+  const callButton = $("#profileCallButton");
+  const whatsappButton = $("#profileWhatsAppButton");
+  const phoneNumber = normalisePhone(phone);
+
+  if (callButton) {
+    if (phoneNumber) {
+      callButton.href = `tel:${phoneNumber}`;
+      callButton.hidden = false;
+      callButton.removeAttribute("aria-disabled");
+      callButton.classList.remove("is-disabled");
+    } else {
+      callButton.removeAttribute("href");
+      callButton.hidden = true;
+      callButton.setAttribute("aria-disabled", "true");
+      callButton.classList.add("is-disabled");
+    }
+  }
+
+  if (whatsappButton) {
+    const whatsappNumber = makeWhatsAppNumber(phoneNumber);
+
+    if (whatsappNumber) {
+      const message =
+        `Hello ${fullName || "there"}, this is ${getBusinessName()}. ` +
+        "I am contacting you regarding your room or storeroom records.";
+
+      whatsappButton.href =
+        `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+      whatsappButton.target = "_blank";
+      whatsappButton.rel = "noopener noreferrer";
+      whatsappButton.hidden = false;
+      whatsappButton.removeAttribute("aria-disabled");
+      whatsappButton.classList.remove("is-disabled");
+    } else {
+      whatsappButton.removeAttribute("href");
+      whatsappButton.hidden = true;
+      whatsappButton.setAttribute("aria-disabled", "true");
+      whatsappButton.classList.add("is-disabled");
+    }
+  }
+}
+
+/* ---------------------------------------------------------
+   4. CLIENT IDENTITY
 --------------------------------------------------------- */
 
 function getClientIdFromUrl() {
@@ -161,16 +228,13 @@ function getClientIdFromUrl() {
   );
 }
 
-/* ---------------------------------------------------------
-   4. CLIENT IDENTITY
---------------------------------------------------------- */
-
 function renderAvatar(name) {
   const avatar = $("#profileAvatar");
   if (!avatar) return;
 
-  // Use the Font Awesome user icon already supported by the page.
-  avatar.innerHTML = '<i class="fa-solid fa-user" aria-hidden="true"></i>';
+  avatar.innerHTML =
+    '<i class="fa-solid fa-user" aria-hidden="true"></i>';
+
   avatar.setAttribute("aria-label", `Avatar for ${name}`);
 }
 
@@ -183,6 +247,7 @@ function renderClientIdentity(client) {
 
   const phone = firstValue(client, ["phone", "phoneNumber"]);
   const email = firstValue(client, ["email"]);
+
   const clientNumber = firstValue(
     client,
     ["clientNumber", "clientId", "clientCode"],
@@ -209,16 +274,9 @@ function renderClientIdentity(client) {
     "Not recorded"
   );
 
-  setText(
-    "#profileRoomDetails",
-    firstValue(client, [
-      "roomName",
-      "roomNumber",
-      "currentRoomName",
-      "roomType"
-    ]),
-    "No room linked"
-  );
+  // Do not use an old client room field as the source of truth.
+  // The room display is updated from actual tenancy records below.
+  setText("#profileRoomDetails", "No room linked");
 
   const statusElement = $("#profileClientStatus");
 
@@ -231,81 +289,243 @@ function renderClientIdentity(client) {
   renderAvatar(fullName);
   configureContactActions(phone, fullName);
 
-  // Avoid treating missing financial records as zero.
   setText("#profileRentPaid", "Not linked");
   setText(
     "#profileRentPaidCaption",
-    "Connect verified rent records to calculate this amount."
+    "Loading recorded initial payments..."
   );
 
   setText("#profileOutstandingBalance", "Not linked");
   setText(
     "#profileBalanceStatus",
-    "Connect tenancy charges and payments to calculate the balance."
+    "Full payment history is not connected yet."
   );
 }
 
+/* ---------------------------------------------------------
+   5. TENANCY DISPLAY HELPERS
+--------------------------------------------------------- */
 
-function configureContactActions(phone, fullName) {
-  const callButton = $("#profileCallButton");
-  const whatsappButton = $("#profileWhatsAppButton");
+function getTenancyRoomLabel(tenancy) {
+  const room = tenancy.roomNumber || tenancy.roomName || "Room";
+  const type = String(tenancy.roomType || "").toLowerCase();
 
-  // Normalize and validate the saved client phone number once.
-  const phoneNumber = normalisePhone(phone);
-  const hasValidPhone = Boolean(phoneNumber);
+  const isStore =
+    type === "store" ||
+    type === "storeroom" ||
+    type === "store room";
 
-  // Configure the Call button.
-  if (callButton) {
-    if (hasValidPhone) {
-      callButton.href = `tel:${phoneNumber}`;
-      callButton.hidden = false;
-      callButton.removeAttribute("aria-disabled");
-      callButton.classList.remove("is-disabled");
-    } else {
-      callButton.removeAttribute("href");
-      callButton.hidden = true;
-      callButton.setAttribute("aria-disabled", "true");
-      callButton.classList.add("is-disabled");
-    }
-  }
-
-  // Configure the WhatsApp button.
-  if (whatsappButton) {
-    const whatsappNumber = makeWhatsAppNumber(phoneNumber);
-
-    if (whatsappNumber) {
-      const businessName = getBusinessName();
-
-      const message =
-        `Hello ${fullName || "there"}, this is ${businessName}. ` +
-        "I am contacting you regarding your room or storeroom records.";
-
-      whatsappButton.href =
-        `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-
-      whatsappButton.target = "_blank";
-      whatsappButton.rel = "noopener noreferrer";
-      whatsappButton.hidden = false;
-      whatsappButton.removeAttribute("aria-disabled");
-      whatsappButton.classList.remove("is-disabled");
-    } else {
-      whatsappButton.removeAttribute("href");
-      whatsappButton.hidden = true;
-      whatsappButton.setAttribute("aria-disabled", "true");
-      whatsappButton.classList.add("is-disabled");
-    }
-  }
+  return `${room}${isStore ? " (Storeroom)" : ""}`;
 }
 
+function tenancyDate(value) {
+  return formatDate(value);
+}
 
+function isCurrentTenancy(tenancy, today) {
+  if (String(tenancy.status || "").toLowerCase() === "ended") {
+    return false;
+  }
 
+  const start = toDate(tenancy.startDate);
+  const end = toDate(tenancy.endDate);
 
+  if (start && start > today) return false;
 
+  if (end) {
+    end.setHours(23, 59, 59, 999);
+    if (end < today) return false;
+  }
 
+  return true;
+}
 
+function renderTenancyPlaceholder() {
+  setText("#profileRoomDetails", "No room linked");
+
+  setText("#currentTenancyStatus", "Not linked");
+  setText("#currentTenancyRoom", "No tenancy record linked");
+  setText("#currentTenancyStartDate", "Not recorded");
+  setText("#currentTenancyEndDate", "Not recorded");
+  setText("#currentTenancyRate", "Not calculated");
+
+  setText("#tenancyProgressTitle", "Tenancy progress unavailable");
+  setText(
+    "#tenancyProgressCaption",
+    "Connect a verified tenancy record to show the rental period."
+  );
+  setText(
+    "#tenancyProgressNote",
+    "Days elapsed and days remaining will appear here."
+  );
+
+  const fill = $("#tenancyProgressFill");
+  if (fill) fill.style.width = "0%";
+
+  const track = $("#tenancyProgressTrack");
+  if (track) track.setAttribute("aria-valuenow", "0");
+
+  setText("#profileRentPaid", "Not linked");
+  setText(
+    "#profileRentPaidCaption",
+    "No verified initial payments are linked to this profile."
+  );
+
+  setText("#profileOutstandingBalance", "Not linked");
+  setText(
+    "#profileBalanceStatus",
+    "Full payment history is not connected yet."
+  );
+}
+
+function renderClientTenancies(records) {
+  const clientTenancies = records
+    .filter(
+      (item) =>
+        String(item.clientId || "") === String(currentClientId)
+    )
+    .sort((a, b) => {
+      const aDate = toDate(a.startDate)?.getTime() || 0;
+      const bDate = toDate(b.startDate)?.getTime() || 0;
+      return bDate - aDate;
+    });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const activeTenancies = clientTenancies.filter(
+    (item) => isCurrentTenancy(item, today)
+  );
+
+  // A client may rent several rooms using separate tenancy records.
+  const roomSummary = activeTenancies.length
+    ? [...new Set(activeTenancies.map(getTenancyRoomLabel))].join(", ")
+    : "No room linked";
+
+  setText("#profileRoomDetails", roomSummary, "No room linked");
+
+  // Prefer a current tenancy. Otherwise show the most recent historical
+  // tenancy so ended records remain visible on the client profile.
+  const selected =
+    activeTenancies[0] || clientTenancies[0] || null;
+
+  if (!selected) {
+    renderTenancyPlaceholder();
+    return;
+  }
+
+  const status = String(selected.status || "").toLowerCase();
+
+  const displayedStatus =
+    status === "ended"
+      ? "Ended"
+      : activeTenancies.includes(selected)
+        ? "Active"
+        : "Upcoming / expired";
+
+  setText("#currentTenancyStatus", displayedStatus);
+  setText("#currentTenancyRoom", getTenancyRoomLabel(selected));
+  setText("#currentTenancyStartDate", tenancyDate(selected.startDate));
+  setText("#currentTenancyEndDate", tenancyDate(selected.endDate));
+  setText("#currentTenancyRate", formatMoney(selected.rentAmount));
+
+  // Calculate rental-period progress.
+  const start = toDate(selected.startDate);
+  const end = toDate(selected.endDate);
+  const now = new Date();
+
+  let percent = 0;
+
+  if (start && end && end.getTime() > start.getTime()) {
+    percent = Math.max(
+      0,
+      Math.min(
+        100,
+        ((now.getTime() - start.getTime()) /
+          (end.getTime() - start.getTime())) *
+          100
+      )
+    );
+  }
+
+  const roundedPercent = Math.round(percent);
+
+  const fill = $("#tenancyProgressFill");
+  if (fill) fill.style.width = `${roundedPercent}%`;
+
+  const track = $("#tenancyProgressTrack");
+  if (track) {
+    track.setAttribute("aria-valuenow", String(roundedPercent));
+  }
+
+  setText("#tenancyProgressTitle", "Rental period");
+  setText("#tenancyProgressCaption", `${roundedPercent}% elapsed`);
+
+  let progressNote = "Tenancy dates are available.";
+
+  if (end) {
+    const endDay = new Date(
+      end.getFullYear(),
+      end.getMonth(),
+      end.getDate()
+    );
+
+    const todayDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    );
+
+    const days = Math.ceil(
+      (endDay.getTime() - todayDay.getTime()) / 86400000
+    );
+
+    progressNote =
+      days > 0
+        ? `${days} day(s) remaining.`
+        : days === 0
+          ? "Tenancy end date is today."
+          : `Tenancy ended ${Math.abs(days)} day(s) ago.`;
+  }
+
+  setText("#tenancyProgressNote", progressNote);
+
+  // Only sum actual initial payments saved on tenancy records.
+  // This is not a complete rent-payment history.
+  const initialPaid = clientTenancies.reduce((sum, item) => {
+    const amount = Number(item.initialPayment?.amount);
+
+    return Number.isFinite(amount) && amount > 0
+      ? sum + amount
+      : sum;
+  }, 0);
+
+  const hasInitialPayments = clientTenancies.some(
+    (item) => Number(item.initialPayment?.amount) > 0
+  );
+
+  setText(
+    "#profileRentPaid",
+    hasInitialPayments ? formatMoney(initialPaid) : "Not linked"
+  );
+
+  setText(
+    "#profileRentPaidCaption",
+    hasInitialPayments
+      ? "Recorded initial payments across this client's tenancy records. Other payments will appear when the Payments module is connected."
+      : "No initial payments are recorded in these tenancy records. Full payment history is not connected yet."
+  );
+
+  // Never calculate a misleading balance from initial payments alone.
+  setText("#profileOutstandingBalance", "Not linked");
+  setText(
+    "#profileBalanceStatus",
+    "Full payment history is not connected yet."
+  );
+}
 
 /* ---------------------------------------------------------
-   5. SAFE MODAL FRAMEWORK
+   6. SAFE MODAL FRAMEWORK
 --------------------------------------------------------- */
 
 function closeProfileModal() {
@@ -335,7 +555,6 @@ function openProfileModal({ title, subtitle = "", content = "" }) {
   const headingGroup = document.createElement("div");
   const heading = document.createElement("h2");
   heading.textContent = title;
-
   headingGroup.appendChild(heading);
 
   if (subtitle) {
@@ -356,8 +575,6 @@ function openProfileModal({ title, subtitle = "", content = "" }) {
   const body = document.createElement("div");
   body.className = "client-profile-modal-body";
 
-  // Content is created as plain text/DOM by this module.
-  // Do not insert user-supplied notes as raw HTML.
   if (content instanceof Node) {
     body.appendChild(content);
   } else {
@@ -411,7 +628,8 @@ function createEmptyState(title, description) {
 
   const icon = document.createElement("div");
   icon.className = "client-profile-empty-icon";
-  icon.innerHTML = '<i class="fa-regular fa-folder-open" aria-hidden="true"></i>';
+  icon.innerHTML =
+    '<i class="fa-regular fa-folder-open" aria-hidden="true"></i>';
 
   const heading = document.createElement("h3");
   heading.textContent = title;
@@ -424,14 +642,18 @@ function createEmptyState(title, description) {
 }
 
 /* ---------------------------------------------------------
-   6. OVERVIEW MODAL
+   7. OVERVIEW MODAL
 --------------------------------------------------------- */
 
 function openOverviewModal() {
   if (!currentClient) return;
 
   const client = currentClient;
-  const fullName = firstValue(client, ["fullName", "name"], "Unnamed client");
+  const fullName = firstValue(
+    client,
+    ["fullName", "name"],
+    "Unnamed client"
+  );
 
   const container = document.createElement("div");
   container.className = "client-profile-overview";
@@ -445,15 +667,21 @@ function openOverviewModal() {
 
   const personalRows = [
     ["Full name", fullName],
-    ["Client number", firstValue(client, ["clientNumber", "clientId"], currentClientId)],
+    [
+      "Client number",
+      firstValue(client, ["clientNumber", "clientId"], currentClientId)
+    ],
     ["Client type", firstValue(client, ["clientType"])],
-    ["Phone", firstValue(client, ["phone"])],
+    ["Phone", firstValue(client, ["phone", "phoneNumber"])],
     ["Alternative phone", firstValue(client, ["alternativePhone"])],
     ["Email", firstValue(client, ["email"])],
     ["Address", firstValue(client, ["address"])],
     ["Identification type", firstValue(client, ["identificationType"])],
     ["Identification number", firstValue(client, ["identificationNumber"])],
-    ["Date registered", formatDate(firstValue(client, ["createdAt", "registrationDate"]))]
+    [
+      "Date registered",
+      formatDate(firstValue(client, ["createdAt", "registrationDate"]))
+    ]
   ];
 
   personalRows.forEach(([label, value]) => {
@@ -494,13 +722,46 @@ function openOverviewModal() {
   tenancySection.appendChild(tenancyHeading);
 
   tenancySection.appendChild(
-    createEmptyState(
-      "Tenancy details not connected",
-      "The current room, tenancy dates, rental rate and days remaining will appear here once the profile is connected to the verified tenancy records."
+    createDetailRow(
+      "Room",
+      $("#currentTenancyRoom")?.textContent || "No room linked"
     )
   );
 
-  container.append(personalSection, emergencySection, notesSection, tenancySection);
+  tenancySection.appendChild(
+    createDetailRow(
+      "Status",
+      $("#currentTenancyStatus")?.textContent || "Not linked"
+    )
+  );
+
+  tenancySection.appendChild(
+    createDetailRow(
+      "Start date",
+      $("#currentTenancyStartDate")?.textContent || "Not recorded"
+    )
+  );
+
+  tenancySection.appendChild(
+    createDetailRow(
+      "End date",
+      $("#currentTenancyEndDate")?.textContent || "Not recorded"
+    )
+  );
+
+  tenancySection.appendChild(
+    createDetailRow(
+      "Agreed rent",
+      $("#currentTenancyRate")?.textContent || "Not calculated"
+    )
+  );
+
+  container.append(
+    personalSection,
+    emergencySection,
+    notesSection,
+    tenancySection
+  );
 
   openProfileModal({
     title: "Client overview",
@@ -510,15 +771,15 @@ function openOverviewModal() {
 }
 
 /* ---------------------------------------------------------
-   7. RENT HISTORY, PAYMENTS AND DOCUMENTS
+   8. RENT HISTORY, PAYMENTS AND DOCUMENTS
 --------------------------------------------------------- */
 
 function openRentHistoryModal() {
   if (!currentClient) return;
 
   const content = createEmptyState(
-    "No verified rent history loaded",
-    "Rent periods will appear here after the profile is connected to your existing tenancy and rent records. No rent periods have been invented."
+    "Full rent history not connected",
+    "This profile currently shows tenancy information and recorded initial payments. The complete rent history will be available when the Payments module is connected."
   );
 
   openProfileModal({
@@ -532,8 +793,8 @@ function openPaymentsModal() {
   if (!currentClient) return;
 
   const content = createEmptyState(
-    "Payment records not connected",
-    "Verified receipts will appear here with receipt ID, date, payment method, reference, amount and time. The total will be calculated from recorded payments only."
+    "Full payment history not connected",
+    "The complete payment and receipt history will appear here when the Payments module is connected. Amounts will be calculated from actual payment records."
   );
 
   openProfileModal({
@@ -548,7 +809,7 @@ function openDocumentsModal() {
 
   const content = createEmptyState(
     "No document records loaded",
-    "Client-related documents will appear here when connected to the system's actual document records. Download or bundle actions will be enabled once those files and permissions are available."
+    "Client-related documents will appear here when connected to the system's actual document records."
   );
 
   openProfileModal({
@@ -559,47 +820,38 @@ function openDocumentsModal() {
 }
 
 /* ---------------------------------------------------------
-   8. CURRENT TENANCY EMPTY STATE
---------------------------------------------------------- */
-
-function renderTenancyPlaceholder() {
-  setText("#currentTenancyStatus", "Not linked");
-  setText("#currentTenancyRoom", "No tenancy record linked");
-  setText("#currentTenancyStartDate", "Not recorded");
-  setText("#currentTenancyEndDate", "Not recorded");
-  setText("#currentTenancyRate", "Not calculated");
-  setText("#tenancyProgressTitle", "Tenancy progress unavailable");
-  setText(
-    "#tenancyProgressCaption",
-    "Connect a verified tenancy record to show the rental period."
-  );
-  setText(
-    "#tenancyProgressNote",
-    "Days elapsed and days remaining will appear here."
-  );
-
-  const fill = $("#tenancyProgressFill");
-  if (fill) fill.style.width = "0%";
-
-  const track = $("#tenancyProgressTrack");
-  if (track) track.setAttribute("aria-valuenow", "0");
-}
-
-/* ---------------------------------------------------------
-   9. PAGE BUTTONS AND MOBILE NAVIGATION
+   9. PROFILE BUTTONS AND MOBILE NAVIGATION
 --------------------------------------------------------- */
 
 function bindProfileActions() {
-  $("#openClientOverviewButton")?.addEventListener("click", openOverviewModal);
-  $("#openRentHistoryButton")?.addEventListener("click", openRentHistoryModal);
-  $("#openClientPaymentsButton")?.addEventListener("click", openPaymentsModal);
-  $("#openClientDocumentsButton")?.addEventListener("click", openDocumentsModal);
+  $("#openClientOverviewButton")?.addEventListener(
+    "click",
+    openOverviewModal
+  );
+
+  $("#openRentHistoryButton")?.addEventListener(
+    "click",
+    openRentHistoryModal
+  );
+
+  $("#openClientPaymentsButton")?.addEventListener(
+    "click",
+    openPaymentsModal
+  );
+
+  $("#openClientDocumentsButton")?.addEventListener(
+    "click",
+    openDocumentsModal
+  );
 
   $("#mobileAddRoomButton")?.addEventListener("click", () => {
     if (addRoomController?.open) {
       addRoomController.open();
     } else {
-      showFeedback("The Add Room form is not available on this page.", "error");
+      showFeedback(
+        "The Add Room form is not available on this page.",
+        "error"
+      );
     }
   });
 
@@ -629,7 +881,7 @@ function bindProfileActions() {
 }
 
 /* ---------------------------------------------------------
-   10. LOAD CLIENT
+   10. LOAD CLIENT AND ITS TENANCIES
 --------------------------------------------------------- */
 
 async function loadClient() {
@@ -650,17 +902,18 @@ async function loadClient() {
   try {
     const result = await getClientById(currentClientId);
 
-    // Support services that return a Firestore document object
-    // or a plain client data object.
-    const client = result?.data && typeof result.data === "object"
-      ? { id: result.id || currentClientId, ...result.data }
-      : result;
+    // Support a plain client object or a service result containing data.
+    const client =
+      result?.data && typeof result.data === "object"
+        ? { id: result.id || currentClientId, ...result.data }
+        : result;
 
     if (!client || client.exists === false || isArchived(client)) {
       showFeedback(
         "This client could not be found or is archived.",
         "error"
       );
+
       setText("#profileClientName", "Client unavailable");
       setText("#profileClientNumber", currentClientId);
       renderTenancyPlaceholder();
@@ -675,6 +928,28 @@ async function loadClient() {
     hideFeedback();
     renderClientIdentity(currentClient);
     renderTenancyPlaceholder();
+
+    // Load real records from the existing Tenancies service.
+    // Failure to load tenancies must not break the client profile.
+    try {
+      const records = await getTenancies();
+
+      renderClientTenancies(
+        Array.isArray(records) ? records : []
+      );
+    } catch (tenancyError) {
+      console.error(
+        "HomeRent: failed to load client tenancy records.",
+        tenancyError
+      );
+
+      renderTenancyPlaceholder();
+
+      setText(
+        "#profileRentPaidCaption",
+        "Tenancy records could not be loaded. Check Firebase access and connection."
+      );
+    }
   } catch (error) {
     console.error("HomeRent: failed to load client profile.", error);
 
@@ -697,14 +972,19 @@ async function initialiseClientProfile() {
   try {
     await applyGlobalBranding();
   } catch (error) {
-    // Branding failure should not prevent the client profile loading.
-    console.warn("HomeRent: branding could not be applied.", error);
+    console.warn(
+      "HomeRent: branding could not be applied.",
+      error
+    );
   }
 
   try {
     addRoomController = initAddRoom();
   } catch (error) {
-    console.warn("HomeRent: Add Room form could not initialise.", error);
+    console.warn(
+      "HomeRent: Add Room form could not initialise.",
+      error
+    );
   }
 
   bindProfileActions();
