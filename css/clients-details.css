@@ -1556,74 +1556,7 @@
   }
 }
 
-@media (max-width: 850px) {
-  .client-details-page {
 
-    --cp-sidebar-width: 250px;
-
-  }
-
-  .client-details-page .app-shell {
-    display: block;
-  }
-
-  .client-details-page .sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 1200;
-    width: min(82vw, 290px);
-    height: 100dvh;
-    transform: translateX(-105%);
-    visibility: hidden;
-    transition:
-      transform 240ms ease,
-      visibility 240ms ease;
-  }
-
-  .client-details-page .sidebar.is-open,
-  .client-details-page .sidebar.open,
-  .client-details-page .sidebar.active {
-    transform: translateX(0);
-    visibility: visible;
-  }
-
-  .client-details-page .sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1100;
-    background: rgb(5 23 43 / 58%);
-    opacity: 0;
-    visibility: hidden;
-    transition:
-      opacity 220ms ease,
-      visibility 220ms ease;
-  }
-
-  .client-details-page .sidebar-overlay.is-visible,
-  .client-details-page .sidebar-overlay.active,
-  .client-details-page .sidebar-overlay.show {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .client-details-page .main-content {
-    min-height: 100vh;
-  }
-
-  .client-details-page #mobileMenuButton {
-    display: inline-flex;
-  }
-
-  .client-details-page .client-profile-content {
-    gap: 20px;
-  }
-
-  .client-details-page .client-profile-overview {
-    gap: 13px;
-  }
-}
 
 
 /* =========================================================
@@ -2268,4 +2201,82 @@ box-sizing: border-box;
 .client-details-page #mobileMenuButton {
 display: none !important;
 }
+}
+
+
+
+/* =========================================================
+   HOMERENT CLIENT PROFILE — MOBILE LAYOUT CORRECTION
+   Add this block AFTER the desktop layout fix.
+========================================================= */
+
+@media (max-width: 850px) {
+
+  .client-details-page .app-shell {
+    display: block !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+
+  .client-details-page .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;
+    width: min(var(--cp-sidebar-width, 250px), 85vw) !important;
+    max-width: 85vw;
+    height: 100dvh;
+    margin: 0;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  .client-details-page .sidebar.is-open,
+  .client-details-page .sidebar.open,
+  .client-details-page .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .client-details-page .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .client-details-page .sidebar-overlay.is-visible,
+  .client-details-page .sidebar-overlay.active,
+  .client-details-page .sidebar-overlay.show {
+    display: block !important;
+  }
+
+  .client-details-page .main-content {
+    display: flex !important;
+    flex-direction: column;
+    width: 100% !important;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 100vh;
+    margin: 0 !important;
+    padding: 0;
+  }
+
+  .client-details-page .page-content {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  .client-details-page #mobileMenuButton {
+    display: flex !important;
+  }
 }

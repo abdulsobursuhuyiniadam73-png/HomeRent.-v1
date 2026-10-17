@@ -91,22 +91,37 @@ function getBusinessName() {
   return element?.textContent?.trim() || "our property office";
 }
 
+/* =========================================================
+   CLIENT CONTACT HELPERS
+   Supports Ghanaian numbers:
+   0241234567, 233241234567, +233241234567
+========================================================= */
+
 function normalisePhone(phone) {
-  return String(phone || "").replace(/[^\d+]/g, "");
-}
+  // Keep digits only for consistent validation.
+  let number = String(phone || "").replace(/\D/g, "");
 
-function makeWhatsAppNumber(phone) {
-  // WhatsApp URLs require country code and digits.
-  // CHANGE HERE if your stored phone numbers use another format.
-  let number = normalisePhone(phone).replace(/\D/g, "");
-
-  // Ghana local number example: 0241234567 -> 233241234567.
-  if (number.startsWith("0") && number.length === 10) {
+  // Convert a Ghanaian local number to international format.
+  if (number.length === 10 && number.startsWith("0")) {
     number = `233${number.slice(1)}`;
   }
 
-  return number;
+  // Accept only a valid 9-digit Ghana subscriber number
+  // following country code 233.
+  if (!/^233\d{9}$/.test(number)) {
+    return "";
+  }
+
+  return `+${number}`;
 }
+
+function makeWhatsAppNumber(phone) {
+  // WhatsApp requires digits only, including country code.
+  return normalisePhone(phone).replace(/\D/g, "");
+}
+
+
+
 
 function showFeedback(message, type = "info") {
   const element = $("#clientProfileFeedback");
@@ -230,29 +245,39 @@ function renderClientIdentity(client) {
   );
 }
 
+
 function configureContactActions(phone, fullName) {
   const callButton = $("#profileCallButton");
   const whatsappButton = $("#profileWhatsAppButton");
 
+  // Normalize and validate the saved client phone number once.
+  const phoneNumber = normalisePhone(phone);
+  const hasValidPhone = Boolean(phoneNumber);
+
+  // Configure the Call button.
   if (callButton) {
-    if (phone) {
-      callButton.href = `tel:${normalisePhone(phone)}`;
+    if (hasValidPhone) {
+      callButton.href = `tel:${phoneNumber}`;
+      callButton.hidden = false;
       callButton.removeAttribute("aria-disabled");
       callButton.classList.remove("is-disabled");
     } else {
       callButton.removeAttribute("href");
+      callButton.hidden = true;
       callButton.setAttribute("aria-disabled", "true");
       callButton.classList.add("is-disabled");
     }
   }
 
+  // Configure the WhatsApp button.
   if (whatsappButton) {
-    const whatsappNumber = makeWhatsAppNumber(phone);
+    const whatsappNumber = makeWhatsAppNumber(phoneNumber);
 
     if (whatsappNumber) {
       const businessName = getBusinessName();
+
       const message =
-        `Hello ${fullName}, this is ${businessName}. ` +
+        `Hello ${fullName || "there"}, this is ${businessName}. ` +
         "I am contacting you regarding your room or storeroom records.";
 
       whatsappButton.href =
@@ -260,15 +285,24 @@ function configureContactActions(phone, fullName) {
 
       whatsappButton.target = "_blank";
       whatsappButton.rel = "noopener noreferrer";
+      whatsappButton.hidden = false;
       whatsappButton.removeAttribute("aria-disabled");
       whatsappButton.classList.remove("is-disabled");
     } else {
       whatsappButton.removeAttribute("href");
+      whatsappButton.hidden = true;
       whatsappButton.setAttribute("aria-disabled", "true");
       whatsappButton.classList.add("is-disabled");
     }
   }
 }
+
+
+
+
+
+
+
 
 /* ---------------------------------------------------------
    5. SAFE MODAL FRAMEWORK
